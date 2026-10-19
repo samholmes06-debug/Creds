@@ -83,11 +83,19 @@ button { font: inherit; color: inherit; }
 .builder { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 20px; align-items: start; }
 @media (max-width: 1060px) { .builder { grid-template-columns: minmax(0, 1fr); } }
 .steps { display: grid; gap: 20px; min-width: 0; }
-.step { background: var(--grey); border-radius: var(--radius); padding: clamp(18px, 2.4vw, 28px); display: grid; gap: 18px; }
-.step-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+.step { background: var(--grey); border-radius: var(--radius); }
+.step h2 { margin: 0; }
+.step-toggle { width: 100%; border: 0; background: none; cursor: pointer; text-align: left; display: flex; align-items: center; gap: 14px; padding: clamp(18px, 2.4vw, 28px); border-radius: var(--radius); }
 .step-num { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-height: 1; letter-spacing: -.03em; }
-.step-head h2 { font-family: var(--font-display); font-weight: 700; font-size: clamp(22px, 2.4vw, 28px); letter-spacing: -.015em; }
-.step-head .hint { color: var(--muted); font-size: 14px; margin-left: auto; }
+.step-title { font-family: var(--font-display); font-weight: 700; font-size: clamp(22px, 2.4vw, 28px); letter-spacing: -.015em; line-height: 1.15; }
+.chev { margin-left: auto; flex: none; width: 40px; height: 40px; border-radius: 50%; background: var(--white); position: relative; transition: background .2s, transform .25s ease; }
+.chev::before, .chev::after { content: ""; position: absolute; top: 50%; left: 50%; width: 14px; height: 2px; background: var(--black); border-radius: 1px; transform: translate(-50%, -50%); transition: transform .25s ease, background .2s; }
+.chev::after { transform: translate(-50%, -50%) rotate(90deg); }
+.step-toggle:hover .chev { background: var(--black); }
+.step-toggle:hover .chev::before, .step-toggle:hover .chev::after { background: var(--white); }
+.step-toggle[aria-expanded="true"] .chev::after { transform: translate(-50%, -50%) rotate(0deg); }
+.step-body { padding: 0 clamp(18px, 2.4vw, 28px) clamp(18px, 2.4vw, 28px); display: grid; gap: 14px; }
+.step-help { color: var(--muted); font-size: 14px; }
 
 .cards { display: grid; gap: 10px; }
 .cards.who { grid-template-columns: repeat(5, minmax(0, 1fr)); }
@@ -366,17 +374,17 @@ body.pm-open { overflow: hidden; }
 
     <div class="builder">
       <div class="steps">
-        <section class="step" aria-labelledby="s1">
-          <div class="step-head"><span class="step-num">01</span><h2 id="s1">Who are you engaging?</h2><span class="hint" id="hint1"></span></div>
-          <div class="cards who" id="whoCards" role="group" aria-labelledby="s1"></div>
+        <section class="step">
+          <h2><button class="step-toggle" type="button" id="s1" aria-expanded="false" aria-controls="sb1"><span class="step-num">01</span><span class="step-title">Who are you engaging?</span><span class="chev" aria-hidden="true"></span></button></h2>
+          <div class="step-body" id="sb1" hidden><div class="cards who" id="whoCards" role="group" aria-labelledby="s1"></div></div>
         </section>
-        <section class="step" aria-labelledby="s2">
-          <div class="step-head"><span class="step-num">02</span><h2 id="s2">What's the engagement?</h2><span class="hint" id="hint2"></span></div>
-          <div class="cards eng" id="engCards" role="group" aria-labelledby="s2"></div>
+        <section class="step">
+          <h2><button class="step-toggle" type="button" id="s2" aria-expanded="false" aria-controls="sb2"><span class="step-num">02</span><span class="step-title">What's the engagement?</span><span class="chev" aria-hidden="true"></span></button></h2>
+          <div class="step-body" id="sb2" hidden><div class="cards eng" id="engCards" role="group" aria-labelledby="s2"></div></div>
         </section>
-        <section class="step" aria-labelledby="s3">
-          <div class="step-head"><span class="step-num">03</span><h2 id="s3">Choose the materials</h2><span class="hint">Recommended items are ticked. Add or remove any.</span></div>
-          <div class="materials" id="materials"></div>
+        <section class="step">
+          <h2><button class="step-toggle" type="button" id="s3" aria-expanded="false" aria-controls="sb3"><span class="step-num">03</span><span class="step-title">Choose the materials</span><span class="chev" aria-hidden="true"></span></button></h2>
+          <div class="step-body" id="sb3" hidden><p class="step-help">Recommended items are ticked. Add or remove any.</p><div class="materials" id="materials"></div></div>
         </section>
       </div>
 
@@ -663,10 +671,22 @@ function cards(container, data, key) {
     b.innerHTML = key === "who"
       ? `<span class="t">${d.label}</span><span class="d">${d.d}</span>`
       : `<span class="pill tag">${d.tag}</span><span class="t">${d.label}</span><span class="d">${d.d}</span>`;
-    b.addEventListener("click", () => { state[key] = id; state.picked = [...rec()]; render(); });
+    b.addEventListener("click", () => {
+      state[key] = id; state.picked = [...rec()]; render();
+      // Choosing closes this step and opens the next one
+      const n = key === "who" ? 1 : 2;
+      setStep(n, false); setStep(n + 1, true); $(`#s${n + 1}`).focus();
+    });
     container.append(b);
   });
 }
+
+// Collapsible steps, all closed on load
+function setStep(n, open) {
+  $(`#s${n}`).setAttribute("aria-expanded", String(open));
+  $(`#sb${n}`).hidden = !open;
+}
+[1, 2, 3].forEach(n => $(`#s${n}`).addEventListener("click", () => setStep(n, $(`#sb${n}`).hidden)));
 
 function renderMaterials() {
   const r = rec();
@@ -693,8 +713,6 @@ function togglePick(id, on, refocus) {
 function render() {
   cards($("#whoCards"), STAKEHOLDERS, "who");
   cards($("#engCards"), ENGAGEMENTS, "eng");
-  $("#hint1").textContent = STAKEHOLDERS[state.who].label;
-  $("#hint2").textContent = ENGAGEMENTS[state.eng].label;
   renderMaterials();
 
   const order = packOrder();
