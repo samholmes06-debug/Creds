@@ -72,8 +72,9 @@ button { font: inherit; color: inherit; }
 .cards { display: grid; gap: 10px; }
 .cards.who { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 .cards.eng { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-@media (max-width: 900px) { .cards.who { grid-template-columns: repeat(3, minmax(0, 1fr)); } .cards.eng { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 520px) { .cards.who, .cards.eng { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.steps { container-type: inline-size; }
+@container (max-width: 820px) { .cards.who { grid-template-columns: repeat(3, minmax(0, 1fr)); } .cards.eng { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@container (max-width: 480px) { .cards.who, .cards.eng { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .card { position: relative; text-align: left; background: var(--white); border: 1.5px solid var(--white); border-radius: 14px; padding: 16px; cursor: pointer; display: grid; gap: 10px; align-content: start; min-height: 132px; transition: transform .2s ease, border-color .2s ease, background .2s ease, color .2s ease; }
 .card:hover { transform: translateY(-3px); border-color: var(--black); }
 .card .code { font-family: var(--font-display); font-weight: 800; font-size: 34px; letter-spacing: -.03em; line-height: 1; }
@@ -247,6 +248,65 @@ footer b { color: var(--white); }
 .sheet h2 { font-family: var(--font-display); font-size: 26px; font-weight: 700; letter-spacing: -.015em; }
 .email { background: var(--grey); border-radius: 12px; padding: 18px; font-size: 14px; white-space: pre-wrap; overflow-wrap: anywhere; }
 .toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 20px); transform: translateX(-50%); background: var(--black); color: var(--white); padding: 12px 18px; border-radius: 999px; font-size: 14px; z-index: 30; max-width: calc(100% - 32px); }
+
+/* Review layer: its own blue so amends never read as page design */
+:root { --rv: #2453e6; --rv-soft: #e9eeff; }
+.rv-launch { position: fixed; right: calc(env(safe-area-inset-right, 0px) + 20px); bottom: calc(env(safe-area-inset-bottom, 0px) + 20px); z-index: 15; background: var(--rv); color: #fff; border: 0; border-radius: 999px; padding: 13px 20px; font-weight: 600; font-size: 14px; cursor: pointer; display: flex; gap: 10px; align-items: center; box-shadow: 0 8px 24px rgba(36, 83, 230, .3); }
+.rv-count { background: #fff; color: var(--rv); border-radius: 999px; min-width: 22px; padding: 1px 7px; font-size: 12px; text-align: center; }
+.rv-panel { position: fixed; top: calc(env(safe-area-inset-top, 0px) + 12px); bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); right: calc(env(safe-area-inset-right, 0px) + 12px); width: min(400px, calc(100% - 24px)); z-index: 16; background: var(--white); border: 1.5px solid var(--grey-2); border-radius: var(--radius); box-shadow: 0 20px 60px rgba(13, 14, 15, .18); display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto; overflow: hidden; }
+.rv-top { padding: 20px 20px 14px; display: grid; gap: 14px; border-bottom: 1px solid var(--grey-2); }
+.rv-head { display: flex; justify-content: space-between; align-items: start; gap: 12px; }
+.rv-head .mono { color: var(--rv); }
+.rv-head h2 { font-family: var(--font-display); font-weight: 700; font-size: 26px; letter-spacing: -.015em; }
+.rv-modes { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: var(--grey); padding: 4px; border-radius: 12px; }
+.rv-modes button { border: 0; background: transparent; border-radius: 9px; padding: 10px; font-weight: 600; font-size: 14px; cursor: pointer; }
+.rv-modes button[aria-pressed="true"] { background: var(--rv); color: #fff; }
+.rv-modes button:disabled { opacity: .45; cursor: not-allowed; }
+.rv-help { font-size: 13px; color: var(--muted); }
+.rv-status { font-size: 12.5px; color: var(--muted); padding: 10px 20px; background: var(--grey); }
+.rv-list { overflow-y: auto; padding: 8px 20px 20px; display: grid; gap: 10px; align-content: start; }
+.rv-group { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); padding-top: 10px; }
+.rv-item { border: 1.5px solid var(--grey-2); border-radius: 12px; padding: 12px 14px; display: grid; gap: 6px; font-size: 14px; }
+.rv-item.resolved { opacity: .6; }
+.rv-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); }
+.rv-tag { background: var(--rv); color: #fff; border-radius: 999px; padding: 1px 8px; font-size: 11.5px; font-weight: 600; }
+.rv-tag.edit { background: var(--black); }
+.rv-tag.warn { background: var(--accent); }
+.rv-quote { color: var(--muted); font-size: 13px; }
+.rv-item del { color: var(--muted); }
+.rv-item ins { text-decoration: none; background: var(--rv-soft); border-radius: 3px; padding: 0 2px; }
+.rv-by { font-size: 12px; color: var(--muted); }
+.rv-acts { display: flex; gap: 6px; flex-wrap: wrap; }
+.rv-acts button { border: 1.5px solid var(--grey-2); background: var(--white); border-radius: 999px; padding: 4px 11px; font-size: 12.5px; cursor: pointer; }
+.rv-acts button:hover { border-color: var(--black); }
+.rv-empty { color: var(--muted); font-size: 14px; padding: 16px 0; }
+.rv-foot { border-top: 1px solid var(--grey-2); padding: 14px 20px; display: grid; gap: 8px; }
+.rv-foot .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.rv-foot .btn { flex: 1; justify-content: center; padding: 11px 16px; font-size: 14px; }
+.rv-confirm { font-size: 13px; background: var(--grey); border-radius: 10px; padding: 10px 12px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.rv-confirm .danger { background: var(--accent); color: #fff; border-color: var(--accent); }
+.rv-copyout { width: 100%; min-height: 120px; font: 12.5px/1.5 var(--font-mono); border: 1.5px solid var(--grey-2); border-radius: 10px; padding: 10px; color: var(--black); background: var(--white); }
+.rv-pop { position: fixed; z-index: 17; width: min(330px, calc(100% - 32px)); background: var(--white); border: 1.5px solid var(--rv); border-radius: 14px; padding: 14px; display: grid; gap: 10px; box-shadow: 0 16px 40px rgba(13, 14, 15, .2); }
+.rv-pop label { color: var(--rv); }
+.rv-pop textarea { width: 100%; font: inherit; font-size: 14px; border: 1.5px solid var(--grey-2); border-radius: 10px; padding: 10px; resize: vertical; color: var(--black); background: var(--white); }
+.rv-pop textarea:focus { outline: none; border-color: var(--rv); }
+.rv-pop .row { display: flex; gap: 8px; }
+.rv-pop .btn { padding: 9px 16px; font-size: 14px; }
+
+/* Page states while reviewing */
+body.rv-edit [data-ek]:not([data-noedit]) { outline: 1.5px dashed rgba(36, 83, 230, .45); outline-offset: 3px; border-radius: 3px; cursor: text; }
+body.rv-edit [data-ek]:not([data-noedit]):hover, body.rv-edit [data-ek][contenteditable="true"]:focus { outline: 2px solid var(--rv); background: rgba(36, 83, 230, .06); }
+body.rv-note [data-ek] { cursor: crosshair; }
+body.rv-note [data-ek]:hover { outline: 2px solid var(--rv); outline-offset: 3px; background: rgba(36, 83, 230, .06); }
+body.rv-on .rv-edited { box-shadow: inset 3px 0 0 var(--rv); padding-left: 8px; }
+body.rv-on .has-note:not(.packcard) { position: relative; }
+body.rv-on .has-note::after { content: attr(data-pins); position: absolute; top: -10px; right: -10px; z-index: 5; background: var(--rv); color: #fff; font: 600 11.5px/1 var(--font-body); padding: 5px 8px; border-radius: 999px; white-space: nowrap; box-shadow: 0 0 0 2px var(--white); pointer-events: none; text-decoration: none; text-transform: none; letter-spacing: 0; }
+body.rv-on .mod-head.has-note::after { top: 8px; right: 8px; }
+.rv-flash { animation: rvflash 1.4s ease; }
+@keyframes rvflash { 0%, 60% { outline: 3px solid var(--rv); outline-offset: 4px; } 100% { outline: 3px solid transparent; outline-offset: 4px; } }
+@media (min-width: 1000px) { body.rv-on { padding-right: 424px; } }
+@media (max-width: 999px) { .rv-panel { top: auto; left: calc(env(safe-area-inset-left, 0px) + 8px); right: calc(env(safe-area-inset-right, 0px) + 8px); bottom: calc(env(safe-area-inset-bottom, 0px) + 8px); width: auto; max-height: 58vh; } body.rv-on { padding-bottom: 58vh; } }
+@media (max-width: 560px) { .rv-launch { padding: 11px 16px; } }
 </style>
 </head>
 <body>
@@ -263,7 +323,7 @@ footer b { color: var(--white); }
   </div>
 </header>
 
-<section class="hero" id="build">
+<section class="hero" id="build" data-area="Hero">
   <div class="wrap">
     <div class="hero-top">
       <h1>Product A<span>Advance notification for NHS planning</span></h1>
@@ -305,7 +365,7 @@ footer b { color: var(--white); }
   </div>
 </section>
 
-<section class="band" id="timeline">
+<section class="band" id="timeline" data-area="Timeline">
   <div class="wrap">
     <div class="band-head"><h2>Where we are</h2><span class="mono">Updated October 2026 · dates subject to regulatory timelines</span></div>
     <div class="timeline-scroll">
@@ -320,7 +380,7 @@ footer b { color: var(--white); }
   </div>
 </section>
 
-<section class="section" aria-labelledby="factsHead">
+<section class="section" aria-labelledby="factsHead" data-area="At a glance">
   <div class="wrap">
     <div class="section-head">
       <h2 id="factsHead">At a glance</h2>
@@ -337,7 +397,7 @@ footer b { color: var(--white); }
   </div>
 </section>
 
-<section class="section core" id="story" aria-labelledby="storyHead">
+<section class="section core" id="story" aria-labelledby="storyHead" data-area="Core story">
   <div class="wrap">
     <div class="section-head">
       <h2 id="storyHead">The core story</h2>
@@ -354,7 +414,7 @@ footer b { color: var(--white); }
   </div>
 </section>
 
-<section class="section" id="pack" aria-labelledby="packHead">
+<section class="section" id="pack" aria-labelledby="packHead" data-area="Your pack">
   <div class="wrap">
     <div class="section-head">
       <h2 id="packHead">Your pack</h2>
@@ -368,7 +428,7 @@ footer b { color: var(--white); }
   </div>
 </section>
 
-<footer>
+<footer data-area="Footer">
   <div class="wrap">
     <p><b>Product A advance notification</b> · Job code <span class="ph">XX-UK-0000</span> · Date of preparation October 2026</p>
     <p>This information is provided to NHS budget holders and formulary decision-makers to support financial and service planning, in line with the ABPI Code of Practice provisions on advance notification of new medicines. It is not intended for prescribers or patients.</p>
@@ -469,6 +529,31 @@ footer b { color: var(--white); }
   </div>
 </div>
 <div class="toast" id="toast" hidden></div>
+<div id="review-ui">
+  <button class="rv-launch" id="rvLaunch" type="button" aria-expanded="false" aria-controls="rvPanel">Review amends <span class="rv-count" id="rvCount">0</span></button>
+  <aside class="rv-panel" id="rvPanel" aria-label="Review amends" hidden>
+    <div class="rv-top">
+      <div class="rv-head"><div><div class="mono">Review mode</div><h2>Amends</h2></div><button class="chip-btn" id="rvClose" type="button">Close</button></div>
+      <div class="rv-modes" role="group" aria-label="Review tool">
+        <button type="button" data-mode="edit" aria-pressed="false">✎ Edit text</button>
+        <button type="button" data-mode="note" aria-pressed="false">＋ Add note</button>
+      </div>
+      <p class="rv-help" id="rvHelp"></p>
+    </div>
+    <p class="rv-status" id="rvStatus">Loading amends…</p>
+    <div class="rv-list" id="rvList"></div>
+    <div class="rv-foot">
+      <div class="row"><button class="btn btn-black" id="rvCopy" type="button">Copy amends list</button><button class="chip-btn" id="rvClear" type="button">Clear all</button></div>
+      <div class="rv-confirm" id="rvConfirm" hidden><span>Remove every text change and note?</span><button class="chip-btn danger" id="rvClearYes" type="button">Remove all</button><button class="chip-btn" id="rvClearNo" type="button">Keep</button></div>
+      <textarea class="rv-copyout" id="rvCopyOut" aria-label="Amends list" readonly hidden></textarea>
+    </div>
+  </aside>
+  <div class="rv-pop" id="rvPop" role="dialog" aria-labelledby="rvPopLabel" hidden>
+    <label class="mono" id="rvPopLabel" for="rvNoteText">Note on <span id="rvPopWhere"></span></label>
+    <textarea id="rvNoteText" rows="3" placeholder="Describe the amend, for example: change to 'eligible adults'"></textarea>
+    <div class="row"><button class="btn btn-black" id="rvNoteSave" type="button">Add note</button><button class="chip-btn" id="rvNoteCancel" type="button">Cancel</button></div>
+  </div>
+</div>
 
 <script>
 const TICK = '<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 7.5l3 3 7-7" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -730,6 +815,339 @@ state.picked = [...rec()];
 renderChecklist();
 render();
 if (location.hash && modEls[location.hash.slice(1)]) setTimeout(() => openModule(location.hash.slice(1)), 50);
+</script>
+<script>
+// Review layer: inline text edits and pinned notes, shared through the page's database when available
+(() => {
+  const body = document.body;
+  const RV = { edits: {}, notes: {}, mode: null, api: null, shared: false, readOnly: false, uid: "you", user: null, popKey: null };
+  const KEYS = {}, ORIG = {}, ORIGSAN = {}, ORIGTXT = {}, AREA = {}, NOTEONLY = new Set();
+  const norm = s => String(s || "").replace(/\s+/g, " ").trim();
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const cut = (s, n = 90) => { s = norm(s); return s.length > n ? s.slice(0, n - 1) + "…" : s; };
+  const when = t => t ? new Date(t).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "";
+
+  // Keep only the inline markup the page uses; everything else becomes plain text
+  function san(node) {
+    let s = "";
+    node.childNodes.forEach(n => {
+      if (n.nodeType === 3) { s += esc(n.nodeValue); return; }
+      if (n.nodeType !== 1) return;
+      const tag = n.tagName, inner = san(n);
+      if (tag === "B" || tag === "STRONG") s += `<b>${inner}</b>`;
+      else if (tag === "BR") s += "<br>";
+      else if (tag === "SMALL") s += `<small>${inner}</small>`;
+      else if (tag === "SPAN") s += n.classList.contains("ph") ? `<span class="ph">${inner}</span>` : `<span>${inner}</span>`;
+      else if (tag === "DIV" || tag === "P") s += (s ? "<br>" : "") + inner;
+      else s += inner;
+    });
+    return s;
+  }
+  const sanHtml = html => { const t = document.createElement("template"); t.innerHTML = html; return san(t.content); };
+
+  // Give every text block a stable key: page areas in document order, then modules in their standard order
+  const TEXT_SEL = "h1,h2,h3,h4,p,li,th,td,.val,.lbl,.when,.what,.pstep,.fact,.chapter a";
+  const DYN = "#whoCards,#engCards,#materials,#packList,#packFor,#packWhy,#roleNote,#packSub,#faqList,#checkItems,#progress,#others,.mod-head,#review-ui,#emailOverlay,#toast,.bignum,.hint";
+  const counts = {};
+  function key(el, area, noteOnly, label) {
+    if (!el || el.dataset.ek) return;
+    const slug = area.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    counts[slug] = (counts[slug] || 0) + 1;
+    const k = `${slug}-${counts[slug]}`;
+    el.dataset.ek = k; KEYS[k] = el; AREA[k] = label ? `${area} · ${label}` : area;
+    ORIG[k] = el.innerHTML; ORIGSAN[k] = san(el); ORIGTXT[k] = norm(el.textContent);
+    if (noteOnly) { NOTEONLY.add(k); el.dataset.noedit = ""; }
+  }
+  const textBlocks = (root, skipModules) => [...root.querySelectorAll(TEXT_SEL)].filter(el =>
+    !el.closest(DYN) && !el.parentElement.closest("[data-ek]") && !(skipModules && el.closest(".module")));
+  [["#whoCards", "Stakeholder cards"], ["#engCards", "Engagement cards"], ["#materials", "Materials checklist"], [".packcard", "Pack panel"]]
+    .forEach(([s, l]) => key(document.querySelector(s), "Hero", true, l));
+  textBlocks(body, true).forEach(el => key(el, el.closest("[data-area]")?.dataset.area || "Page"));
+  ORDER.forEach(id => {
+    const m = modEls[id], area = MODS[id].name;
+    key(m.querySelector(".mod-head"), area, true, "heading");
+    if (id === "faqs") key(m.querySelector("#faqList"), area, true, "question list");
+    if (id === "checklist") key(m.querySelector("#checkItems"), area, true, "checklist items");
+    textBlocks(m, false).forEach(el => key(el, area));
+  });
+
+  // Storage: the page's shared database when the viewer serves it, otherwise this browser
+  function localApi() {
+    const LS = "pa-review";
+    let data = { edits: {}, notes: {} };
+    try { data = JSON.parse(localStorage.getItem(LS)) || data; } catch {}
+    const save = () => { try { localStorage.setItem(LS, JSON.stringify(data)); } catch {} sync(); };
+    const sync = () => { RV.edits = { ...data.edits }; RV.notes = { ...data.notes }; refresh(); };
+    return {
+      start: sync,
+      setEdit: async (k, d) => { data.edits[k] = d; save(); },
+      delEdit: async k => { delete data.edits[k]; save(); },
+      addNote: async d => { data.notes["n" + Date.now().toString(36)] = d; save(); },
+      updateNote: async (id, p) => { data.notes[id] = { ...data.notes[id], ...p }; save(); },
+      delNote: async id => { delete data.notes[id]; save(); },
+      clear: async () => { data = { edits: {}, notes: {} }; save(); }
+    };
+  }
+  function dbApi(db) {
+    const toMap = snap => Object.fromEntries(snap.docs.map(d => [d.id, d.data()]));
+    const onErr = () => { RV.readOnly = true; status(); };
+    return {
+      start() {
+        db.collection("edits").onSnapshot(s => { RV.edits = toMap(s); refresh(); }, onErr);
+        db.collection("notes").onSnapshot(s => { RV.notes = toMap(s); refresh(); }, onErr);
+      },
+      setEdit: (k, d) => db.collection("edits").doc(k).set(d),
+      delEdit: k => db.collection("edits").doc(k).delete(),
+      addNote: d => db.collection("notes").add(d),
+      updateNote: (id, p) => db.collection("notes").doc(id).update(p),
+      delNote: id => db.collection("notes").doc(id).delete(),
+      async clear() {
+        for (const k of Object.keys(RV.edits)) await db.collection("edits").doc(k).delete();
+        for (const id of Object.keys(RV.notes)) await db.collection("notes").doc(id).delete();
+      }
+    };
+  }
+  async function write(fn) {
+    try { await fn(); }
+    catch (e) {
+      if (e && e.code === "invalid_argument") { RV.readOnly = true; setMode(null); status(); toast("Your access lets you view amends but not change them."); }
+      else toast("That amend didn't save. Check your connection and try again.");
+    }
+  }
+
+  // Apply saved edits; an edit whose original text no longer matches the page is left out and flagged
+  const isStale = k => !KEYS[k] || NOTEONLY.has(k) || RV.edits[k].original !== ORIGTXT[k];
+  function applyEdits() {
+    for (const k in KEYS) {
+      if (NOTEONLY.has(k)) continue;
+      const el = KEYS[k];
+      if (el === document.activeElement) continue;
+      const e = RV.edits[k];
+      if (e && !isStale(k)) {
+        const h = sanHtml(e.html);
+        if (el.innerHTML !== h) el.innerHTML = h;
+        el.classList.add("rv-edited");
+      } else if (el.classList.contains("rv-edited")) {
+        el.innerHTML = ORIG[k]; el.classList.remove("rv-edited");
+      }
+    }
+  }
+  const openNotes = () => Object.entries(RV.notes).filter(([, n]) => !n.resolved).sort((a, b) => a[1].n - b[1].n);
+  function paintPins() {
+    document.querySelectorAll(".has-note").forEach(el => { el.classList.remove("has-note"); delete el.dataset.pins; });
+    Object.values(modEls).forEach(m => m.querySelectorAll(".has-note").forEach(el => { el.classList.remove("has-note"); delete el.dataset.pins; }));
+    const by = {};
+    openNotes().forEach(([, n]) => { (by[n.key] = by[n.key] || []).push(n.n); });
+    Object.entries(by).forEach(([k, ns]) => { const el = KEYS[k]; if (el) { el.classList.add("has-note"); el.dataset.pins = ns.map(n => "#" + n).join(" "); } });
+  }
+
+  function status() {
+    $("#rvStatus").textContent = RV.readOnly
+      ? "You can see amends, but your access to this page doesn't allow changes."
+      : RV.shared
+        ? "Amends save automatically and are shared with everyone who can open this page."
+        : "Amends are saved in this browser only. Use “Copy amends list” to share them.";
+    document.querySelectorAll(".rv-modes button").forEach(b => { b.disabled = RV.readOnly; });
+  }
+
+  async function renderList() {
+    const notes = openNotes(), resolved = Object.entries(RV.notes).filter(([, n]) => n.resolved).sort((a, b) => a[1].n - b[1].n);
+    const edits = Object.entries(RV.edits).sort((a, b) => (a[1].at || 0) - (b[1].at || 0));
+    const total = notes.length + edits.length;
+    $("#rvCount").textContent = total;
+    const by = u => `<span class="rv-by" data-uid="${esc(u || "")}">${u === RV.uid ? "You" : "A reviewer"}</span>`;
+    const noteItem = ([id, n]) => `
+      <div class="rv-item${n.resolved ? " resolved" : ""}">
+        <div class="rv-meta"><span class="rv-tag">Note #${n.n}</span><span>${esc(AREA[n.key] || "Removed section")}</span></div>
+        ${KEYS[n.key] && !NOTEONLY.has(n.key) ? `<p class="rv-quote">On “${esc(cut(ORIGTXT[n.key], 70))}”</p>` : ""}
+        <p>${esc(n.text)}</p>
+        <div class="rv-meta">${by(n.by)} · ${when(n.at)}</div>
+        <div class="rv-acts">${KEYS[n.key] ? `<button type="button" data-rv-go="${esc(n.key)}">Show</button>` : ""}${RV.readOnly ? "" : `<button type="button" data-rv-resolve="${esc(id)}">${n.resolved ? "Reopen" : "Resolve"}</button><button type="button" data-rv-delnote="${esc(id)}">Delete</button>`}</div>
+      </div>`;
+    const editItem = ([k, e]) => {
+      const stale = isStale(k);
+      return `
+      <div class="rv-item">
+        <div class="rv-meta"><span class="rv-tag ${stale ? "warn" : "edit"}">${stale ? "Text moved" : "Text change"}</span><span>${esc(AREA[k] || "Removed section")}</span></div>
+        <p><del>${esc(cut(e.original, 120))}</del></p>
+        <p><ins>${esc(cut(e.text, 160))}</ins></p>
+        ${stale ? `<p class="rv-quote">The original text has changed on the page, so this edit isn't shown.</p>` : ""}
+        <div class="rv-meta">${by(e.by)} · ${when(e.at)}</div>
+        <div class="rv-acts">${stale ? "" : `<button type="button" data-rv-go="${esc(k)}">Show</button>`}${RV.readOnly ? "" : `<button type="button" data-rv-revert="${esc(k)}">${stale ? "Delete" : "Undo change"}</button>`}</div>
+      </div>`;
+    };
+    let html = "";
+    if (notes.length) html += `<div class="rv-group">Open notes (${notes.length})</div>` + notes.map(noteItem).join("");
+    if (edits.length) html += `<div class="rv-group">Text changes (${edits.length})</div>` + edits.map(editItem).join("");
+    if (resolved.length) html += `<div class="rv-group">Resolved notes (${resolved.length})</div>` + resolved.map(noteItem).join("");
+    $("#rvList").innerHTML = html || `<p class="rv-empty">No amends yet. Choose “Edit text” to change wording on the page, or “Add note” to pin a comment to any part of it.</p>`;
+
+    // Show reviewers' names where the viewer can resolve them
+    if (RV.user && RV.shared) {
+      const ids = [...new Set([...$("#rvList").querySelectorAll("[data-uid]")].map(s => s.dataset.uid).filter(u => u && u !== RV.uid))];
+      if (ids.length) {
+        try {
+          const ps = await RV.user.profiles(ids);
+          $("#rvList").querySelectorAll("[data-uid]").forEach(s => { const p = ps && ps[s.dataset.uid]; if (p && p.name) s.textContent = p.name; });
+        } catch {}
+      }
+    }
+  }
+  function refresh() { applyEdits(); paintPins(); renderList(); }
+
+  // Modes
+  const HELP = {
+    null: "Choose a tool. Your changes save as you go.",
+    edit: "Click any outlined text and type. Press Enter or click away to save, or Esc to cancel.",
+    note: "Click any part of the page to pin a numbered note to it."
+  };
+  function editable(on) {
+    for (const k in KEYS) if (!NOTEONLY.has(k)) { const el = KEYS[k]; if (on) { el.contentEditable = "true"; el.spellcheck = true; } else el.removeAttribute("contenteditable"); }
+  }
+  function setMode(m) {
+    RV.mode = m;
+    body.classList.toggle("rv-edit", m === "edit");
+    body.classList.toggle("rv-note", m === "note");
+    editable(m === "edit");
+    document.querySelectorAll(".rv-modes button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === m)));
+    $("#rvHelp").textContent = HELP[m];
+    closePop();
+  }
+  document.querySelectorAll(".rv-modes button").forEach(b => b.addEventListener("click", () => setMode(RV.mode === b.dataset.mode ? null : b.dataset.mode)));
+
+  function openPanel(open) {
+    $("#rvPanel").hidden = !open;
+    body.classList.toggle("rv-on", open);
+    $("#rvLaunch").setAttribute("aria-expanded", String(open));
+    $("#rvLaunch").hidden = open;
+    if (!open) { setMode(null); $("#rvLaunch").focus(); } else $("#rvClose").focus();
+  }
+  $("#rvLaunch").addEventListener("click", () => openPanel(true));
+  $("#rvClose").addEventListener("click", () => openPanel(false));
+
+  // Text editing
+  const startHtml = new WeakMap();
+  document.addEventListener("focusin", e => { const el = e.target; if (el.dataset && el.dataset.ek && RV.mode === "edit") startHtml.set(el, el.innerHTML); });
+  document.addEventListener("focusout", e => {
+    const el = e.target;
+    if (!(el.dataset && el.dataset.ek) || NOTEONLY.has(el.dataset.ek) || !startHtml.has(el)) return;
+    startHtml.delete(el);
+    const k = el.dataset.ek, h = san(el), cur = RV.edits[k];
+    if (h === ORIGSAN[k]) { if (cur) write(() => RV.api.delEdit(k)); el.classList.remove("rv-edited"); }
+    else if (!cur || cur.html !== h || isStale(k)) {
+      el.classList.add("rv-edited");
+      write(() => RV.api.setEdit(k, { html: h, text: norm(el.textContent), original: ORIGTXT[k], by: RV.uid, at: Date.now() }));
+    }
+  });
+  document.addEventListener("keydown", e => {
+    const el = e.target;
+    if (el.isContentEditable && el.dataset.ek) {
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); el.blur(); }
+      else if (e.key === "Escape") { e.preventDefault(); el.innerHTML = startHtml.get(el) ?? el.innerHTML; startHtml.delete(el); el.blur(); }
+      return;
+    }
+    if (e.key === "Escape") { if (!$("#rvPop").hidden) closePop(); else if (RV.mode) setMode(null); }
+  });
+  document.addEventListener("paste", e => {
+    if (!e.target.closest || !e.target.closest('[contenteditable="true"]')) return;
+    e.preventDefault();
+    document.execCommand("insertText", false, (e.clipboardData || window.clipboardData).getData("text/plain"));
+  });
+
+  // Clicks while reviewing: editing text never follows links; note mode pins instead of acting
+  document.addEventListener("click", e => {
+    if (e.target.closest("#review-ui")) return;
+    if (RV.mode === "edit" && e.target.closest('[contenteditable="true"]')) { e.preventDefault(); e.stopPropagation(); return; }
+    if (RV.mode === "note") {
+      e.preventDefault(); e.stopPropagation();
+      const el = e.target.closest("[data-ek]");
+      if (el) openPop(el);
+    }
+  }, true);
+
+  // Note popover
+  function openPop(el) {
+    const pop = $("#rvPop");
+    RV.popKey = el.dataset.ek;
+    $("#rvPopWhere").textContent = AREA[RV.popKey];
+    $("#rvNoteText").value = "";
+    pop.hidden = false;
+    const r = el.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
+    pop.style.left = Math.max(16, Math.min(r.left, innerWidth - w - 16)) + "px";
+    pop.style.top = Math.max(16, r.bottom + h + 24 > innerHeight ? r.top - h - 10 : r.bottom + 10) + "px";
+    $("#rvNoteText").focus();
+  }
+  function closePop() { $("#rvPop").hidden = true; RV.popKey = null; }
+  $("#rvNoteCancel").addEventListener("click", closePop);
+  $("#rvNoteSave").addEventListener("click", () => {
+    const text = $("#rvNoteText").value.trim();
+    if (!text) { $("#rvNoteText").focus(); return; }
+    const n = Math.max(0, ...Object.values(RV.notes).map(x => x.n || 0)) + 1;
+    const k = RV.popKey;
+    closePop();
+    write(() => RV.api.addNote({ key: k, text, n, by: RV.uid, at: Date.now(), resolved: false }));
+  });
+  $("#rvNoteText").addEventListener("keydown", e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) $("#rvNoteSave").click(); });
+
+  // List actions
+  function goTo(k) {
+    const el = KEYS[k]; if (!el) return;
+    const mod = el.closest(".module");
+    if (mod && !document.body.contains(mod)) togglePick(mod.dataset.mod, true);
+    el.scrollIntoView({ block: "center" });
+    el.classList.remove("rv-flash"); void el.offsetWidth; el.classList.add("rv-flash");
+  }
+  $("#rvList").addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.rvGo) goTo(b.dataset.rvGo);
+    else if (b.dataset.rvRevert) write(() => RV.api.delEdit(b.dataset.rvRevert));
+    else if (b.dataset.rvResolve) write(() => RV.api.updateNote(b.dataset.rvResolve, { resolved: !RV.notes[b.dataset.rvResolve].resolved }));
+    else if (b.dataset.rvDelnote) write(() => RV.api.delNote(b.dataset.rvDelnote));
+  });
+
+  // Copy amends list
+  function amendsText() {
+    const lines = [`Product A launch hub: amends (${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })})`, ""];
+    const edits = Object.entries(RV.edits).sort((a, b) => (a[1].at || 0) - (b[1].at || 0));
+    const notes = openNotes();
+    if (edits.length) {
+      lines.push("TEXT CHANGES");
+      edits.forEach(([k, e], i) => lines.push(`${i + 1}. [${AREA[k] || "Removed section"}]`, `   Was: ${norm(e.original)}`, `   Now: ${norm(e.text)}`));
+      lines.push("");
+    }
+    if (notes.length) {
+      lines.push("NOTES");
+      notes.forEach(([, n]) => lines.push(`#${n.n} [${AREA[n.key] || "Removed section"}]${KEYS[n.key] && !NOTEONLY.has(n.key) ? ` on "${cut(ORIGTXT[n.key], 60)}"` : ""}`, `   ${n.text}`));
+    }
+    if (!edits.length && !notes.length) lines.push("No amends yet.");
+    return lines.join("\n");
+  }
+  $("#rvCopy").addEventListener("click", () => {
+    const text = amendsText(), out = $("#rvCopyOut");
+    const fallback = () => { out.value = text; out.hidden = false; out.select(); toast("List selected. Press Ctrl+C or ⌘C to copy."); };
+    if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => { out.hidden = true; toast("Amends list copied"); }, fallback); else fallback();
+  });
+  $("#rvClear").addEventListener("click", () => { $("#rvConfirm").hidden = false; });
+  $("#rvClearNo").addEventListener("click", () => { $("#rvConfirm").hidden = true; });
+  $("#rvClearYes").addEventListener("click", () => { $("#rvConfirm").hidden = true; write(() => RV.api.clear()); });
+
+  // Start in this browser, then switch to the shared store if the viewer serves it
+  setMode(null);
+  RV.api = localApi(); RV.api.start(); status();
+  (async () => {
+    if (!window.claude || !window.claude.use) return;
+    const db = await window.claude.use("db");
+    if (!db) return;
+    const user = await window.claude.use("user");
+    RV.user = user;
+    try { RV.uid = (user && await user.id()) || "viewer"; } catch { RV.uid = "viewer"; }
+    try { if (user && (await user.can("data.write")) === false) RV.readOnly = true; } catch {}
+    RV.shared = true; RV.edits = {}; RV.notes = {};
+    RV.api = dbApi(db); RV.api.start();
+    if (RV.readOnly) setMode(null);
+    status(); refresh();
+  })();
+})();
 </script>
 </body>
 </html>
