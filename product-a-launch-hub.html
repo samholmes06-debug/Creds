@@ -50,7 +50,7 @@ button { font: inherit; color: inherit; }
 .topbar nav { display: flex; gap: 22px; flex-wrap: wrap; }
 .topbar nav a { color: var(--black); text-decoration: none; font-size: 14px; }
 .topbar nav a:hover { text-decoration: underline; text-underline-offset: 4px; }
-.mocktag { color: var(--muted); }
+.concept { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; background: #fde4d9; color: #7a2a0a; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
 
 /* Hero */
 .hero { background: var(--white); }
@@ -345,7 +345,7 @@ body.pm-open { overflow: hidden; }
 
 <header class="topbar">
   <div class="wrap">
-    <div class="brand"><i aria-hidden="true"></i>Product A</div>
+    <div class="brand"><i aria-hidden="true"></i>Product A <span class="concept">Concept mock-up – not for distribution</span></div>
     <nav aria-label="Sections">
       <a href="#build">Build a pack</a>
       <a href="#core" data-open-pack="core">Core notification</a>
@@ -831,12 +831,12 @@ document.addEventListener("click", e => {
   const open = e.target.closest("[data-open-pack]");
   if (open) { e.preventDefault(); openPack(open.dataset.openPack); return; }
   const p = e.target.closest("[data-pdf]");
-  if (p) { toast(`In the live version this downloads the approved PDF ${docInfo(p.dataset.pdf).pdf}.`); return; }
+  if (p) { toast(`${docInfo(p.dataset.pdf).name} will be available to download once the artwork is approved.`); return; }
 });
 
 $("#dlPack").addEventListener("click", () => {
   const ids = ["PA-CORE-00", ...packOrder().map(id => MODS[id].pdf)];
-  toast(`In the live version this merges the approved PDFs: ${ids.join(", ")}.`);
+  toast(`The pack (${ids.length} PDFs merged into one file) will be available to download once the artwork is approved.`);
 });
 
 function emailText() {

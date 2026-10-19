@@ -55,6 +55,8 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 25; background: rgba(255, 255, 255, .9); backdrop-filter: saturate(1.4) blur(14px); -webkit-backdrop-filter: saturate(1.4) blur(14px); border-bottom: 1px solid var(--grey-2); }
 .bar .wrap { height: var(--bar-h); display: flex; align-items: center; gap: 12px; }
 .brand { display: flex; align-items: center; gap: 9px; font-weight: 700; white-space: nowrap; margin-right: auto; }
+.concept { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; background: #fde4d9; color: #7a2a0a; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+.concept-strip { display: none; background: var(--black); color: var(--white); text-align: center; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; padding: 6px 16px; }
 .brand i { width: 11px; height: 11px; border-radius: 50%; background: var(--orange); }
 .pick { position: relative; }
 .pick-btn { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 10px; align-items: center; text-align: left; border: 1.5px solid var(--grey-2); background: var(--white); border-radius: 14px; padding: 6px 12px 6px 14px; cursor: pointer; min-height: 48px; transition: border-color .2s; }
@@ -74,7 +76,9 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .bar-core { white-space: nowrap; padding: 12px 18px; font-size: 14px; }
 .readbar { position: absolute; left: 0; right: 0; bottom: -1px; height: 3px; background: var(--orange); transform-origin: left; transform: scaleX(0); }
 .bar-core .short { display: none; }
-@media (max-width: 1080px) { .brand .long, .bar-core .long { display: none; } .bar-core .short { display: inline; } }
+@media (max-width: 1080px) { .bar-core .long { display: none; } .bar-core .short { display: inline; } }
+@media (max-width: 1240px) { .brand .concept { font-size: 10px; } }
+@media (max-width: 900px) { .brand .concept { display: none; } .concept-strip { display: block; } }
 @media (max-width: 640px) {
   :root { --bar-h: 64px; }
   .pick-btn .chev { width: 8px; height: 8px; }
@@ -383,9 +387,10 @@ body.modal-open { overflow: hidden; }
 </head>
 <body>
 
+<div class="concept-strip">Concept mock-up – not for distribution</div>
 <header class="bar">
   <div class="wrap">
-    <div class="brand"><i aria-hidden="true"></i><span>Product A<span class="long"> · Advance notification</span></span></div>
+    <div class="brand"><i aria-hidden="true"></i><span>Product A</span><span class="concept">Concept mock-up – not for distribution</span></div>
     <div class="pick" data-pick="who">
       <button class="pick-btn" type="button" aria-expanded="false" aria-haspopup="true" id="pickWho"><small>Engaging</small><b class="empty">Choose stakeholder</b><i class="chev" aria-hidden="true"></i></button>
       <div class="menu" role="menu" aria-labelledby="pickWho" hidden></div>
@@ -1018,9 +1023,9 @@ document.addEventListener("click", e => {
   const op = e.target.closest("[data-open-pack]");
   if (op) { openPack(op.dataset.openPack); return; }
   const pdf = e.target.closest("[data-pdf]");
-  if (pdf) { toast(`In the live version this downloads the approved PDF ${info(pdf.dataset.pdf).pdf}.`); return; }
+  if (pdf) { toast(`${info(pdf.dataset.pdf).name} will be available to download once the artwork is approved.`); return; }
 });
-$("#dlPack").addEventListener("click", () => toast(`In the live version this merges ${["core", ...picked()].map(id => info(id).pdf).join(", ")} into one PDF.`));
+$("#dlPack").addEventListener("click", () => toast(`The pack (${picked().length + 1} PDFs merged into one file) will be available to download once the artwork is approved.`));
 $("#pmDownload").addEventListener("click", () => $("#dlPack").click());
 
 /* ---------- Approved email ---------- */
