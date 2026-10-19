@@ -7,434 +7,499 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: briefing-paper hub — sticky pack builder rail on the left, core narrative then selected modules on the right */
+/* Layout: editorial monochrome — a pack-builder hero (stakeholder → engagement → materials → live pack), black status band, key-facts bento, core story, then the assembled pack */
 :root {
-  --bg: #eef1f2;
-  --surface: #ffffff;
-  --ink: #1b2225;
-  --muted: #56646a;
-  --line: #d5dde0;
-  --core: #c41230;
-  --core-soft: #fbe7ea;
-  --teal: #1d5867;
-  --teal-2: #2c7286;
-  --teal-soft: #e1edf0;
-  --ph-bg: #fff3c9;
-  --ph-ink: #6b5200;
-  --ok: #2f7a4f;
-  --font-display: "Newsreader", Georgia, "Times New Roman", serif;
-  --font-body: "Public Sans", "Segoe UI", Arial, sans-serif;
-  --radius: 10px;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #1c2123; --surface: #252b2e; --ink: #edf1f2; --muted: #a2afb4; --line: #394246;
-    --core: #ef4655; --core-soft: #3a2226; --teal: #6cbcd0; --teal-2: #8fd0df; --teal-soft: #22363c;
-    --ph-bg: #4a3d10; --ph-ink: #f6dd8a; --ok: #6cc796; color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #1c2123; --surface: #252b2e; --ink: #edf1f2; --muted: #a2afb4; --line: #394246;
-  --core: #ef4655; --core-soft: #3a2226; --teal: #6cbcd0; --teal-2: #8fd0df; --teal-soft: #22363c;
-  --ph-bg: #4a3d10; --ph-ink: #f6dd8a; --ok: #6cc796; color-scheme: dark;
+  --white: #ffffff;
+  --grey: #f0f1f2;
+  --grey-2: #e1e3e5;
+  --grey-3: #c9ccd0;
+  --black: #0d0e0f;
+  --muted: #5c6166;
+  --accent: #d4112c;
+  --font-display: "Bricolage Grotesque", "Arial Black", Arial, sans-serif;
+  --font-body: "Geist", "Segoe UI", Arial, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, Menlo, Consolas, monospace;
+  --radius: 18px;
+  color-scheme: light;
 }
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
-body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.55; }
-h1, h2, h3, h4 { text-wrap: balance; margin: 0; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { transition: none !important; animation: none !important; } }
+body { background: var(--white); color: var(--black); font-family: var(--font-body); font-size: 15px; line-height: 1.55; }
+h1, h2, h3, h4 { margin: 0; text-wrap: balance; }
 p { margin: 0; }
 button { font: inherit; color: inherit; }
-:focus-visible { outline: 2px solid var(--teal-2); outline-offset: 2px; }
-.ph { background: var(--ph-bg); color: var(--ph-ink); border-radius: 3px; padding: 0 .3em; font-size: .94em; white-space: nowrap; }
+:focus-visible { outline: 2px solid var(--black); outline-offset: 3px; }
+.ph { background: #fff1b8; color: #5a4500; border-radius: 4px; padding: 0 .3em; white-space: nowrap; }
+.mono { font-family: var(--font-mono); font-size: 12px; letter-spacing: .04em; text-transform: uppercase; }
 
-.wrap { max-width: 1240px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1320px; margin: 0 auto; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
 
-/* Top band */
-.mockbar { background: var(--ink); color: var(--bg); font-size: 12px; letter-spacing: .04em; }
-.mockbar .wrap { padding-block: 6px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: space-between; }
-.masthead { border-bottom: 1px solid var(--line); background: var(--surface); }
-.masthead .wrap { padding-block: 28px 24px; display: grid; gap: 18px; }
-.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--core); }
-.masthead h1 { font-family: var(--font-display); font-weight: 600; font-size: clamp(30px, 4.4vw, 46px); line-height: 1.08; max-width: 22ch; }
-.masthead .lede { color: var(--muted); max-width: 64ch; font-size: 16px; }
-.meta-row { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 13px; color: var(--muted); }
-.meta-row b { color: var(--ink); font-weight: 600; }
+/* Top bar */
+.topbar { border-bottom: 1px solid var(--grey-2); background: var(--white); }
+.topbar .wrap { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-block: 14px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; flex-wrap: wrap; }
+.brand i { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); }
+.topbar nav { display: flex; gap: 22px; flex-wrap: wrap; }
+.topbar nav a { color: var(--black); text-decoration: none; font-size: 14px; }
+.topbar nav a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.mocktag { color: var(--muted); }
 
-/* Status timeline */
-.status { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; margin-top: 4px; }
-.stage { position: relative; padding: 14px 10px 0 0; font-size: 13px; border-top: 3px solid var(--line); }
-.stage.done { border-top-color: var(--teal); }
-.stage.now { border-top-color: var(--core); }
-.stage::before { content: ""; position: absolute; top: -8px; left: 0; width: 13px; height: 13px; border-radius: 50%; background: var(--surface); border: 3px solid var(--line); }
-.stage.done::before { background: var(--teal); border-color: var(--teal); }
-.stage.now::before { background: var(--core); border-color: var(--core); }
-.stage b { display: block; font-weight: 600; }
-.stage span { color: var(--muted); }
-
-/* How it works */
-.how { display: flex; flex-wrap: wrap; gap: 8px 28px; font-size: 13.5px; color: var(--muted); padding-top: 4px; }
-.how span b { color: var(--ink); }
-
-/* Main grid */
-.layout { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 32px; padding-block: 28px 64px; align-items: start; }
-@media (max-width: 920px) { .layout { grid-template-columns: minmax(0, 1fr); } .builder { position: static !important; } .status { grid-template-columns: repeat(5, minmax(110px, 1fr)); overflow-x: auto; } }
+/* Hero */
+.hero { background: var(--white); }
+.hero .wrap { padding-block: 48px 64px; display: grid; gap: 44px; }
+.hero-top { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 24px 48px; align-items: end; }
+.hero h1 { font-family: var(--font-display); font-weight: 800; font-size: clamp(56px, 10.5vw, 148px); line-height: .88; letter-spacing: -.035em; }
+.hero h1 span { display: block; font-size: .36em; letter-spacing: -.02em; font-weight: 500; color: var(--muted); margin-top: .35em; line-height: 1.05; }
+.hero-intro { display: grid; gap: 14px; font-size: 17px; max-width: 46ch; }
+.hero-intro .note { font-size: 13px; color: var(--muted); }
+@media (max-width: 860px) { .hero-top { grid-template-columns: minmax(0, 1fr); } }
 
 /* Builder */
-.builder { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; display: grid; gap: 20px; }
-.builder h2 { font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--teal); }
-.q { display: grid; gap: 8px; }
-.q-label { font-weight: 600; font-size: 14px; }
-.chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.chip { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 6px 12px; font-size: 13px; cursor: pointer; transition: background .15s, border-color .15s; }
-.chip:hover { border-color: var(--teal-2); }
-.chip[aria-pressed="true"] { background: var(--teal); border-color: var(--teal); color: var(--surface); font-weight: 600; }
-.pack { border-top: 1px solid var(--line); padding-top: 16px; display: grid; gap: 10px; }
-.pack-for { font-size: 12.5px; color: var(--muted); }
-.pack ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; counter-reset: p; }
-.pack li { counter-increment: p; display: grid; grid-template-columns: 22px 1fr; gap: 8px; align-items: baseline; font-size: 14px; }
-.pack li::before { content: counter(p); font-size: 11px; font-weight: 700; color: var(--muted); text-align: center; border: 1px solid var(--line); border-radius: 50%; width: 20px; height: 20px; line-height: 18px; }
-.pack li.is-core::before { border-color: var(--core); color: var(--core); }
-.pack a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--line); }
-.pack a:hover { border-color: var(--teal-2); }
-.actions { display: grid; gap: 8px; }
-.btn { border: 0; border-radius: 8px; padding: 10px 14px; font-weight: 600; font-size: 14px; cursor: pointer; text-align: left; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-.btn-primary { background: var(--core); color: #fff; }
-.btn-secondary { background: var(--teal-soft); color: var(--teal); }
-.btn small { font-weight: 400; opacity: .85; font-size: 12px; }
-.why { font-size: 12.5px; color: var(--muted); background: var(--bg); border-radius: 8px; padding: 10px 12px; }
+.builder { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 20px; align-items: start; }
+@media (max-width: 1060px) { .builder { grid-template-columns: minmax(0, 1fr); } }
+.steps { display: grid; gap: 20px; min-width: 0; }
+.step { background: var(--grey); border-radius: var(--radius); padding: clamp(18px, 2.4vw, 28px); display: grid; gap: 18px; }
+.step-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+.step-num { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-height: 1; letter-spacing: -.03em; }
+.step-head h2 { font-family: var(--font-display); font-weight: 700; font-size: clamp(22px, 2.4vw, 28px); letter-spacing: -.015em; }
+.step-head .hint { color: var(--muted); font-size: 14px; margin-left: auto; }
 
-/* Narrative */
-main { display: grid; gap: 28px; min-width: 0; }
-.core { background: var(--surface); border: 1px solid var(--line); border-top: 5px solid var(--core); border-radius: var(--radius); padding: clamp(20px, 3.5vw, 40px); display: grid; gap: 26px; }
-.core-head { display: grid; gap: 8px; }
-.core-head h2 { font-family: var(--font-display); font-size: clamp(24px, 3vw, 32px); font-weight: 600; }
-.role-note { background: var(--core-soft); border-radius: 8px; padding: 12px 14px; font-size: 14.5px; }
-.role-note b { color: var(--core); }
-.chapter { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 8px 24px; padding-top: 22px; border-top: 1px solid var(--line); }
-.chapter:first-of-type { border-top: 0; padding-top: 0; }
-.chapter h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .09em; color: var(--muted); font-weight: 600; padding-top: 4px; }
-.chapter .body { display: grid; gap: 10px; max-width: 66ch; }
-.chapter .body p { font-size: 16px; }
-.more { font-size: 13.5px; font-weight: 600; color: var(--teal); text-decoration: none; justify-self: start; }
-.more:hover { text-decoration: underline; }
-@media (max-width: 640px) { .chapter { grid-template-columns: minmax(0, 1fr); } }
+.cards { display: grid; gap: 10px; }
+.cards.who { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.cards.eng { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 900px) { .cards.who { grid-template-columns: repeat(3, minmax(0, 1fr)); } .cards.eng { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .cards.who, .cards.eng { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.card { position: relative; text-align: left; background: var(--white); border: 1.5px solid var(--white); border-radius: 14px; padding: 16px; cursor: pointer; display: grid; gap: 10px; align-content: start; min-height: 132px; transition: transform .2s ease, border-color .2s ease, background .2s ease, color .2s ease; }
+.card:hover { transform: translateY(-3px); border-color: var(--black); }
+.card .code { font-family: var(--font-display); font-weight: 800; font-size: 34px; letter-spacing: -.03em; line-height: 1; }
+.card .t { font-weight: 600; font-size: 14.5px; line-height: 1.3; }
+.card .d { font-size: 12.5px; color: var(--muted); line-height: 1.4; }
+.card .tag { justify-self: start; }
+.card::after { content: ""; position: absolute; top: 14px; right: 14px; width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--grey-3); }
+.card[aria-pressed="true"] { background: var(--black); border-color: var(--black); color: var(--white); }
+.card[aria-pressed="true"] .d { color: #b9bdc1; }
+.card[aria-pressed="true"]::after { background: var(--white); border-color: var(--white); box-shadow: inset 0 0 0 4px var(--black); }
 
-.group-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-.group-head h2 { font-family: var(--font-display); font-size: 24px; font-weight: 600; }
-.group-head p { color: var(--muted); font-size: 13.5px; }
-.modlist { display: grid; gap: 14px; }
+/* Materials checklist */
+.materials { display: grid; gap: 8px; }
+.mat { position: relative; display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 14px; align-items: center; background: var(--white); border-radius: 12px; padding: 14px 16px; cursor: pointer; border: 1.5px solid transparent; transition: border-color .2s; }
+.mat:hover { border-color: var(--grey-3); }
+.mat input, .check input { position: absolute; opacity: 0; pointer-events: none; }
+.box { width: 26px; height: 26px; border-radius: 8px; border: 1.5px solid var(--grey-3); display: grid; place-items: center; transition: background .15s, border-color .15s; background: var(--white); }
+.box svg { width: 14px; height: 14px; opacity: 0; transition: opacity .15s; }
+.mat input:checked + .box, .check input:checked + .box { background: var(--black); border-color: var(--black); }
+.mat input:checked + .box svg, .check input:checked + .box svg { opacity: 1; }
+.mat input:focus-visible + .box, .check input:focus-visible + .box { outline: 2px solid var(--black); outline-offset: 3px; }
+.mat .name { font-weight: 600; }
+.mat .q { font-size: 13px; color: var(--muted); }
+.mat .meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.mat.locked { cursor: default; }
+.mat.locked .box { background: var(--accent); border-color: var(--accent); }
+.mat.locked .box svg { opacity: 1; }
+.pill { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; padding: 3px 8px; border-radius: 999px; background: var(--grey); color: var(--muted); white-space: nowrap; }
+.pill.rec { background: var(--black); color: var(--white); }
+.pill.core { background: var(--accent); color: var(--white); }
+@media (max-width: 560px) { .mat { grid-template-columns: 28px minmax(0, 1fr); } .mat .meta { grid-column: 2; justify-content: flex-start; } }
+
+/* Live pack */
+.packcard { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); background: var(--black); color: var(--white); border-radius: var(--radius); padding: 26px; display: grid; gap: 20px; }
+@media (max-width: 1060px) { .packcard { position: static; } }
+.packcard .mono { color: #9a9fa4; }
+.bignum { display: flex; align-items: baseline; gap: 12px; }
+.bignum b { font-family: var(--font-display); font-weight: 800; font-size: 76px; line-height: .9; letter-spacing: -.04em; }
+.bignum span { color: #b9bdc1; font-size: 14px; line-height: 1.35; }
+.for { font-size: 14px; color: #d9dcdf; }
+.for b { color: var(--white); }
+.packlist { list-style: none; margin: 0; padding: 0; display: grid; border-top: 1px solid #2a2c2e; }
+.packlist li { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; gap: 8px; padding: 11px 0; border-bottom: 1px solid #2a2c2e; font-size: 14.5px; align-items: baseline; animation: rise .35s ease both; }
+.packlist li .n, .packlist li .pp { font-family: var(--font-mono); font-size: 12px; color: #8a8f94; }
+.packlist li.core-row .n { color: var(--accent); }
+@keyframes rise { from { opacity: .35; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.why { font-size: 13px; color: #b9bdc1; }
+.btns { display: grid; gap: 8px; }
+.btn { border: 0; border-radius: 999px; padding: 14px 20px; font-weight: 600; font-size: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 10px; text-decoration: none; transition: transform .15s, background .15s, border-color .15s; }
+.btn:hover { transform: translateX(3px); }
+.btn-white { background: var(--white); color: var(--black); }
+.btn-ghost { background: transparent; color: var(--white); border: 1px solid #3b3e41; }
+.btn-ghost:hover { border-color: var(--white); }
+.btn-black { background: var(--black); color: var(--white); }
+
+/* Status band */
+.band { background: var(--black); color: var(--white); }
+.band .wrap { padding-block: 40px; display: grid; gap: 24px; }
+.band-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: baseline; }
+.band-head h2 { font-family: var(--font-display); font-weight: 700; font-size: 26px; letter-spacing: -.015em; }
+.band-head .mono { color: #9a9fa4; }
+.timeline-scroll { overflow-x: auto; padding-top: 8px; }
+.timeline { display: grid; grid-template-columns: repeat(5, minmax(150px, 1fr)); min-width: 760px; }
+.ms { border-top: 2px solid #3b3e41; padding: 18px 16px 0 0; position: relative; display: grid; gap: 4px; }
+.ms::before { content: ""; position: absolute; top: -7px; left: 0; width: 12px; height: 12px; border-radius: 50%; background: var(--black); border: 2px solid #5c6166; }
+.ms.done { border-top-color: var(--white); }
+.ms.done::before { background: var(--white); border-color: var(--white); }
+.ms.now::before { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 0 6px rgba(212, 17, 44, .25); }
+.ms .when { font-family: var(--font-display); font-weight: 700; font-size: 30px; letter-spacing: -.02em; line-height: 1; }
+.ms .what { color: #b9bdc1; font-size: 14px; }
+
+/* Sections */
+.section { padding-block: 72px; }
+.section-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px 48px; align-items: end; margin-bottom: 32px; }
+.section-head h2 { font-family: var(--font-display); font-weight: 800; font-size: clamp(36px, 5vw, 64px); line-height: .95; letter-spacing: -.03em; }
+.section-head p { color: var(--muted); font-size: 16px; max-width: 52ch; }
+@media (max-width: 760px) { .section-head { grid-template-columns: minmax(0, 1fr); } }
+
+/* Facts bento */
+.bento { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.tile { background: var(--grey); border-radius: var(--radius); padding: 24px; display: grid; gap: 8px; align-content: space-between; min-height: 180px; }
+.tile.wide { grid-column: span 2; }
+.tile.dark { background: var(--black); color: var(--white); }
+.tile.dark .lbl { color: #b9bdc1; }
+.tile .val { font-family: var(--font-display); font-weight: 800; font-size: clamp(40px, 5vw, 68px); line-height: .9; letter-spacing: -.035em; }
+.tile .lbl { font-size: 14px; color: var(--muted); max-width: 32ch; }
+@media (max-width: 860px) { .bento { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 480px) { .bento { grid-template-columns: minmax(0, 1fr); } .tile.wide { grid-column: auto; } }
+
+/* Core story */
+.core { background: var(--grey); }
+.chapter { display: grid; grid-template-columns: 260px minmax(0, 1fr) auto; gap: 12px 40px; padding-block: 28px; border-top: 1px solid var(--grey-3); align-items: start; }
+.chapter h3 { font-family: var(--font-display); font-weight: 700; font-size: 26px; letter-spacing: -.015em; line-height: 1.1; }
+.chapter p { font-size: 17px; max-width: 60ch; }
+.chapter a { justify-self: end; white-space: nowrap; font-size: 14px; font-weight: 600; color: var(--black); text-decoration: none; border-bottom: 1.5px solid var(--black); padding-bottom: 2px; }
+.chapter a:hover { color: var(--accent); border-color: var(--accent); }
+@media (max-width: 860px) { .chapter { grid-template-columns: minmax(0, 1fr); } .chapter a { justify-self: start; } }
+.role-note { background: var(--white); border-radius: 14px; padding: 18px 20px; font-size: 16px; display: flex; gap: 14px; align-items: baseline; flex-wrap: wrap; margin-bottom: 8px; }
+.role-note .pill { background: var(--black); color: var(--white); }
 
 /* Modules */
-.module { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); scroll-margin-top: 16px; }
-.module.selected { border-left: 5px solid var(--teal); }
-.mod-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; padding: 18px 20px; align-items: center; }
-.mod-kicker { font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--teal); font-weight: 600; }
-.mod-head h3 { font-size: 19px; font-weight: 600; margin-top: 2px; }
-.mod-btns { display: flex; gap: 6px; }
-.icon-btn { border: 1px solid var(--line); background: transparent; border-radius: 8px; padding: 6px 10px; font-size: 12.5px; cursor: pointer; white-space: nowrap; }
-.icon-btn:hover { border-color: var(--teal-2); }
-.mod-body { padding: 0 20px 22px; display: grid; gap: 14px; max-width: 78ch; }
-.module.collapsed .mod-body { display: none; }
-.mod-body p { font-size: 15px; }
-.mod-body h4 { font-size: 14px; font-weight: 600; margin-top: 4px; }
-.mod-body ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; }
-.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
-.fact { background: var(--bg); border-radius: 8px; padding: 12px; display: grid; gap: 2px; }
-.fact span { font-size: 12px; color: var(--muted); }
-.fact b { font-size: 15px; font-weight: 600; }
+.modlist { display: grid; gap: 16px; }
+.module { background: var(--white); border: 1.5px solid var(--grey-2); border-radius: var(--radius); scroll-margin-top: 20px; overflow: hidden; }
+.mod-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 18px; padding: 22px 24px; align-items: center; border-bottom: 1px solid var(--grey-2); }
+.mod-n { font-family: var(--font-display); font-weight: 800; font-size: 44px; line-height: 1; letter-spacing: -.04em; }
+.mod-head h3 { font-family: var(--font-display); font-weight: 700; font-size: 24px; letter-spacing: -.015em; line-height: 1.15; }
+.mod-btns { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.chip-btn { border: 1.5px solid var(--grey-2); background: var(--white); border-radius: 999px; padding: 7px 14px; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+.chip-btn:hover { border-color: var(--black); }
+@media (max-width: 640px) { .mod-head { grid-template-columns: auto minmax(0, 1fr); } .mod-btns { grid-column: 1 / -1; justify-content: flex-start; } }
+.mod-body { padding: 24px; display: grid; gap: 16px; }
+.mod-body > p, .mod-body ul { max-width: 72ch; }
+.mod-body h4 { font-size: 15px; font-weight: 600; margin-top: 6px; }
+.mod-body ul { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+.fact { background: var(--grey); border-radius: 12px; padding: 14px 16px; display: grid; gap: 4px; }
+.fact span { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.fact b { font-size: 16px; font-weight: 600; }
 .table-wrap { overflow-x: auto; }
-table { border-collapse: collapse; width: 100%; font-size: 14px; font-variant-numeric: tabular-nums; }
-th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
-th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
-
-/* Pathway */
-.pathway { display: flex; flex-wrap: wrap; gap: 6px; align-items: stretch; }
-.step { flex: 1 1 110px; background: var(--bg); border-radius: 8px; padding: 10px; font-size: 13px; display: grid; gap: 2px; }
-.step small { color: var(--muted); font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; }
-.step.here { background: var(--core-soft); outline: 2px solid var(--core); }
-.step.here b { color: var(--core); }
-
-/* Checklist */
+table { border-collapse: collapse; width: 100%; font-size: 15px; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--grey-2); }
+th { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 500; }
+.pathway { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+@media (max-width: 700px) { .pathway { grid-template-columns: minmax(0, 1fr); } }
+.pstep { background: var(--grey); border-radius: 12px; padding: 14px; display: grid; gap: 4px; font-size: 13.5px; }
+.pstep small { font-family: var(--font-mono); font-size: 11px; color: var(--muted); text-transform: uppercase; }
+.pstep b { font-size: 16px; }
+.pstep.here { background: var(--black); color: var(--white); }
+.pstep.here small { color: #ff8a98; }
 .check { display: grid; gap: 6px; }
-.check label { display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; gap: 10px; align-items: start; padding: 10px 12px; background: var(--bg); border-radius: 8px; cursor: pointer; }
-.check input { margin-top: 3px; accent-color: var(--teal); }
-.check .owner { font-size: 12px; color: var(--muted); white-space: nowrap; }
-.check label.done span:first-of-type { text-decoration: line-through; color: var(--muted); }
-.progress { font-size: 13px; color: var(--muted); }
-.progress b { color: var(--ok); }
-
-/* FAQ */
+.check label { position: relative; display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 14px; background: var(--grey); border-radius: 12px; cursor: pointer; }
+.check label.done .txt { text-decoration: line-through; color: var(--muted); }
+.check .owner { font-size: 12.5px; color: var(--muted); }
+@media (max-width: 560px) { .check label { grid-template-columns: 28px minmax(0, 1fr); } .check .owner { grid-column: 2; } }
+.progressbar { height: 6px; background: var(--grey-2); border-radius: 999px; overflow: hidden; }
+.progressbar i { display: block; height: 100%; width: 0; background: var(--black); transition: width .3s; }
+.progress { font-size: 14px; color: var(--muted); }
 .faq-tools { display: grid; gap: 8px; }
-.faq-tools input { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); font: inherit; }
-.faq-banner { font-size: 13px; background: var(--teal-soft); color: var(--teal); padding: 8px 12px; border-radius: 8px; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
-.faq-banner button { background: none; border: 0; color: inherit; text-decoration: underline; cursor: pointer; font-size: 13px; padding: 0; }
-.faq details { border-bottom: 1px solid var(--line); padding: 10px 0; }
-.faq summary { cursor: pointer; font-weight: 600; font-size: 15px; list-style-position: outside; }
-.faq details p { margin-top: 8px; color: var(--ink); }
-.faq .tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
-.faq .tags span { font-size: 11px; background: var(--bg); color: var(--muted); border-radius: 999px; padding: 1px 8px; }
-.faq-empty { color: var(--muted); font-size: 14px; padding: 8px 0; }
+.faq-tools label { color: var(--muted); }
+.faq-tools input { width: 100%; padding: 14px 18px; border: 1.5px solid var(--grey-2); border-radius: 999px; background: var(--white); color: var(--black); font: inherit; }
+.faq-tools input:focus { border-color: var(--black); outline: none; }
+.faq-banner { font-size: 13.5px; background: var(--black); color: var(--white); padding: 10px 16px; border-radius: 999px; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.faq-banner button { background: none; border: 0; color: inherit; text-decoration: underline; cursor: pointer; padding: 0; font-size: 13.5px; }
+.faq details { border-bottom: 1px solid var(--grey-2); padding: 14px 0; }
+.faq summary { cursor: pointer; font-weight: 600; font-size: 16px; }
+.faq details p { margin-top: 8px; max-width: 70ch; }
+.faq .tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 8px; }
+.faq-empty { color: var(--muted); padding: 10px 0; }
 
-.others summary { cursor: pointer; font-weight: 600; color: var(--teal); padding: 6px 0; }
-.others[open] summary { margin-bottom: 12px; }
+/* Also available */
+.also { margin-top: 48px; display: grid; gap: 16px; }
+.also h3 { font-family: var(--font-display); font-weight: 700; font-size: 24px; letter-spacing: -.015em; }
+.also-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
+.also-tile { background: var(--grey); border-radius: 14px; padding: 18px; display: grid; gap: 14px; align-content: space-between; }
+.also-tile .mono { color: var(--muted); }
+.also-tile b { display: block; font-size: 16px; margin-top: 4px; }
+.also-tile p { font-size: 13.5px; color: var(--muted); }
+.also-tile button { justify-self: start; }
+.empty-pack { background: var(--grey); border-radius: var(--radius); padding: 28px; color: var(--muted); }
 
-footer.legal { border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted); }
-footer.legal .wrap { padding-block: 20px 36px; display: grid; gap: 6px; }
+/* Footer */
+footer { background: var(--black); color: #b9bdc1; font-size: 13px; }
+footer .wrap { padding-block: 40px; display: grid; gap: 10px; }
+footer b { color: var(--white); }
 
 /* Email overlay */
-.overlay { position: fixed; inset: 0; background: rgba(10, 14, 16, .55); display: grid; place-items: center; padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); z-index: 20; }
-.sheet { background: var(--surface); border-radius: 12px; width: min(680px, 100%); max-height: 88vh; overflow: auto; display: grid; gap: 14px; padding: 22px; }
+.overlay { position: fixed; inset: 0; background: rgba(13, 14, 15, .6); display: grid; place-items: center; padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); z-index: 20; }
+.sheet { background: var(--white); border-radius: var(--radius); width: min(700px, 100%); max-height: 88vh; overflow: auto; display: grid; gap: 16px; padding: 26px; }
 .sheet-head { display: flex; justify-content: space-between; gap: 12px; align-items: start; }
-.sheet h2 { font-size: 18px; }
-.email { background: var(--bg); border-radius: 8px; padding: 16px; font-size: 14px; white-space: pre-wrap; font-family: var(--font-body); overflow-wrap: anywhere; }
-.toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 20px); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 8px; font-size: 13.5px; z-index: 30; max-width: calc(100% - 32px); }
-@media (prefers-reduced-motion: no-preference) { .module { transition: border-color .2s; } }
+.sheet-head .mono { color: var(--muted); }
+.sheet h2 { font-family: var(--font-display); font-size: 26px; font-weight: 700; letter-spacing: -.015em; }
+.email { background: var(--grey); border-radius: 12px; padding: 18px; font-size: 14px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 20px); transform: translateX(-50%); background: var(--black); color: var(--white); padding: 12px 18px; border-radius: 999px; font-size: 14px; z-index: 30; max-width: calc(100% - 32px); }
 </style>
 </head>
 <body>
 
-<div class="mockbar"><div class="wrap"><span>MOCK-UP · Fictional content for concept review · Not for distribution</span><span>Job code <span class="ph">XX-UK-0000</span> · Prepared October 2026</span></div></div>
-
-<header class="masthead">
+<header class="topbar">
   <div class="wrap">
-    <div class="eyebrow">Advance notification for NHS budget holders</div>
-    <h1>Product A: planning for a new treatment option in <span class="ph">Condition X</span></h1>
-    <p class="lede">This notification gives NHS commissioners, formulary decision-makers and pharmacy leads early, factual information to support budget and service planning. Product A does not yet have a UK marketing authorisation.</p>
-    <div class="status" aria-label="Launch status">
-      <div class="stage done"><b>Notification issued</b><span>Oct 2026</span></div>
-      <div class="stage now"><b>MHRA decision</b><span>Expected <span class="ph">Q1 2027</span></span></div>
-      <div class="stage"><b>NICE TA</b><span>Expected <span class="ph">Q2 2027</span></span></div>
-      <div class="stage"><b>UK launch</b><span>Planned <span class="ph">Q2 2027</span></span></div>
-      <div class="stage"><b>Transition</b><span>Over <span class="ph">12 months</span></span></div>
-    </div>
-    <div class="how"><span><b>1.</b> Read the core story</span><span><b>2.</b> Choose stakeholder and engagement</span><span><b>3.</b> Share a tailored pack</span></div>
+    <div class="brand"><i aria-hidden="true"></i>Product A <span class="mono mocktag">Mock-up · fictional content</span></div>
+    <nav aria-label="Sections">
+      <a href="#build">Build a pack</a>
+      <a href="#timeline">Timeline</a>
+      <a href="#story">Core story</a>
+      <a href="#pack">Your pack</a>
+    </nav>
   </div>
 </header>
 
-<div class="wrap layout">
-  <aside class="builder" aria-label="Pack builder">
-    <h2>Build a pack</h2>
-    <div class="q">
-      <div class="q-label" id="q1">Who are you engaging?</div>
-      <div class="chips" role="group" aria-labelledby="q1" id="stakeholders"></div>
-    </div>
-    <div class="q">
-      <div class="q-label" id="q2">What is the engagement?</div>
-      <div class="chips" role="group" aria-labelledby="q2" id="engagements"></div>
-    </div>
-    <div class="pack">
-      <div class="pack-for" id="packFor"></div>
-      <ol id="packList"></ol>
-      <div class="why" id="packWhy"></div>
-      <div class="actions">
-        <button class="btn btn-primary" id="dlPack" type="button">Download pack <small>Merged PDF</small></button>
-        <button class="btn btn-secondary" id="showEmail" type="button">Approved email <small>Preview and copy</small></button>
-      </div>
-    </div>
-  </aside>
-
-  <main>
-    <article class="core" id="core">
-      <div class="core-head">
-        <div class="eyebrow">Core launch notification</div>
-        <h2>What NHS organisations need to know about Product A</h2>
-      </div>
-      <div class="role-note" id="roleNote"></div>
-
-      <section class="chapter">
-        <h3>What's coming</h3>
-        <div class="body">
-          <p>Product A is a <span class="ph">once-monthly subcutaneous</span> treatment for adults with <span class="ph">moderate to severe Condition X</span>. A marketing authorisation application was submitted to the MHRA in <span class="ph">March 2026</span>, with a decision expected in <span class="ph">Q1 2027</span>.</p>
-          <a class="more" href="#value">Why Product A matters →</a>
-        </div>
-      </section>
-      <section class="chapter">
-        <h3>Who it's for</h3>
-        <div class="body">
-          <p>The anticipated licensed population is adults whose disease is not adequately controlled after <span class="ph">first-line therapy</span>. We estimate around <span class="ph">8,400</span> eligible patients in England, or roughly <span class="ph">150</span> per million population.</p>
-          <a class="more" href="#pathway">Patient population and pathway →</a>
-        </div>
-      </section>
-      <section class="chapter">
-        <h3>Where it fits</h3>
-        <div class="body">
-          <p>Product A is expected to sit at the <span class="ph">second-line</span> stage of the current <span class="ph">NICE NG000</span> pathway. Treatment would be initiated by specialists in secondary care, with ongoing supply through <span class="ph">homecare</span>.</p>
-          <a class="more" href="#formulary">Formulary and prescribing →</a>
-        </div>
-      </section>
-      <section class="chapter">
-        <h3>Planned transition</h3>
-        <div class="body">
-          <p>Product A is intended to replace <span class="ph">Product B</span>, an existing treatment from the same company. Product B will remain available for at least <span class="ph">12 months</span> after launch so that clinicians can review and move patients in a planned way. No patient will need to switch before a clinical review.</p>
-          <a class="more" href="#tariffs">Supply, tariff and pharmacy →</a>
-        </div>
-      </section>
-      <section class="chapter">
-        <h3>What happens next</h3>
-        <div class="body">
-          <p>Your account contact can provide the modules that are relevant to you, arrange a briefing for your formulary or medicines optimisation committee, and share updates when the MHRA and NICE milestones are confirmed.</p>
-          <a class="more" href="#checklist">Implementation checklist →</a>
-        </div>
-      </section>
-    </article>
-
-    <section aria-labelledby="selHead">
-      <div class="group-head"><h2 id="selHead">Selected modules</h2><p id="selCount"></p></div>
-      <div class="modlist" id="selected"></div>
-    </section>
-
-    <details class="others" id="othersWrap">
-      <summary id="othersSum">Other modules available</summary>
-      <div class="modlist" id="others"></div>
-    </details>
-  </main>
-</div>
-
-<footer class="legal">
+<section class="hero" id="build">
   <div class="wrap">
+    <div class="hero-top">
+      <h1>Product A<span>Advance notification for NHS planning</span></h1>
+      <div class="hero-intro">
+        <p>A new treatment option for <span class="ph">Condition X</span> is expected in <span class="ph">Q2 2027</span>. Choose who you are engaging and why, and the hub assembles the right briefing pack from approved materials.</p>
+        <p class="note">For NHS budget holders and formulary decision-makers. Product A does not yet have a UK marketing authorisation.</p>
+      </div>
+    </div>
+
+    <div class="builder">
+      <div class="steps">
+        <section class="step" aria-labelledby="s1">
+          <div class="step-head"><span class="step-num">01</span><h2 id="s1">Who are you engaging?</h2><span class="hint" id="hint1"></span></div>
+          <div class="cards who" id="whoCards" role="group" aria-labelledby="s1"></div>
+        </section>
+        <section class="step" aria-labelledby="s2">
+          <div class="step-head"><span class="step-num">02</span><h2 id="s2">What's the engagement?</h2><span class="hint" id="hint2"></span></div>
+          <div class="cards eng" id="engCards" role="group" aria-labelledby="s2"></div>
+        </section>
+        <section class="step" aria-labelledby="s3">
+          <div class="step-head"><span class="step-num">03</span><h2 id="s3">Choose the materials</h2><span class="hint">Recommended items are ticked. Add or remove any.</span></div>
+          <div class="materials" id="materials"></div>
+        </section>
+      </div>
+
+      <aside class="packcard" aria-label="Your pack" aria-live="polite">
+        <div class="mono">Your pack</div>
+        <div class="bignum"><b id="docCount">3</b><span id="pageCount">documents<br>9 pages</span></div>
+        <p class="for" id="packFor"></p>
+        <ol class="packlist" id="packList"></ol>
+        <p class="why" id="packWhy"></p>
+        <div class="btns">
+          <a class="btn btn-white" href="#pack">View pack <span aria-hidden="true">↓</span></a>
+          <button class="btn btn-ghost" id="dlPack" type="button">Download as PDF <span aria-hidden="true">↗</span></button>
+          <button class="btn btn-ghost" id="showEmail" type="button">Approved email <span aria-hidden="true">✉</span></button>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="timeline">
+  <div class="wrap">
+    <div class="band-head"><h2>Where we are</h2><span class="mono">Updated October 2026 · dates subject to regulatory timelines</span></div>
+    <div class="timeline-scroll">
+      <div class="timeline">
+        <div class="ms done"><span class="when">Oct 26</span><span class="what">Advance notification issued</span></div>
+        <div class="ms now"><span class="when"><span class="ph">Q1 27</span></span><span class="what">MHRA decision expected</span></div>
+        <div class="ms"><span class="when"><span class="ph">Q2 27</span></span><span class="what">NICE technology appraisal</span></div>
+        <div class="ms"><span class="when"><span class="ph">Q2 27</span></span><span class="what">Planned UK launch</span></div>
+        <div class="ms"><span class="when"><span class="ph">12 mo</span></span><span class="what">Planned transition from Product B</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" aria-labelledby="factsHead">
+  <div class="wrap">
+    <div class="section-head">
+      <h2 id="factsHead">At a glance</h2>
+      <p>The planning figures most NHS stakeholders ask for first. All values are placeholders in this mock-up.</p>
+    </div>
+    <div class="bento">
+      <div class="tile wide dark"><span class="val"><span class="ph">8,400</span></span><span class="lbl">Estimated eligible patients in England, around <span class="ph">225</span> in an average ICB</span></div>
+      <div class="tile"><span class="val">2nd</span><span class="lbl">Line of therapy, after <span class="ph">standard first-line care</span></span></div>
+      <div class="tile"><span class="val">1×</span><span class="lbl">Monthly subcutaneous dose, self-administered</span></div>
+      <div class="tile"><span class="val">2–8°C</span><span class="lbl">Refrigerated storage, supplied through homecare</span></div>
+      <div class="tile"><span class="val">90</span><span class="lbl">Days to fund after a positive NICE recommendation</span></div>
+      <div class="tile wide"><span class="val"><span class="ph">12</span> months</span><span class="lbl">Product B stays available while patients are reviewed and moved in a planned way</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="section core" id="story" aria-labelledby="storyHead">
+  <div class="wrap">
+    <div class="section-head">
+      <h2 id="storyHead">The core story</h2>
+      <p>The core launch notification. Every pack starts here, whatever the stakeholder.</p>
+    </div>
+    <div class="role-note" id="roleNote"></div>
+    <div class="story">
+      <article class="chapter"><h3>What's coming</h3><p>Product A is a <span class="ph">once-monthly subcutaneous</span> treatment for adults with <span class="ph">moderate to severe Condition X</span>. An application was submitted to the MHRA in <span class="ph">March 2026</span>, with a decision expected in <span class="ph">Q1 2027</span>.</p><a href="#value">Why it matters</a></article>
+      <article class="chapter"><h3>Who it's for</h3><p>Adults whose disease is not adequately controlled after <span class="ph">first-line therapy</span>. We estimate around <span class="ph">8,400</span> eligible patients in England, or roughly <span class="ph">150</span> per million population.</p><a href="#pathway">Population and pathway</a></article>
+      <article class="chapter"><h3>Where it fits</h3><p>Expected at the <span class="ph">second-line</span> stage of the current <span class="ph">NICE NG000</span> pathway. Specialists in secondary care would start treatment, with ongoing supply through <span class="ph">homecare</span>.</p><a href="#formulary">Formulary and prescribing</a></article>
+      <article class="chapter"><h3>Planned transition</h3><p>Product A is intended to replace <span class="ph">Product B</span>. Product B will remain available for at least <span class="ph">12 months</span> after launch. No patient will need to switch before a clinical review.</p><a href="#tariffs">Supply and tariff</a></article>
+      <article class="chapter"><h3>What happens next</h3><p>Your account contact can share the modules relevant to you, brief your formulary or medicines optimisation committee, and update you as MHRA and NICE milestones are confirmed.</p><a href="#checklist">Implementation checklist</a></article>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="pack" aria-labelledby="packHead">
+  <div class="wrap">
+    <div class="section-head">
+      <h2 id="packHead">Your pack</h2>
+      <p id="packSub"></p>
+    </div>
+    <div class="modlist" id="selected"></div>
+    <div class="also" id="also">
+      <h3>Also available</h3>
+      <div class="also-grid" id="others"></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p><b>Product A advance notification</b> · Job code <span class="ph">XX-UK-0000</span> · Date of preparation October 2026</p>
     <p>This information is provided to NHS budget holders and formulary decision-makers to support financial and service planning, in line with the ABPI Code of Practice provisions on advance notification of new medicines. It is not intended for prescribers or patients.</p>
     <p>Product A is not licensed in the UK. Its safety and efficacy have not been established by the MHRA. All figures shown are placeholders for this mock-up.</p>
   </div>
 </footer>
 
-<!-- Module templates -->
 <template id="tpl-modules">
-  <section class="module" id="value" data-mod="value">
-    <div class="mod-body">
-      <p>Around <span class="ph">40%</span> of people with Condition X do not reach adequate disease control on current first-line options, and many need frequent hospital visits.</p>
-      <div class="facts">
-        <div class="fact"><span>Pivotal study</span><b><span class="ph">TRIAL-1</span>, Phase III, n=<span class="ph">612</span></b></div>
-        <div class="fact"><span>Primary endpoint</span><b><span class="ph">Response at week 24</span></b></div>
-        <div class="fact"><span>Dosing</span><b><span class="ph">Once monthly, self-administered</span></b></div>
-      </div>
-      <h4>Possible resource considerations</h4>
-      <ul>
-        <li>Monthly self-administration may reduce the number of infusion-unit appointments compared with <span class="ph">Product B</span>.</li>
-        <li>No routine therapeutic drug monitoring is expected.</li>
-        <li>A budget impact model will be available on request after the MHRA decision.</li>
-      </ul>
+  <section class="module" id="value" data-mod="value"><div class="mod-body">
+    <p>Around <span class="ph">40%</span> of people with Condition X do not reach adequate disease control on current first-line options, and many need frequent hospital visits.</p>
+    <div class="facts">
+      <div class="fact"><span>Pivotal study</span><b><span class="ph">TRIAL-1</span>, Phase III, n=<span class="ph">612</span></b></div>
+      <div class="fact"><span>Primary endpoint</span><b><span class="ph">Response at week 24</span></b></div>
+      <div class="fact"><span>Dosing</span><b>Once monthly, self-administered</b></div>
     </div>
-  </section>
+    <h4>Possible resource considerations</h4>
+    <ul>
+      <li>Monthly self-administration may reduce infusion-unit appointments compared with <span class="ph">Product B</span>.</li>
+      <li>No routine therapeutic drug monitoring is expected.</li>
+      <li>A budget impact model will be available on request after the MHRA decision.</li>
+    </ul>
+  </div></section>
 
-  <section class="module" id="pathway" data-mod="pathway">
-    <div class="mod-body">
-      <p>The expected position of Product A in the current care pathway:</p>
-      <div class="pathway">
-        <div class="step"><small>Step 1</small><b>Referral</b>Primary care</div>
-        <div class="step"><small>Step 2</small><b>Diagnosis</b>Specialist clinic</div>
-        <div class="step"><small>Step 3</small><b>First-line</b><span class="ph">Standard care</span></div>
-        <div class="step here"><small>Step 4</small><b>Product A</b>Proposed second-line</div>
-        <div class="step"><small>Step 5</small><b>Follow-up</b>Homecare and review</div>
-      </div>
-      <h4>Estimated eligible population</h4>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Population</th><th>Prevalent</th><th>New per year</th></tr></thead>
-          <tbody>
-            <tr><td>England</td><td><span class="ph">8,400</span></td><td><span class="ph">1,100</span></td></tr>
-            <tr><td>Average ICB (1.5m)</td><td><span class="ph">225</span></td><td><span class="ph">30</span></td></tr>
-            <tr><td>Per 100,000 population</td><td><span class="ph">15</span></td><td><span class="ph">2</span></td></tr>
-          </tbody>
-        </table>
-      </div>
-      <p>Estimates are based on <span class="ph">source data</span> and the anticipated licence wording. Local figures can be modelled with your team.</p>
+  <section class="module" id="pathway" data-mod="pathway"><div class="mod-body">
+    <p>The expected position of Product A in the current care pathway:</p>
+    <div class="pathway">
+      <div class="pstep"><small>Step 1</small><b>Referral</b>Primary care</div>
+      <div class="pstep"><small>Step 2</small><b>Diagnosis</b>Specialist clinic</div>
+      <div class="pstep"><small>Step 3</small><b>First line</b><span class="ph">Standard care</span></div>
+      <div class="pstep here"><small>Step 4 · Proposed</small><b>Product A</b>Second line</div>
+      <div class="pstep"><small>Step 5</small><b>Follow-up</b>Homecare and review</div>
     </div>
-  </section>
+    <h4>Estimated eligible population</h4>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Population</th><th>Prevalent</th><th>New per year</th></tr></thead>
+      <tbody>
+        <tr><td>England</td><td><span class="ph">8,400</span></td><td><span class="ph">1,100</span></td></tr>
+        <tr><td>Average ICB (1.5m)</td><td><span class="ph">225</span></td><td><span class="ph">30</span></td></tr>
+        <tr><td>Per 100,000 population</td><td><span class="ph">15</span></td><td><span class="ph">2</span></td></tr>
+      </tbody>
+    </table></div>
+  </div></section>
 
-  <section class="module" id="formulary" data-mod="formulary">
-    <div class="mod-body">
-      <div class="facts">
-        <div class="fact"><span>Anticipated indication</span><b><span class="ph">Adults, moderate to severe Condition X</span></b></div>
-        <div class="fact"><span>Prescribing setting</span><b>Specialist initiation, secondary care</b></div>
-        <div class="fact"><span>Expected NICE route</span><b>Single technology appraisal</b></div>
-      </div>
-      <h4>Points for formulary committees</h4>
-      <ul>
-        <li>A formulary submission pack will be available once the MHRA decision is confirmed.</li>
-        <li>NICE technology appraisals carry a 90-day funding requirement after publication.</li>
-        <li>Prior approval (for example through Blueteq) may be needed, depending on local policy.</li>
-        <li>Additional monitoring set out in the risk management plan will be confirmed at licensing.</li>
-      </ul>
+  <section class="module" id="formulary" data-mod="formulary"><div class="mod-body">
+    <div class="facts">
+      <div class="fact"><span>Anticipated indication</span><b><span class="ph">Adults, moderate to severe Condition X</span></b></div>
+      <div class="fact"><span>Prescribing setting</span><b>Specialist initiation, secondary care</b></div>
+      <div class="fact"><span>Expected NICE route</span><b>Single technology appraisal</b></div>
     </div>
-  </section>
+    <h4>Points for formulary committees</h4>
+    <ul>
+      <li>A formulary submission pack will be available once the MHRA decision is confirmed.</li>
+      <li>NICE technology appraisals carry a 90-day funding requirement after publication.</li>
+      <li>Prior approval (for example through Blueteq) may be needed, depending on local policy.</li>
+      <li>Additional monitoring in the risk management plan will be confirmed at licensing.</li>
+    </ul>
+  </div></section>
 
-  <section class="module" id="tariffs" data-mod="tariffs">
-    <div class="mod-body">
-      <div class="facts">
-        <div class="fact"><span>Indicative list price</span><b><span class="ph">£X,XXX</span> per pack</b></div>
-        <div class="fact"><span>Tariff status</span><b>Expected high-cost drug, outside the payment system</b></div>
-        <div class="fact"><span>Supply route</span><b><span class="ph">Homecare</span> and wholesaler</b></div>
-        <div class="fact"><span>Storage</span><b>Refrigerated, 2–8°C</b></div>
-      </div>
-      <h4>Pharmacy implications</h4>
-      <ul>
-        <li>dm+d codes will be available at launch.</li>
-        <li>A homecare provider will be appointed through a national framework, with service details shared before launch.</li>
-        <li><span class="ph">Product B</span> supply continues during transition. Stock of both products may need managing for up to <span class="ph">12 months</span>.</li>
-      </ul>
+  <section class="module" id="tariffs" data-mod="tariffs"><div class="mod-body">
+    <div class="facts">
+      <div class="fact"><span>Indicative list price</span><b><span class="ph">£X,XXX</span> per pack</b></div>
+      <div class="fact"><span>Tariff status</span><b>Expected high-cost drug</b></div>
+      <div class="fact"><span>Supply route</span><b><span class="ph">Homecare</span> and wholesaler</b></div>
+      <div class="fact"><span>Storage</span><b>Refrigerated, 2–8°C</b></div>
     </div>
-  </section>
+    <h4>Pharmacy implications</h4>
+    <ul>
+      <li>dm+d codes will be available at launch.</li>
+      <li>A homecare provider will be appointed through a national framework before launch.</li>
+      <li><span class="ph">Product B</span> supply continues during transition, so stock of both may need managing for up to <span class="ph">12 months</span>.</li>
+    </ul>
+  </div></section>
 
-  <section class="module" id="checklist" data-mod="checklist">
-    <div class="mod-body">
-      <p class="progress" id="progress"></p>
-      <div class="check" id="checkItems"></div>
-    </div>
-  </section>
+  <section class="module" id="checklist" data-mod="checklist"><div class="mod-body">
+    <div class="progressbar"><i id="progressFill"></i></div>
+    <p class="progress" id="progress"></p>
+    <div class="check" id="checkItems"></div>
+  </div></section>
 
-  <section class="module" id="faqs" data-mod="faqs">
-    <div class="mod-body">
-      <div class="faq-tools">
-        <label for="faqSearch" class="q-label">Search the questions</label>
-        <input id="faqSearch" type="search" placeholder="For example: homecare, switching, price">
-        <div class="faq-banner" id="faqBanner" hidden><span id="faqBannerText"></span><button type="button" id="faqClear">Show all</button></div>
-      </div>
-      <div class="faq" id="faqList"></div>
+  <section class="module" id="faqs" data-mod="faqs"><div class="mod-body">
+    <div class="faq-tools">
+      <label for="faqSearch" class="mono">Search the questions</label>
+      <input id="faqSearch" type="search" placeholder="For example: homecare, switching, price">
+      <div class="faq-banner" id="faqBanner" hidden><span id="faqBannerText"></span><button type="button" id="faqClear">Show all</button></div>
     </div>
-  </section>
+    <div class="faq" id="faqList"></div>
+  </div></section>
 </template>
 
 <div class="overlay" id="emailOverlay" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="emailTitle">
     <div class="sheet-head">
-      <div><div class="eyebrow">Approved email · <span class="ph">XX-UK-0001</span></div><h2 id="emailTitle">Email preview</h2></div>
-      <button class="icon-btn" id="closeEmail" type="button">Close</button>
+      <div><div class="mono">Approved email · <span class="ph">XX-UK-0001</span></div><h2 id="emailTitle">Email preview</h2></div>
+      <button class="chip-btn" id="closeEmail" type="button">Close</button>
     </div>
     <div class="email" id="emailBody" tabindex="0"></div>
-    <div class="actions"><button class="btn btn-primary" id="copyEmail" type="button">Copy email text</button></div>
+    <button class="btn btn-black" id="copyEmail" type="button">Copy email text <span aria-hidden="true">⧉</span></button>
   </div>
 </div>
 <div class="toast" id="toast" hidden></div>
 
 <script>
+const TICK = '<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 7.5l3 3 7-7" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
 const MODS = {
-  value:     { kicker: "Mini value proposition", q: "Why does Product A matter?", pdf: "PA-MOD-01" },
-  pathway:   { kicker: "Patient population and pathway", q: "Who is it for and where does it fit?", pdf: "PA-MOD-02" },
-  formulary: { kicker: "Formulary and prescribing", q: "What do formulary committees need to consider?", pdf: "PA-MOD-03" },
-  tariffs:   { kicker: "Drug tariffs and pharmacy", q: "What does it cost and how is it supplied?", pdf: "PA-MOD-04" },
-  checklist: { kicker: "Implementation checklist", q: "How do we get ready for launch?", pdf: "PA-MOD-05" },
-  faqs:      { kicker: "FAQs", q: "Common questions", pdf: "PA-MOD-06" }
+  value:     { name: "Mini value proposition", q: "Why does Product A matter?", pdf: "PA-MOD-01", pp: 2 },
+  pathway:   { name: "Patient population and pathway", q: "Who is it for and where does it fit?", pdf: "PA-MOD-02", pp: 3 },
+  formulary: { name: "Formulary and prescribing", q: "What do formulary committees need to consider?", pdf: "PA-MOD-03", pp: 2 },
+  tariffs:   { name: "Drug tariffs and pharmacy", q: "What does it cost and how is it supplied?", pdf: "PA-MOD-04", pp: 2 },
+  checklist: { name: "Implementation checklist", q: "How do we get ready for launch?", pdf: "PA-MOD-05", pp: 1 },
+  faqs:      { name: "FAQs", q: "What do people commonly ask?", pdf: "PA-MOD-06", pp: 3 }
 };
+const ORDER = Object.keys(MODS);
+const CORE_PP = 4;
 
 const STAKEHOLDERS = {
-  commissioner: { label: "ICB commissioner", note: "For commissioners: plan for an estimated <b>225 eligible patients</b> in an average ICB, and a 90-day funding requirement if NICE recommends Product A." },
-  pharmacist:   { label: "Formulary pharmacist", note: "For formulary pharmacists: a formulary submission pack will follow the MHRA decision. Specialist initiation in secondary care is expected." },
-  finance:      { label: "Finance and procurement", note: "For finance leads: Product A is expected to be a <b>high-cost drug outside the payment system</b>, with an indicative list price shared in the tariff module." },
-  clinical:     { label: "Clinical lead", note: "For clinical leads: Product A is expected at <b>second line</b>. Existing Product B patients can move after clinical review over a 12-month transition." },
-  trust:        { label: "Trust pharmacy", note: "For trust pharmacy: plan for <b>cold-chain storage</b>, homecare set-up and running stock of both Product A and Product B during transition." }
+  commissioner: { code: "ICB", label: "ICB commissioner", d: "Budgets and service planning", note: "Plan for an estimated <b>225 eligible patients</b> in an average ICB, and a 90-day funding requirement if NICE recommends Product A." },
+  pharmacist:   { code: "FP", label: "Formulary pharmacist", d: "Formulary review and policy", note: "A formulary submission pack will follow the MHRA decision. <b>Specialist initiation</b> in secondary care is expected." },
+  finance:      { code: "FIN", label: "Finance and procurement", d: "Cost, tariff and contracts", note: "Product A is expected to be a <b>high-cost drug outside the payment system</b>. An indicative list price is in the tariff module." },
+  clinical:     { code: "CL", label: "Clinical lead", d: "Pathway and patient care", note: "Product A is expected at <b>second line</b>. Product B patients can move after clinical review over a 12-month transition." },
+  trust:        { code: "TP", label: "Trust pharmacy", d: "Supply, storage and homecare", note: "Plan for <b>cold-chain storage</b>, homecare set-up and running stock of both Product A and Product B during transition." }
 };
 
 const ENGAGEMENTS = {
-  proactive:      { label: "Proactive introduction", subject: "Advance notification: Product A", intro: "I'm writing to share advance information about Product A, a new treatment option for Condition X expected to launch in Q2 2027, to support your planning." },
-  formulary:      { label: "Formulary preparation", subject: "Product A: information for your formulary review", intro: "Ahead of your formulary discussions, I've put together the information most relevant to reviewing Product A." },
-  reactive:       { label: "Reactive enquiry", subject: "Product A: answers to your question", intro: "Thank you for your question about Product A. The answers you need are set out in the frequently asked questions below." },
-  implementation: { label: "Implementation planning", subject: "Product A: preparing for launch", intro: "As you prepare for the launch of Product A, these resources set out the practical steps and supply arrangements." }
+  proactive:      { label: "Proactive introduction", d: "First contact ahead of launch", tag: "Pre-launch", subject: "Advance notification: Product A", intro: "I'm writing to share advance information about Product A, a new treatment option for Condition X expected to launch in Q2 2027, to support your planning." },
+  formulary:      { label: "Formulary preparation", d: "A decision meeting is coming up", tag: "Committee", subject: "Product A: information for your formulary review", intro: "Ahead of your formulary discussions, I've put together the information most relevant to reviewing Product A." },
+  reactive:       { label: "Reactive enquiry", d: "They've asked a specific question", tag: "On request", subject: "Product A: answers to your question", intro: "Thank you for your question about Product A. The answers you need are set out below." },
+  implementation: { label: "Implementation planning", d: "Getting ready for launch", tag: "Launch-ready", subject: "Product A: preparing for launch", intro: "As you prepare for the launch of Product A, these resources set out the practical steps and supply arrangements." }
 };
 
-// Stakeholder × engagement → modules (the core is always included)
+// Stakeholder × engagement → recommended modules (the core is always included)
 const MATRIX = {
   commissioner: { proactive: ["value"], formulary: ["pathway", "value"], reactive: ["faqs"], implementation: ["checklist", "pathway"] },
   pharmacist:   { proactive: ["pathway"], formulary: ["formulary", "faqs"], reactive: ["faqs"], implementation: ["checklist", "tariffs"] },
@@ -472,65 +537,96 @@ const CHECKLIST = [
   { t: "Brief prescribers once guidance is published", o: "Clinical lead" }
 ];
 
-const $ = (s, el = document) => el.querySelector(s);
-const state = { who: "pharmacist", eng: "formulary", faqWho: null };
-
+const modEls = {};
+// Modules not in the pack are detached from the page, so also look inside them
+const $ = (s, el = document) => el.querySelector(s) || (el === document ? Object.values(modEls).map(m => m.querySelector(s)).find(Boolean) || null : null);
+const state = { who: "pharmacist", eng: "formulary", picked: [], faqWho: null };
 const store = {
   get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
 };
+const rec = () => MATRIX[state.who][state.eng];
+// Pack order: recommended modules first (in recommended order), then any extras in standard order
+const packOrder = () => [...rec().filter(id => state.picked.includes(id)), ...ORDER.filter(id => state.picked.includes(id) && !rec().includes(id))];
+const pad = n => String(n).padStart(2, "0");
 
-// Build modules from the template with consistent headers
+// Module elements
 const tpl = $("#tpl-modules").content;
-const modEls = {};
-Object.entries(MODS).forEach(([id, m]) => {
+ORDER.forEach(id => {
   const el = tpl.querySelector(`[data-mod="${id}"]`).cloneNode(true);
   const head = document.createElement("div");
   head.className = "mod-head";
-  head.innerHTML = `<div><div class="mod-kicker">${m.kicker}</div><h3>${m.q}</h3></div>
-    <div class="mod-btns"><button class="icon-btn" type="button" data-pdf="${id}">PDF</button>
-    <button class="icon-btn" type="button" data-toggle="${id}" aria-expanded="true" aria-controls="${id}">Hide</button></div>`;
+  head.innerHTML = `<span class="mod-n" data-n></span><div><div class="mono" style="color: var(--muted)">${MODS[id].name} · ${MODS[id].pp} pp</div><h3>${MODS[id].q}</h3></div>
+    <div class="mod-btns"><button class="chip-btn" type="button" data-pdf="${id}">PDF ↗</button><button class="chip-btn" type="button" data-remove="${id}">Remove</button></div>`;
   el.prepend(head);
   modEls[id] = el;
 });
 
-function setCollapsed(id, collapsed) {
-  const el = modEls[id];
-  el.classList.toggle("collapsed", collapsed);
-  const b = el.querySelector("[data-toggle]");
-  b.textContent = collapsed ? "Show" : "Hide";
-  b.setAttribute("aria-expanded", String(!collapsed));
-}
-
-function chips(container, data, key) {
+function cards(container, data, key) {
   container.innerHTML = "";
   Object.entries(data).forEach(([id, d]) => {
     const b = document.createElement("button");
-    b.type = "button"; b.className = "chip"; b.textContent = d.label;
+    b.type = "button"; b.className = "card";
     b.setAttribute("aria-pressed", String(state[key] === id));
-    b.addEventListener("click", () => { state[key] = id; render(); });
+    b.innerHTML = key === "who"
+      ? `<span class="code">${d.code}</span><span class="t">${d.label}</span><span class="d">${d.d}</span>`
+      : `<span class="pill tag">${d.tag}</span><span class="t">${d.label}</span><span class="d">${d.d}</span>`;
+    b.addEventListener("click", () => { state[key] = id; state.picked = [...rec()]; render(); });
     container.append(b);
   });
 }
 
-function render() {
-  chips($("#stakeholders"), STAKEHOLDERS, "who");
-  chips($("#engagements"), ENGAGEMENTS, "eng");
-  const picked = MATRIX[state.who][state.eng];
+function renderMaterials() {
+  const r = rec();
+  $("#materials").innerHTML =
+    `<div class="mat locked"><span class="box">${TICK}</span><div><div class="name">Core launch notification</div><div class="q">The launch story every stakeholder receives</div></div><div class="meta"><span class="pill core">Always included</span><span class="pill">${CORE_PP} pp</span></div></div>` +
+    ORDER.map(id => `
+      <label class="mat" for="m-${id}">
+        <input type="checkbox" id="m-${id}" data-mod="${id}" ${state.picked.includes(id) ? "checked" : ""}>
+        <span class="box">${TICK}</span>
+        <div><div class="name">${MODS[id].name}</div><div class="q">${MODS[id].q}</div></div>
+        <div class="meta">${r.includes(id) ? '<span class="pill rec">Recommended</span>' : ""}<span class="pill">${MODS[id].pp} pp</span></div>
+      </label>`).join("");
+}
+$("#materials").addEventListener("change", e => {
+  const id = e.target.dataset.mod; if (!id) return;
+  togglePick(id, e.target.checked, `m-${id}`);
+});
+function togglePick(id, on, refocus) {
+  state.picked = on ? [...new Set([...state.picked, id])] : state.picked.filter(x => x !== id);
+  render();
+  if (refocus) document.getElementById(refocus)?.focus();
+}
 
-  $("#packFor").innerHTML = `Selected for: <b>${STAKEHOLDERS[state.who].label}</b> · <b>${ENGAGEMENTS[state.eng].label}</b>`;
-  $("#packList").innerHTML = `<li class="is-core"><a href="#core">Core launch notification</a></li>` +
-    picked.map(id => `<li><a href="#${id}">${MODS[id].kicker}</a></li>`).join("");
+function render() {
+  cards($("#whoCards"), STAKEHOLDERS, "who");
+  cards($("#engCards"), ENGAGEMENTS, "eng");
+  $("#hint1").textContent = STAKEHOLDERS[state.who].label;
+  $("#hint2").textContent = ENGAGEMENTS[state.eng].label;
+  renderMaterials();
+
+  const order = packOrder();
+  const pages = CORE_PP + order.reduce((s, id) => s + MODS[id].pp, 0);
+  $("#docCount").textContent = order.length + 1;
+  $("#pageCount").innerHTML = `documents<br>${pages} pages`;
+  $("#packFor").innerHTML = `For a <b>${STAKEHOLDERS[state.who].label.toLowerCase()}</b> · <b>${ENGAGEMENTS[state.eng].label.toLowerCase()}</b>`;
+  $("#packList").innerHTML = `<li class="core-row"><span class="n">00</span><span>Core launch notification</span><span class="pp">${CORE_PP} pp</span></li>` +
+    order.map((id, i) => `<li><span class="n">${pad(i + 1)}</span><span>${MODS[id].name}</span><span class="pp">${MODS[id].pp} pp</span></li>`).join("");
   $("#packWhy").textContent = WHY[state.eng];
-  $("#roleNote").innerHTML = STAKEHOLDERS[state.who].note;
+  $("#roleNote").innerHTML = `<span class="pill">${STAKEHOLDERS[state.who].label}</span><span>${STAKEHOLDERS[state.who].note}</span>`;
 
   const sel = $("#selected"), oth = $("#others");
   sel.innerHTML = ""; oth.innerHTML = "";
-  picked.forEach(id => { modEls[id].classList.add("selected"); setCollapsed(id, false); sel.append(modEls[id]); });
-  const rest = Object.keys(MODS).filter(id => !picked.includes(id));
-  rest.forEach(id => { modEls[id].classList.remove("selected"); setCollapsed(id, true); oth.append(modEls[id]); });
-  $("#selCount").textContent = `${picked.length} of ${Object.keys(MODS).length} modules, in recommended order`;
-  $("#othersSum").textContent = `Other modules available (${rest.length})`;
+  if (!order.length) sel.innerHTML = `<div class="empty-pack">Only the core story is in this pack. Add modules in step 03 or from the list below.</div>`;
+  order.forEach((id, i) => { modEls[id].querySelector("[data-n]").textContent = pad(i + 1); sel.append(modEls[id]); });
+  ORDER.filter(id => !order.includes(id)).forEach(id => {
+    const t = document.createElement("div");
+    t.className = "also-tile";
+    t.innerHTML = `<div><span class="mono">${MODS[id].pp} pp</span><b>${MODS[id].name}</b><p>${MODS[id].q}</p></div><button class="chip-btn" type="button" data-add="${id}">+ Add to pack</button>`;
+    oth.append(t);
+  });
+  $("#also").hidden = !oth.children.length;
+  $("#packSub").textContent = `${order.length + 1} documents: the core story, then the modules in recommended order. Remove any module, or add one from the list below.`;
 
   state.faqWho = state.eng === "reactive" ? state.who : null;
   renderFaqs();
@@ -541,67 +637,66 @@ function renderFaqs() {
   const list = FAQS.filter(f => (!state.faqWho || f.who.includes(state.faqWho)) &&
     (!term || (f.q + " " + f.a + " " + f.tags.join(" ")).toLowerCase().includes(term)));
   $("#faqList").innerHTML = list.length
-    ? list.map(f => `<details><summary>${f.q}</summary><p>${f.a}</p><div class="tags">${f.tags.map(t => `<span>${t}</span>`).join("")}</div></details>`).join("")
-    : `<p class="faq-empty">No questions match “${term}”. Try a broader word, or ask your account contact.</p>`;
-  const banner = $("#faqBanner");
-  banner.hidden = !state.faqWho;
-  if (state.faqWho) $("#faqBannerText").textContent = `Showing questions most relevant to ${STAKEHOLDERS[state.faqWho].label.toLowerCase()}s`;
+    ? list.map(f => `<details><summary>${f.q}</summary><p>${f.a}</p><div class="tags">${f.tags.map(t => `<span class="pill">${t}</span>`).join("")}</div></details>`).join("")
+    : `<p class="faq-empty">No questions match that search. Try a broader word, or ask your account contact.</p>`;
+  $("#faqBanner").hidden = !state.faqWho;
+  if (state.faqWho) $("#faqBannerText").textContent = `Showing questions for ${STAKEHOLDERS[state.faqWho].label.toLowerCase()}s`;
 }
 $("#faqSearch").addEventListener("input", renderFaqs);
 $("#faqClear").addEventListener("click", () => { state.faqWho = null; renderFaqs(); });
 
-// Checklist
 const done = store.get("pa-checklist", {});
 function renderChecklist() {
   $("#checkItems").innerHTML = CHECKLIST.map((c, i) => `
     <label class="${done[i] ? "done" : ""}" for="chk${i}">
       <input type="checkbox" id="chk${i}" data-i="${i}" ${done[i] ? "checked" : ""}>
-      <span>${c.t}</span><span class="owner">${c.o}</span>
+      <span class="box">${TICK}</span>
+      <span class="txt">${c.t}</span><span class="owner">${c.o}</span>
     </label>`).join("");
   const n = CHECKLIST.filter((_, i) => done[i]).length;
-  $("#progress").innerHTML = `<b>${n} of ${CHECKLIST.length}</b> steps complete. Your progress is saved in this browser.`;
+  $("#progressFill").style.width = `${(n / CHECKLIST.length) * 100}%`;
+  $("#progress").textContent = `${n} of ${CHECKLIST.length} steps complete. Progress is saved in this browser.`;
 }
 $("#checkItems").addEventListener("change", e => {
   const i = e.target.dataset.i; if (i === undefined) return;
   done[i] = e.target.checked; store.set("pa-checklist", done); renderChecklist();
+  document.getElementById(`chk${i}`)?.focus();
 });
 
-// Module header buttons
-document.addEventListener("click", e => {
-  const t = e.target.closest("[data-toggle]");
-  if (t) { const id = t.dataset.toggle; setCollapsed(id, !modEls[id].classList.contains("collapsed")); return; }
-  const p = e.target.closest("[data-pdf]");
-  if (p) toast(`In the live version this downloads the approved PDF ${MODS[p.dataset.pdf].pdf}.`);
-});
-
-// Deep links and in-page links open the target module
-function openTarget(id) {
-  if (!modEls[id]) return;
-  if (modEls[id].closest("#others")) $("#othersWrap").open = true;
-  setCollapsed(id, false);
-  modEls[id].scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
-}
-document.addEventListener("click", e => {
-  const a = e.target.closest('a[href^="#"]'); if (!a) return;
-  const id = a.getAttribute("href").slice(1);
-  if (modEls[id]) { e.preventDefault(); openTarget(id); }
-});
-
-// Pack actions
 let toastTimer;
 function toast(msg) {
   const t = $("#toast"); t.textContent = msg; t.hidden = false;
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 3200);
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 3400);
 }
+
+document.addEventListener("click", e => {
+  const add = e.target.closest("[data-add]");
+  if (add) { const id = add.dataset.add; togglePick(id, true); toast(`${MODS[id].name} added to the pack`); return; }
+  const rem = e.target.closest("[data-remove]");
+  if (rem) { const id = rem.dataset.remove; togglePick(id, false); toast(`${MODS[id].name} removed from the pack`); return; }
+  const p = e.target.closest("[data-pdf]");
+  if (p) { toast(`In the live version this downloads the approved PDF ${MODS[p.dataset.pdf].pdf}.`); return; }
+  const a = e.target.closest('a[href^="#"]');
+  if (a) {
+    const id = a.getAttribute("href").slice(1);
+    if (modEls[id]) { e.preventDefault(); openModule(id); }
+  }
+});
+
+// Links to a module add it to the pack if needed, then scroll to it
+function openModule(id) {
+  if (!state.picked.includes(id)) togglePick(id, true);
+  modEls[id].scrollIntoView({ block: "start" });
+}
+
 $("#dlPack").addEventListener("click", () => {
-  const ids = ["PA-CORE-00", ...MATRIX[state.who][state.eng].map(id => MODS[id].pdf)];
+  const ids = ["PA-CORE-00", ...packOrder().map(id => MODS[id].pdf)];
   toast(`In the live version this merges the approved PDFs: ${ids.join(", ")}.`);
 });
 
 function emailText() {
   const e = ENGAGEMENTS[state.eng];
-  const picked = MATRIX[state.who][state.eng];
-  const links = ["Core launch notification: [hub link]#core", ...picked.map(id => `${MODS[id].kicker}: [hub link]#${id}`)];
+  const links = ["Core launch notification: [hub link]#story", ...packOrder().map(id => `${MODS[id].name}: [hub link]#${id}`)];
   return `Subject: ${e.subject}
 
 Dear [Name],
@@ -621,19 +716,20 @@ Kind regards,
 Job code XX-UK-0001 · Date of preparation October 2026`;
 }
 const overlay = $("#emailOverlay");
+const closeEmail = () => { overlay.hidden = true; $("#showEmail").focus(); };
 $("#showEmail").addEventListener("click", () => { $("#emailBody").textContent = emailText(); overlay.hidden = false; $("#closeEmail").focus(); });
-$("#closeEmail").addEventListener("click", () => { overlay.hidden = true; $("#showEmail").focus(); });
-overlay.addEventListener("click", e => { if (e.target === overlay) overlay.hidden = true; });
-document.addEventListener("keydown", e => { if (e.key === "Escape" && !overlay.hidden) overlay.hidden = true; });
+$("#closeEmail").addEventListener("click", closeEmail);
+overlay.addEventListener("click", e => { if (e.target === overlay) closeEmail(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !overlay.hidden) closeEmail(); });
 $("#copyEmail").addEventListener("click", () => {
-  const text = emailText();
   const fallback = () => { const r = document.createRange(); r.selectNodeContents($("#emailBody")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast("Text selected. Press Ctrl+C or ⌘C to copy."); };
-  if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => toast("Email text copied"), fallback); else fallback();
+  if (navigator.clipboard) navigator.clipboard.writeText(emailText()).then(() => toast("Email text copied"), fallback); else fallback();
 });
 
+state.picked = [...rec()];
 renderChecklist();
 render();
-if (location.hash) setTimeout(() => openTarget(location.hash.slice(1)), 50);
+if (location.hash && modEls[location.hash.slice(1)]) setTimeout(() => openModule(location.hash.slice(1)), 50);
 </script>
 </body>
 </html>
