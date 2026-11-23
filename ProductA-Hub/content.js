@@ -222,6 +222,25 @@ window.HUB = {
     eventsEndpoint: ""             // your server receives usage events here (POST), only if the reader ticked the optional box
   },
 
+  /* ---- Branded sign-in page (off by default) -------------------------------
+     Makes signin.html in the website folder. It only looks like your brand: the real login is done by the host
+     (Azure or the client's SSO), and each button just goes to the host's login address. */
+  signin: {
+    enabled: false,
+    title: "Sign in",
+    intro: "This site is for UK healthcare professionals. Sign in to continue.",
+    providers: [
+      { label: "Sign in", url: "/.auth/login/aad?post_login_redirect_uri=/" }   // Azure Static Web Apps with Microsoft Entra ID; change for the client's SSO
+    ],
+    helpTitle: "Need access?",
+    help: "Contact your representative to be invited.",
+    note: "",
+    showUser: true,                // show "Signed in as … · Sign out" in the page footer
+    whoUrl: "/.auth/me",           // where the host says who is signed in
+    signoutUrl: "/.auth/logout",
+    azureConfig: false             // also write a starting staticwebapp.config.json for Azure Static Web Apps
+  },
+
   veeva: {
     include: false,                // adds a reference to veeva-library.js in exported files
     emailTemplate: "",             // Approved Email template ID

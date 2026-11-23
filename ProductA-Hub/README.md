@@ -125,9 +125,19 @@ In the editor, **Consent and tracking** adds a step before the page opens and, i
 
 Check the wording, lawful basis and retention with the client's data protection team. The page can't decide those.
 
+## Sign-in page (optional)
+
+In the editor, **Sign-in page** makes a branded `signin.html` for the website folder: your logo, colour and fonts, a title, a short introduction, one or more sign-in buttons and a help line. It is **off by default**; switch it off and export again and it is left out.
+
+**It is only the look.** The real login is done by the host (Azure or the client's SSO). Each button just goes to the host's login address, and the host decides who gets in. The page holds no passwords and checks nothing itself.
+
+- **Azure:** **Fill for Azure** sets the button to `/.auth/login/aad` (Microsoft Entra ID on Azure Static Web Apps). Tick **Also write a starting Azure config** to add `staticwebapp.config.json`, which requires sign-in for every file except the sign-in page, fonts and logo, and sends signed-out visitors to `signin.html`. It is a starting point written from Azure's documented format and **not tested on Azure**: check it against the current guidance, and test that a PDF address is refused when signed out. Custom login providers on Azure Static Web Apps can need a paid plan.
+- **The client's SSO:** **Fill for the client's SSO** adds a button with a placeholder address. Replace it with the login address your IT team gives you (for example the provider's address on the host). Add several buttons if readers can choose.
+- **After sign-in:** the page footer can show "Signed in as … · Sign out", read from the host's who-is-signed-in address (`/.auth/me` on Azure Static Web Apps). If the host has no such address, nothing is shown.
+
 ## Not included yet
 
-- **The login itself.** The page has no password or user accounts: that is the hosting layer's job.
+- **The login itself.** Passwords, accounts, two-factor and invitations are the hosting layer's job. The sign-in page only gives them a branded front door.
 - **The FAQ search and checklist ticks** from the earlier prototype. Modules are now approved PDFs, so their detail lives in the PDF.
 
 ## Licences

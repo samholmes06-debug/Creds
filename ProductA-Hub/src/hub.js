@@ -400,7 +400,7 @@ addEventListener("resize", onScroll);
 
 /* ---------- Render ---------- */
 function renderAll() { renderChoices(); renderChapters(); renderPack(); syncPrompts(); }
-function boot() { sanitizeState(); applyBrand(); bindStatic(); renderStats(); renderAll(); onScroll(); if (window.hubConsentLink) window.hubConsentLink(); }
+function boot() { sanitizeState(); applyBrand(); bindStatic(); renderStats(); renderAll(); onScroll(); if (window.hubConsentLink) window.hubConsentLink(); if (window.hubSigninLink) window.hubSigninLink(); }
 
 // Live updates from the editor's preview. Only attached in the editor's preview, never in a file that is shared.
 /*CONSENT_START*/
@@ -476,6 +476,27 @@ function boot() { sanitizeState(); applyBrand(); bindStatic(); renderStats(); re
   start();
 })();
 /*CONSENT_END*/
+
+/*SIGNIN_START*/
+/* ---------- Signed-in name and sign-out link (only when the sign-in page option is on) ----------
+   The login itself is done by the hosting layer (Azure or the client's SSO), never by this page. This only shows who the
+   login says is signed in, using the address the host provides (for Azure: /.auth/me). */
+(() => {
+  const cfg = () => HUB.signin || {};
+  window.hubSigninLink = async () => {
+    const c = cfg(), f = document.getElementById("footerInner");
+    if (!f || !c.enabled || c.showUser === false || window.HUB_PREVIEW || f.querySelector("[data-who]")) return;
+    try {
+      const r = await fetch(c.whoUrl || "/.auth/me", { credentials: "include" }); if (!r.ok) return;
+      const j = await r.json(), p = j && j.clientPrincipal ? j.clientPrincipal : Array.isArray(j) ? j[0] : j;
+      const name = p && (p.userDetails || p.user_id || p.name || p.email); if (!name) return;
+      const el = document.createElement("p"); el.dataset.who = "1";
+      el.innerHTML = `Signed in as <b>${esc(String(name).slice(0, 80))}</b>${c.signoutUrl ? ` · <a href="${esc(c.signoutUrl)}">Sign out</a>` : ""}`;
+      f.append(el);
+    } catch (e) { /* no login service here (for example a local test): show nothing */ }
+  };
+})();
+/*SIGNIN_END*/
 
 /*PREVIEW_START*/
 // The editor pushes new content into its preview with postMessage({ type: "hub-content", content })
