@@ -14,7 +14,7 @@ Everything works **offline**: the fonts, libraries and files are inside the page
 
 ## The quick route: use the editor
 
-1. Open `editor.html` in Chrome or Edge (double-click it; no install, no internet). It was tested in Chromium, the engine behind both; Safari and Firefox have not been tested.
+1. Open `editor.html` in Chrome or Edge (double-click it; no install, no internet). It is the site with the editor hidden inside it, and it opens straight into the editor. It was tested in Chromium, the engine behind both; Safari and Firefox have not been tested.
 2. Work down the list on the left. Changes appear in the live preview on the right. Use Desktop, iPad and Phone to check widths.
    - **Brand and logo:** product name, logo (SVG best), brand colour, job code, date, optional replacement fonts.
    - **Core notification** and **Modules:** add each approved PDF by choosing it or dragging it onto its box. The editor reads the PDF, counts the pages and makes the page pictures for the in-page viewer. In **Modules**, you can drop all the PDFs at once: each is matched by its code (a file called `PA-MOD-02.pdf` goes to the module with that code).
@@ -28,8 +28,7 @@ Everything works **offline**: the fonts, libraries and files are inside the page
 
 ```
 product-a-hub/
-  index.html            the page
-  content.js            the wording, with paths to the files below
+  index.html            the page, with its wording inside (no other file needed for the text)
   lib/pdf-lib.min.js    merges a pack in the reader's browser
   assets/pdfs/          each approved PDF as its own file
   assets/pages/         page pictures for the on-screen viewer (first 30 pages of each PDF)
@@ -41,7 +40,14 @@ product-a-hub/
 - **Per-PDF logging.** Each download is its own request in the web server's access log. The page marks how the file was used: `?via=download` (a reader downloaded that PDF) or `?via=pack` (it was read to build a merged pack). Count these per PDF, and per user once login is in place. Leave `assets/pages/` out of download counts.
 - **Protect the whole folder**, not just `index.html`, or anyone who knows a PDF's address can fetch it without logging in. The folder is marked `noindex` so search engines skip it.
 - **Merging a pack** happens in the reader's browser. A pack of several hundred MB can fail on a phone; the separate downloads still work. It needs a web server: opened straight from a computer, browsers block it, and each PDF opens in a new tab instead.
-- Before exporting, the editor warns about documents with no PDF, a missing job code, or placeholder wording. The **final** folder has no editor, no editing marks and no concept label. **Website folder, working copy** keeps the concept label, for internal review.
+- Before exporting, the editor warns about documents with no PDF, a missing job code, or placeholder wording. The **final** folder has no editor, no editing marks and no concept label. **Website folder with concept label** keeps the label, for internal review.
+
+### The editable working folder (hidden editor)
+
+**Editable folder (.zip)** is the same site with this editor hidden inside `index.html`. Unzip it, open `index.html`, and **click the header 5 times quickly** (the logo area) to open the editor. Edit, then export again. Use it as your working copy, and **Export clean site** when it's approved: the clean folder has no editor in it at all.
+
+- On a web server (or a local one) the editor loads the PDFs already in the folder, so you carry on where you left off. Opened straight from a computer, browsers block that: use **Save project** and **Open…** (a zip with your PDFs inside) to carry your work between sessions.
+- Don't host the editable folder for readers: anyone who clicks the header 5 times would see the editor. Host the clean site.
 
 ### The single file
 

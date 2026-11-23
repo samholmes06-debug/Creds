@@ -1,4 +1,4 @@
-/* Hub runtime: renders the whole page from window.HUB (see content.js). */
+/* Hub runtime: renders the whole page from window.HUB (its wording is in window.HUB). */
 (() => {
 "use strict";
 let HUB = window.HUB || {};

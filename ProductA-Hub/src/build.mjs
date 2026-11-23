@@ -34,6 +34,8 @@ const index = fill(template, {
   SCRIPT: sharedScript
 });
 fs.writeFileSync(path.join(root, "index.html"), index);
+// The same page for the exported website folder: the editor fills in {{CONTENT}} (the content is inside the page, no content.js)
+const siteIndex = fill(template, { TITLE: "Product A Launch Story", FONTS_CSS: fontsCss("path"), STYLE: style, LIBS: '<script src="lib/pdf-lib.min.js"></script>', CONTENT: "{{CONTENT}}", SCRIPT: sharedScript });
 
 if (!fs.existsSync(path.join(root, "src/editor.js"))) { console.log("index.html built (editor sources not found, skipped)"); process.exit(0); }
 
@@ -46,7 +48,8 @@ const editor = fill(read("src/editor.html"), {
   EDITOR_JS: read("src/editor.js"),
   FONTS_UI: fontsCss("data"),
   TEMPLATE: escClose(tplForEditor),
-  SITE_INDEX: escClose(index),
+  SITE_INDEX: escClose(siteIndex),
+  LOADER: escClose(read("src/loader.js")),
   FONTS_EXPORT: escClose(fontsCss("data")),
   CONTENT_DEFAULT: escClose(read("content.js")),
   LOGO_PLACEHOLDER: escClose(read("assets/logo/placeholder-logo.svg")),
@@ -58,5 +61,14 @@ const editor = fill(read("src/editor.html"), {
 const expected = (read("src/editor.html").match(/<script[\s>]/gi) || []).length, closes = (editor.match(/<\/script>/gi) || []).length;
 if (expected !== closes) throw new Error(`editor.html should have ${expected} closing script tags but has ${closes}: an embedded file contains a stray tag.`);
 const dbl = (editor.match(/<!--/g) || []).length; if (dbl) throw new Error(`editor.html contains ${dbl} "<!--" sequences, which can confuse the HTML parser inside scripts.`);
-fs.writeFileSync(path.join(root, "editor.html"), editor);
-console.log("index.html", (index.length / 1024).toFixed(0) + " KB;", "editor.html", (editor.length / 1024 / 1024).toFixed(2) + " MB");
+// editor.html is the editable working page: the site with a hidden editor inside it, opened straight into the editor.
+const MARK = "</scr@@ipt";
+const payload = editor.split("</script").join(MARK);
+const seed = (() => { const w = {}; new Function("window", read("content.js"))(w); const h = w.HUB; for (const d of [h.core, ...h.modules]) { d.pdf = ""; d.images = []; } h.brand.logo = "data:image/svg+xml;base64," + Buffer.from(read("assets/logo/placeholder-logo.svg")).toString("base64"); return h; })();
+const contentTag = '<script>window.__AUTO_EDIT = true; window.HUB = ' + JSON.stringify(seed).split("</").join("<\\/") + ';</script>';
+const working = fill(siteIndex, {CONTENT: contentTag}).replace(/<\/body>(?![\s\S]*<\/body>)/, () => '<script>' + read("src/loader.js") + '</script>\n<script type="text/plain" id="edHtml">' + payload + '</script>\n</body>');
+const outer = working.replace(payload, "");
+const wExpected = (outer.match(/<script[\s>]/gi) || []).length, wCloses = (outer.match(/<\/script>/gi) || []).length;
+if (wExpected !== wCloses) throw new Error(`working page has ${wExpected} script tags but ${wCloses} closing tags.`);
+fs.writeFileSync(path.join(root, "editor.html"), working);
+console.log("index.html", (index.length / 1024).toFixed(0) + " KB;", "editor.html", (working.length / 1024 / 1024).toFixed(2) + " MB");

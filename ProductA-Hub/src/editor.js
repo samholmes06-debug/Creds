@@ -26,7 +26,7 @@ const DEFAULT_FONTS = ["gsk-light.woff", "gsk-regular.woff", "gsk-regularitalic.
 const SCRIPT_OPEN = "<" + "script", SCRIPT_CLOSE = "<" + "/script>";
 const T = id => document.getElementById(id).textContent.split("<\\" + "/script").join("<" + "/script");
 const TPL = T("tpl"), FONTS_EXPORT = T("fontsExport"), CONTENT_DEFAULT = T("contentDefault"), LOGO_SVG = T("logoPlaceholder");
-const SITE_INDEX = T("siteIndex");
+const SITE_INDEX = T("siteIndex"), LOADER = T("edLoader");
 const PDFLIB_SRC = document.getElementById("pdflib").textContent;
 const svgUri = svg => "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svg)));
 function parseJs(text) { const w = {}; new Function("window", text)(w); if (!w.HUB) throw new Error("No window.HUB found in that file."); return w.HUB; }
@@ -40,7 +40,7 @@ const DEFAULT = (() => {
 })();
 
 /* ---------- State ---------- */
-let C = clone(DEFAULT);
+let C = window.__HANDOFF ? clone(window.__HANDOFF) : clone(DEFAULT);
 let dirty = false;
 let section = "brand";
 const getP = (path, root = C) => path.split(".").reduce((a, k) => (a == null ? a : a[k]), root);
@@ -216,8 +216,8 @@ const SECTIONS = [
   { id: "export", title: "Check and export", goto: "top", render: () => {
     const is = issues(), counts = { err: is.filter(i => i.k === "err").length, warn: is.filter(i => i.k === "warn").length };
     return frameSection("Check and export", "Review these points, then export the website folder or a single offline file.",
-      `<button class="bigbtn primary" type="button" data-act="exportSite">Export website folder (.zip) ↓</button><button class="bigbtn line" type="button" data-act="exportFinal">Export single file ↓</button><button class="bigbtn line" type="button" data-act="exportSiteWorking">Website folder, working copy ↓</button><button class="bigbtn line" type="button" data-act="exportHtml">Single file, working copy ↓</button><button class="bigbtn line" type="button" data-act="saveProject">Save project</button>
-        <p class="small" style="margin:0 0 14px"><b>Website folder</b> is the version to host: index.html, content.js, the fonts and logo, and each approved PDF as its own file in <code>assets/pdfs</code>, so every download is logged per PDF and readers can download one PDF or build and download a merged pack. No editor, no editing marks, no concept label. <b>Single file</b> is one offline page with everything inside, for email or CLM. <b>Working copy</b> keeps the concept label for internal review. <b>Save project</b> keeps your work (with the PDFs) as a zip so you can reopen it here.</p>
+      `<button class="bigbtn primary" type="button" data-act="exportSite">Export website folder (.zip) ↓</button><button class="bigbtn line" type="button" data-act="exportFinal">Export single file ↓</button><button class="bigbtn line" type="button" data-act="exportEditable">Editable working folder (.zip) ↓</button><button class="bigbtn line" type="button" data-act="exportSiteWorking">Website folder with concept label ↓</button><button class="bigbtn line" type="button" data-act="exportHtml">Single file, working copy ↓</button><button class="bigbtn line" type="button" data-act="saveProject">Save project</button>
+        <p class="small" style="margin:0 0 14px"><b>Website folder</b> is the version to host: index.html, content.js, the fonts and logo, and each approved PDF as its own file in <code>assets/pdfs</code>, so every download is logged per PDF and readers can download one PDF or build and download a merged pack. No editor, no editing marks, no concept label. <b>Single file</b> is one offline page with everything inside, for email or CLM. <b>Editable working folder</b> is the same site with this editor hidden inside it: open its <code>index.html</code>, click the header 5 times quickly to edit, then export again. It keeps the concept label. The clean website folder has no editor and no concept label. <b>Save project</b> keeps your work (with the PDFs) as a zip so you can reopen it here.</p>
         <h2>Checks · ${counts.err} to fix · ${counts.warn} to review</h2>${is.map(i => `<div class="issue ${i.k}"><i>${{ err: "✕", warn: "!", info: "i", ok: "✓" }[i.k]}</i><div><b>${esc(i.t)}</b>${i.d ? `<span>${esc(i.d)}</span>` : ""}</div></div>`).join("")}`);
   } }
 ];
@@ -456,32 +456,50 @@ Large PDFs: the server should send assets/pdfs/ with the correct type (applicati
 
 Open index.html straight from your computer and the page works, but merging a pack needs a web host (browsers block reading files from a local folder).
 `;
-async function exportSite(final) {
-  if (!preflight(final)) return;
+/* Files already linked by path (a hosted copy being edited) are fetched so they travel with the export; on file:// the browser blocks this */
+async function pull(u) { try { if (!u || isData(u) || /^(https?:)?\/\//i.test(u) || u.startsWith("blob:")) return null; const r = await fetch(u); return r.ok ? await r.blob() : null; } catch (e) { return null; } }
+async function pullLinked() {
+  if (!/^https?:/.test(location.protocol)) return;
+  let n = 0;
+  for (const d of [C.core, ...C.modules]) if (d.pdf && !isStored(d.pdf) && !isData(d.pdf)) {
+    const b = await pull(d.pdf); if (b) { d.pdf = putStore(new Blob([b], { type: "application/pdf" })); d.pdfName = d.pdfName || "PDF from the site"; n++; }
+  }
+  if (n) { renderForm(true); renderSide(); status(`Loaded ${n} PDF${n > 1 ? "s" : ""} from the site.`, "", 5000); }
+}
+const siteContent = c => SCRIPT_OPEN + ">window.HUB = " + JSON.stringify(c).split("</").join("<\\/") + ";" + SCRIPT_CLOSE;
+async function exportSite(final, working) {
+  if (!preflight(final && !working)) return;
   try {
     status("Building the website folder…", "busy");
-    const root = slug(C.brand.productName) + "-hub/", c = final ? finalCopy() : clone(C), entries = [], names = new Set();
+    const root = slug(C.brand.productName) + "-hub/", c = final ? finalCopy() : clone(C), entries = [], names = new Set(), missing = [];
     const add = (name, data) => entries.push({ name: root + name, data });
     const uniq = (dir, stem, ext) => { let n = stem, i = 2; while (names.has(dir + n + ext)) n = stem + "-" + i++; names.add(dir + n + ext); return dir + n + ext; };
+    const keep = async u => { if (!u || isData(u) || /^(https?:)?\/\//i.test(u)) return; if (names.has(u)) return; const b = await pull(u); if (b) { names.add(u); add(u, b); } else missing.push(u); };
     for (const d of [c.core, ...c.modules]) {
       const stem = String(d.code || d.id || "doc").replace(/[^A-Za-z0-9._-]+/g, "-");
-      if (isStored(d.pdf)) { const f = uniq("assets/pdfs/", stem, ".pdf"); add(f, STORE.get(d.pdf)); d.pdf = f; }
-      d.images = (d.images || []).map((u, i) => { if (!isData(u)) return u; const f = uniq("assets/pages/", `${stem}-${pad2(i + 1)}`, ".jpg"); add(f, new Blob([dataBytes(u)], { type: "image/jpeg" })); return f; });
-      delete d.pdfName;
+      if (isStored(d.pdf)) { const f = uniq("assets/pdfs/", stem, ".pdf"); add(f, STORE.get(d.pdf)); d.pdf = f; } else await keep(d.pdf);
+      const imgs = []; for (let i = 0; i < (d.images || []).length; i++) { const u = d.images[i]; if (isData(u)) { const f = uniq("assets/pages/", `${stem}-${pad2(i + 1)}`, ".jpg"); add(f, new Blob([dataBytes(u)], { type: "image/jpeg" })); imgs.push(f); } else { await keep(u); imgs.push(u); } }
+      d.images = imgs; delete d.pdfName;
     }
-    if (isData(c.brand.logo)) { const f = uniq("assets/logo/", "logo", "." + (EXT[dataMime(c.brand.logo)] || "png")); add(f, new Blob([dataBytes(c.brand.logo)])); c.brand.logo = f; }
-    for (const k of Object.keys(c.brand.fonts || {})) { const u = c.brand.fonts[k]; if (isData(u)) { const f = uniq("assets/fonts/", "custom-" + k, "." + (EXT[dataMime(u)] || "woff")); add(f, new Blob([dataBytes(u)])); c.brand.fonts[k] = f; } }
+    if (isData(c.brand.logo)) { const f = uniq("assets/logo/", "logo", "." + (EXT[dataMime(c.brand.logo)] || "png")); add(f, new Blob([dataBytes(c.brand.logo)])); c.brand.logo = f; } else await keep(c.brand.logo);
+    for (const k of Object.keys(c.brand.fonts || {})) { const u = c.brand.fonts[k]; if (isData(u)) { const f = uniq("assets/fonts/", "custom-" + k, "." + (EXT[dataMime(u)] || "woff")); add(f, new Blob([dataBytes(u)])); c.brand.fonts[k] = f; } else await keep(u); }
     const fonts = [...FONTS_EXPORT.matchAll(/url\(data:font\/woff;base64,([^)]+)\)/g)];
     fonts.forEach((m, i) => { if (DEFAULT_FONTS[i]) add("assets/fonts/" + DEFAULT_FONTS[i], new Blob([dataBytes("data:;base64," + m[1])])); });
     const veeva = c.veeva && c.veeva.include;
-    add("index.html", veeva ? SITE_INDEX.replace(SCRIPT_OPEN + ' src="content.js">', SCRIPT_OPEN + ' src="veeva-library.js">' + SCRIPT_CLOSE + "\n" + SCRIPT_OPEN + ' src="content.js">') : SITE_INDEX);
-    add("content.js", `/* ${c.brand.productName} launch story: content for the website folder. Edit it in the hub editor, or by hand (paths point at the files in assets/). */\nwindow.HUB = ${JSON.stringify(c, null, 2)};\n`);
+    let page = SITE_INDEX.split("{{CONTENT}}").join((veeva ? SCRIPT_OPEN + ' src="veeva-library.js">' + SCRIPT_CLOSE + "\n" : "") + siteContent(c));
+    if (working) {
+      // The editable copy carries the hidden editor (5 clicks on the header); it is stripped from the clean export
+      const html = window.__EDITOR_HTML; if (!html) throw new Error("The editor source isn't available here. Open editor.html or a working copy.");
+      const tail = SCRIPT_OPEN + ">" + LOADER + SCRIPT_CLOSE + "\n" + SCRIPT_OPEN + ' type="text/plain" id="edHtml">' + html.split("</" + "script").join("</scr" + "@@ipt") + SCRIPT_CLOSE + "\n</body>";
+      const at = page.lastIndexOf("</body>"); page = page.slice(0, at) + tail + page.slice(at + 7);
+    }
+    add("index.html", page);
     add("lib/pdf-lib.min.js", PDFLIB_SRC);
-    add("HOSTING-NOTES.txt", SITE_NOTES);
-    const zip = await makeZip(entries), name = slug(C.brand.productName) + "-hub" + (final ? "" : "-working") + ".zip";
+    if (!working) add("HOSTING-NOTES.txt", SITE_NOTES);
+    const zip = await makeZip(entries), name = slug(C.brand.productName) + "-hub" + (working ? "-editable" : final ? "" : "-working") + ".zip";
     download(name, zip);
     const nPdf = entries.filter(e => e.name.includes("/assets/pdfs/")).length;
-    status(`Exported ${name} (${fmtSize(zip.size)}, ${nPdf} PDF${nPdf === 1 ? "" : "s"}). Unzip it and upload the folder to your host.`, "", 12000);
+    status(`Exported ${name} (${fmtSize(zip.size)}, ${nPdf} PDF${nPdf === 1 ? "" : "s"}). ${working ? "Unzip it and open index.html; click the header 5 times to edit." : "Unzip it and upload the folder to your host."}${missing.length ? " Not found, so not included: " + missing.slice(0, 3).join(", ") + (missing.length > 3 ? "…" : "") + "." : ""}`, missing.length ? "err" : "", 14000);
   } catch (e) { status("Couldn't build the website folder: " + (e.message || e), "err"); }
 }
 async function saveProject() {
@@ -549,6 +567,7 @@ document.addEventListener("click", e => {
   else if (act === "saveProject") saveProject();
   else if (act === "exportSite") exportSite(true);
   else if (act === "exportSiteWorking") exportSite(false);
+  else if (act === "exportEditable") exportSite(false, true);
   else if (act === "reloadPreview") reloadPreview();
 });
 // Drag and drop onto file slots and the bulk drop zone
@@ -564,6 +583,6 @@ document.addEventListener("dragover", e => e.preventDefault()); document.addEven
 addEventListener("beforeunload", e => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
 
 /* ---------- Test hooks and start ---------- */
-window.__editor = { get content() { return C; }, set content(v) { C = normalize(v); tidy(); renderSide(); renderForm(false); reloadPreview(); }, buildExport: () => fillTemplate(C, true), exportSite, exportHtml, saveProject, openFile, makeZip, readZip, STORE, issues, go };
-tidy(); renderSide(); renderForm(false); reloadPreview();
+window.__editor = { get content() { return C; }, set content(v) { C = normalize(v); tidy(); renderSide(); renderForm(false); reloadPreview(); }, buildExport: () => fillTemplate(C, true), exportSite, exportHtml, pullLinked, saveProject, openFile, makeZip, readZip, STORE, issues, go };
+tidy(); renderSide(); renderForm(false); reloadPreview(); pullLinked();
 })();
