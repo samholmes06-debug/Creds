@@ -49,10 +49,11 @@ const clm = () => (window.com && com.veeva && com.veeva.clm) || null;
 const V = () => HUB.veeva || {};
 const tracked = new Set();
 function veevaTrack(type, id, desc, once) {
-  if (!clm() || V().trackEvents === false) return;
   const key = type + ":" + id;
   if (once && tracked.has(key)) return;
   tracked.add(key);
+  if (window.hubTrack) window.hubTrack(type, id, desc);   // optional usage statistics (see the consent block)
+  if (!clm() || V().trackEvents === false) return;
   try {
     clm().createRecord("Call_Clickstream_vod__c", {
       Track_Element_Type_vod__c: type, Track_Element_Id_vod__c: id, Track_Element_Description_vod__c: desc || ""
@@ -326,6 +327,7 @@ function downloadDoc(id) {
   const d = info(id);
   if (!hasPdf(d)) return toast(`${d.name} will be available to download once the artwork is approved.`);
   const name = (d.code || id) + ".pdf";
+  veevaTrack("pdf_downloaded", id, d.name);
   if (d.pdf.startsWith("data:")) saveBlob(new Blob([dataToBytes(d.pdf)], { type: "application/pdf" }), name);
   else {
     // From a local folder browsers won't honour "download" on a file link, and would replace the hub with the PDF, so open it in a new tab
@@ -342,6 +344,7 @@ async function mergePack(ids) {
     const out = await PDFLib.PDFDocument.create();
     for (const id of withPdf) { const src = await PDFLib.PDFDocument.load(await getBytes(info(id).pdf, "pack"), { ignoreEncryption: true }); (await out.copyPages(src, src.getPageIndices())).forEach(p => out.addPage(p)); }
     saveBlob(new Blob([await out.save()], { type: "application/pdf" }), `${slug((HUB.brand || {}).productName)}-pack.pdf`);
+    veevaTrack("pack_downloaded", withPdf.join(","), `Pack downloaded: ${withPdf.length} document(s)`);
     toast(withPdf.length < ids.length ? `Pack downloaded. ${ids.length - withPdf.length} document(s) have no PDF yet.` : "Pack downloaded as one PDF");
   } catch (e) { toast("Couldn't merge the pack. Opened from a local folder, browsers block this; on a web host a very large PDF can also fail. Download each PDF separately instead."); }
 }
@@ -397,15 +400,90 @@ addEventListener("resize", onScroll);
 
 /* ---------- Render ---------- */
 function renderAll() { renderChoices(); renderChapters(); renderPack(); syncPrompts(); }
-function boot() { sanitizeState(); applyBrand(); bindStatic(); renderStats(); renderAll(); onScroll(); }
+function boot() { sanitizeState(); applyBrand(); bindStatic(); renderStats(); renderAll(); onScroll(); if (window.hubConsentLink) window.hubConsentLink(); }
 
 // Live updates from the editor's preview. Only attached in the editor's preview, never in a file that is shared.
+/*CONSENT_START*/
+/* ---------- Consent step and optional usage statistics ----------
+   Off unless HUB.consent.enabled. Removed from exported files when switched off.
+   This is a notice and a record, not security: the server must also refuse pages and PDFs to anyone without a recorded consent.
+   With consent.endpoint set, the record is sent to that address (the reader's login identifies them there, the page sends no name).
+   Without it, the choice is only remembered in this browser, which is fine for testing but is not evidence. */
+(() => {
+  const cfg = () => HUB.consent || {};
+  const sid = Math.random().toString(36).slice(2, 10);   // per page load, not stored, not linked to a person
+  let analyticsOn = false;
+  const LS = "hubConsent:";
+  const lsGet = v => { try { return JSON.parse(localStorage.getItem(LS + v) || "null"); } catch (e) { return null; } };
+  const lsSet = (v, o) => { try { localStorage.setItem(LS + v, JSON.stringify(o)); } catch (e) {} };
+  const post = (url, body) => fetch(url, { method: "POST", credentials: "include", headers: { "content-type": "application/json" }, body: JSON.stringify(body), keepalive: true }).then(r => { if (!r.ok) throw new Error("status " + r.status); });
+
+  window.hubTrack = (name, id, desc) => {
+    const c = cfg(); if (!c.enabled || !c.analytics || !analyticsOn || !c.eventsEndpoint || window.HUB_PREVIEW) return;
+    const body = JSON.stringify({ event: name, id: String(id || ""), desc: String(desc || "").slice(0, 120), session: sid, consentVersion: c.version || "1", t: new Date().toISOString() });
+    try { if (!(navigator.sendBeacon && navigator.sendBeacon(c.eventsEndpoint, new Blob([body], { type: "application/json" })))) fetch(c.eventsEndpoint, { method: "POST", credentials: "include", headers: { "content-type": "application/json" }, body, keepalive: true }).catch(() => {}); } catch (e) {}
+  };
+
+  function gate(existing, demo) {
+    const c = cfg(), root = document.documentElement;
+    root.classList.add("consent-wait");
+    const el = document.createElement("div"); el.id = "consentGate"; el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true"); el.setAttribute("aria-labelledby", "cgTitle");
+    const link = c.privacyUrl ? ` <a href="${esc(c.privacyUrl)}" target="_blank" rel="noopener">Privacy notice</a>` : "";
+    el.innerHTML = `<div class="cg-card"><div class="label">${esc((HUB.brand || {}).productName || "")}</div><h2 id="cgTitle">${esc(c.title || "Before you continue")}</h2>
+      <p>${esc(c.intro || "")}</p>
+      <label class="cg-tick"><input type="checkbox" id="cgReq"> <span>${esc(c.requiredLabel || "I confirm I am a healthcare professional.")}</span></label>
+      ${c.analytics ? `<label class="cg-tick"><input type="checkbox" id="cgAn"> <span>${esc(c.analyticsLabel || "Allow anonymous usage statistics.")}</span></label>` : ""}
+      <p class="cg-note">${esc(c.notice || "")}${link}</p>
+      <p class="cg-err" id="cgErr" role="alert" hidden></p>
+      <div class="cg-row"><button type="button" class="cg-go" id="cgGo" disabled>${esc(c.button || "Continue")}</button>${demo || existing ? `<button type="button" class="cg-cancel" id="cgCancel">Close</button>` : ""}</div></div>`;
+    document.body.append(el);
+    const req = el.querySelector("#cgReq"), an = el.querySelector("#cgAn"), go = el.querySelector("#cgGo"), err = el.querySelector("#cgErr");
+    if (existing) { req.checked = true; if (an) an.checked = !!existing.analytics; go.disabled = false; go.textContent = "Save my choice"; }
+    req.addEventListener("change", () => { go.disabled = !req.checked; });
+    const close = () => { el.remove(); root.classList.remove("consent-wait"); };
+    const cancel = el.querySelector("#cgCancel"); if (cancel) cancel.addEventListener("click", close);
+    go.addEventListener("click", async () => {
+      const rec = { version: c.version || "1", required: true, analytics: !!(an && an.checked), t: new Date().toISOString() };
+      go.disabled = true; err.hidden = true;
+      try {
+        if (demo) { /* preview only: nothing is recorded */ }
+        else if (c.endpoint) await post(c.endpoint, rec);
+        else lsSet(rec.version, rec);
+        analyticsOn = rec.analytics; close();
+        if (!demo) { window.hubTrack && window.hubTrack("page_view", location.pathname, document.title); }
+      } catch (e) { err.textContent = "Your choice couldn't be recorded. Check your connection and try again."; err.hidden = false; go.disabled = false; }
+    });
+    req.focus();
+  }
+
+  async function start() {
+    const c = cfg(); if (!c.enabled || window.HUB_PREVIEW) return;
+    let existing = null;
+    try {
+      if (c.endpoint) { const r = await fetch(c.endpoint, { credentials: "include" }); if (r.ok && r.status !== 204) { const j = await r.json(); if (j && j.version === (c.version || "1")) existing = j; } }
+      else { const j = lsGet(c.version || "1"); if (j) existing = j; }
+    } catch (e) { /* the server could not be reached: ask again rather than let the reader through unrecorded */ }
+    if (existing) { analyticsOn = !!existing.analytics; window.hubTrack && window.hubTrack("page_view", location.pathname, document.title); }
+    else gate(null, false);
+  }
+  window.hubConsentLink = () => {
+    const c = cfg(); const f = document.getElementById("footerInner"); if (!f || !c.enabled || f.querySelector("[data-consent-link]")) return;
+    const b = document.createElement("button"); b.type = "button"; b.className = "cg-link"; b.dataset.consentLink = "1"; b.textContent = c.analytics ? "Privacy and usage choices" : "Privacy";
+    b.addEventListener("click", () => { if (!document.getElementById("consentGate")) gate({ analytics: analyticsOn }, false); });
+    f.append(b);
+  };
+  window.hubConsentDemo = () => { if (!document.getElementById("consentGate")) gate(null, true); };
+  start();
+})();
+/*CONSENT_END*/
+
 /*PREVIEW_START*/
 // The editor pushes new content into its preview with postMessage({ type: "hub-content", content })
 if (window.HUB_PREVIEW) addEventListener("message", ev => {
   const d = ev.data; if (!d || typeof d !== "object") return;
   if (d.type === "hub-content" && d.content) { HUB = d.content; window.HUB = HUB; boot(); }
   else if (d.type === "hub-goto") { if (d.id === "top") scrollTo(0, 0); else { const el = document.getElementById(d.id); if (el) el.scrollIntoView({ block: "start" }); } }
+  else if (d.type === "hub-consent-demo") { if (window.hubConsentDemo) window.hubConsentDemo(); }
   else if (d.type === "hub-choose") { state.who = d.who || null; state.eng = d.eng || null; state.removed.clear(); renderAll(); }
 });
 

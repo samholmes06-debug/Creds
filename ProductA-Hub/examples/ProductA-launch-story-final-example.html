@@ -365,6 +365,23 @@ body.no-mock .concept, body.no-mock .concept-strip { display: none !important; }
 
 .pm-more { margin: 6px 0 0; font-size: 13px; color: #8a8f94; text-align: center; }
 
+/* Consent step */
+.consent-wait body > *:not(#consentGate) { visibility: hidden; }
+#consentGate { position: fixed; inset: 0; z-index: 1000; background: var(--white, #fff); display: grid; place-items: center; padding: 20px; overflow: auto; }
+.cg-card { width: min(560px, 100%); display: grid; gap: 16px; }
+.cg-card h2 { margin: 0; font-size: clamp(28px, 5vw, 40px); line-height: 1.1; font-weight: 700; }
+.cg-card p { margin: 0; color: #3b3e41; line-height: 1.5; }
+.cg-tick { display: grid; grid-template-columns: 22px 1fr; gap: 12px; align-items: start; padding: 14px; border: 1px solid #d5d7d9; border-radius: 12px; cursor: pointer; }
+.cg-tick input { width: 20px; height: 20px; accent-color: var(--orange, #f36633); margin: 0; }
+.cg-note { font-size: 13.5px; color: #6b7075 !important; }
+.cg-note a { color: inherit; }
+.cg-err { color: #b3261e !important; font-size: 14px; }
+.cg-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.cg-go { border: 0; border-radius: 999px; padding: 14px 28px; font: inherit; font-weight: 700; background: var(--orange, #f36633); color: var(--on-accent, #fff); cursor: pointer; }
+.cg-go:disabled { opacity: .35; cursor: not-allowed; }
+.cg-cancel, .cg-link { border: 1px solid #3b3e41; background: none; color: inherit; border-radius: 999px; padding: 12px 22px; font: inherit; cursor: pointer; }
+.cg-link { padding: 6px 14px; font-size: 13px; margin-top: 8px; }
+
 </style>
 </head>
 <body>
@@ -578,10 +595,11 @@ const clm = () => (window.com && com.veeva && com.veeva.clm) || null;
 const V = () => HUB.veeva || {};
 const tracked = new Set();
 function veevaTrack(type, id, desc, once) {
-  if (!clm() || V().trackEvents === false) return;
   const key = type + ":" + id;
   if (once && tracked.has(key)) return;
   tracked.add(key);
+  if (window.hubTrack) window.hubTrack(type, id, desc);   // optional usage statistics (see the consent block)
+  if (!clm() || V().trackEvents === false) return;
   try {
     clm().createRecord("Call_Clickstream_vod__c", {
       Track_Element_Type_vod__c: type, Track_Element_Id_vod__c: id, Track_Element_Description_vod__c: desc || ""
@@ -855,6 +873,7 @@ function downloadDoc(id) {
   const d = info(id);
   if (!hasPdf(d)) return toast(`${d.name} will be available to download once the artwork is approved.`);
   const name = (d.code || id) + ".pdf";
+  veevaTrack("pdf_downloaded", id, d.name);
   if (d.pdf.startsWith("data:")) saveBlob(new Blob([dataToBytes(d.pdf)], { type: "application/pdf" }), name);
   else {
     // From a local folder browsers won't honour "download" on a file link, and would replace the hub with the PDF, so open it in a new tab
@@ -871,6 +890,7 @@ async function mergePack(ids) {
     const out = await PDFLib.PDFDocument.create();
     for (const id of withPdf) { const src = await PDFLib.PDFDocument.load(await getBytes(info(id).pdf, "pack"), { ignoreEncryption: true }); (await out.copyPages(src, src.getPageIndices())).forEach(p => out.addPage(p)); }
     saveBlob(new Blob([await out.save()], { type: "application/pdf" }), `${slug((HUB.brand || {}).productName)}-pack.pdf`);
+    veevaTrack("pack_downloaded", withPdf.join(","), `Pack downloaded: ${withPdf.length} document(s)`);
     toast(withPdf.length < ids.length ? `Pack downloaded. ${ids.length - withPdf.length} document(s) have no PDF yet.` : "Pack downloaded as one PDF");
   } catch (e) { toast("Couldn't merge the pack. Opened from a local folder, browsers block this; on a web host a very large PDF can also fail. Download each PDF separately instead."); }
 }
@@ -926,9 +946,11 @@ addEventListener("resize", onScroll);
 
 /* ---------- Render ---------- */
 function renderAll() { renderChoices(); renderChapters(); renderPack(); syncPrompts(); }
-function boot() { sanitizeState(); applyBrand(); bindStatic(); renderStats(); renderAll(); onScroll(); }
+function boot() { sanitizeState(); applyBrand(); bindStatic(); renderStats(); renderAll(); onScroll(); if (window.hubConsentLink) window.hubConsentLink(); }
 
 // Live updates from the editor's preview. Only attached in the editor's preview, never in a file that is shared.
+
+
 
 boot();
 })();

@@ -78,12 +78,15 @@ function status(msg, kind = "", ms = 0) {
 /* ---------- Preview ---------- */
 const frame = $("#preview");
 let frameReady = false, sendTimer;
+const consentOn = c => !!(c.consent && c.consent.enabled);
+const stripConsent = t => { const a = t.indexOf("/*CONSENT_START*/"), b = t.indexOf("/*CONSENT_END*/"); return a > -1 && b > a ? t.slice(0, a) + t.slice(b + "/*CONSENT_END*/".length) : t; };
 function fillTemplate(content, forExport) {
   const json = JSON.stringify(content).split("</").join("<\\/");
   const preview = forExport ? "" : "window.HUB_PREVIEW = true; ";
   const libs = `${SCRIPT_OPEN}>${PDFLIB_SRC}${SCRIPT_CLOSE}` + (forExport && content.veeva && content.veeva.include ? `\n${SCRIPT_OPEN} src="veeva-library.js">${SCRIPT_CLOSE}` : "");
   // Shared files never carry the editor's live-preview code
   let tpl = TPL; if (forExport) { const a = tpl.indexOf("/*PREVIEW_START*/"), b = tpl.indexOf("/*PREVIEW_END*/"); if (a > -1 && b > a) tpl = tpl.slice(0, a) + tpl.slice(b + "/*PREVIEW_END*/".length); }
+  if (forExport && !consentOn(content)) tpl = stripConsent(tpl);
   const map = { TITLE: esc(content.brand.pageTitle || content.brand.productName + " launch story"), FONTS_CSS: FONTS_EXPORT, LIBS: libs, CONTENT: `${SCRIPT_OPEN}>${preview}window.HUB = ${json};${SCRIPT_CLOSE}` };
   return Object.entries(map).reduce((s, [k, v]) => s.split(`{{${k}}}`).join(v), tpl);
 }
@@ -208,6 +211,15 @@ const SECTIONS = [
     `${fText("Pack heading", "finale.title")}${fArea("Pack text", "finale.sub")}
      <h2>Approved email</h2>${fArea("Closing paragraph", "email.closing")}${fArea("Sign-off", "email.signoff", { rows: 4 })}
      <h2>Footer</h2>${fText("First line", "legal.title")}${strs("legal.paragraphs", "Legal text", 3)}`) },
+  { id: "consent", title: "Consent and tracking (optional)", goto: "top", render: () => frameSection("Consent and tracking", "An optional step before the page opens, and optional usage statistics. Switch it off and export again and the code is gone from the file.",
+    `${fCheck("Show a consent step before the page", "consent.enabled", "This is a notice and a record, not security. Your server must also refuse pages and PDFs to anyone with no recorded consent.")}
+     <div class="cols">${fText("Wording version", "consent.version", { hint: "Change it when the wording changes: everyone is asked again." })}${fText("Button", "consent.button")}</div>
+     ${fText("Title", "consent.title")}${fArea("Introduction", "consent.intro", { rows: 2 })}${fText("Required tick", "consent.requiredLabel")}
+     ${fCheck("Also ask for optional usage statistics", "consent.analytics")}${fText("Optional tick", "consent.analyticsLabel")}
+     ${fArea("What is recorded (short notice)", "consent.notice", { rows: 2 })}${fText("Privacy notice link", "consent.privacyUrl", { ph: "https://…" })}
+     <h2>Where it is recorded</h2><p class="small" style="margin:-4px 0 10px">Leave both blank to test: the choice is remembered in this browser only, which is not a record. For real use, give the addresses your server provides (see the README).</p>
+     ${fText("Consent address", "consent.endpoint", { ph: "/api/consent", hint: "GET returns this reader's record; POST saves it." })}${fText("Usage events address", "consent.eventsEndpoint", { ph: "/api/events", hint: "Only used if the reader ticked the optional box." })}
+     <button class="bigbtn line" type="button" data-act="consentDemo">Try the consent screen in the preview</button>`) },
   { id: "veeva", title: "Veeva (optional)", goto: "pack", render: () => frameSection("Veeva CLM", "Only needed if the page will run inside Veeva. Inside Veeva, download buttons become “Send by Approved Email” and choices are tracked.",
     `${fCheck("Include the Veeva library in the exported file", "veeva.include", "Adds a reference to veeva-library.js. Put that file (from your Veeva CLM resources) next to the exported file before zipping.")}
      ${fText("Approved Email template ID", "veeva.emailTemplate")}${fText("Presentation ID (only if the PDF slides are in another presentation)", "veeva.presentationId")}${fCheck("Record choices and chapters as Call Clickstream", "veeva.trackEvents")}
@@ -229,7 +241,7 @@ function placeholderHits() {
   (function walk(o, path) {
     if (typeof o === "string") { if (!isData(o) && PLACEHOLDER_RE.test(o) && !/^brand\.(mockLabel|jobCode)$/.test(path) || (path === "brand.jobCode" && /XX-UK/i.test(o))) hits.push({ path, text: o }); }
     else if (Array.isArray(o)) o.forEach((v, i) => walk(v, path + "." + i));
-    else if (o && typeof o === "object") for (const k of Object.keys(o)) if (!["pdf", "images", "logo", "fonts", "pdfName", "id", "veeva"].includes(k)) walk(o[k], path ? path + "." + k : k);
+    else if (o && typeof o === "object") for (const k of Object.keys(o)) if (!["pdf", "images", "logo", "fonts", "pdfName", "id", "veeva", "consent"].includes(k)) walk(o[k], path ? path + "." + k : k);
   })(C, "");
   return hits;
 }
@@ -248,6 +260,12 @@ function issues() {
   all.forEach((d, i) => { const n = d.name || "Unnamed document"; if (!d.pdf) add(i === 0 ? "warn" : "info", `${n}: no PDF yet`, "Draft pages are shown in the viewer, and downloads say the PDF is not available yet."); else if (!isStored(d.pdf)) add("warn", `${n}: PDF linked by path`, "A linked file is not inside the exported file or website folder. Add the PDF with Choose PDF to include it."); if (!d.code) add("warn", `${n}: no PDF code`, "The code is used for file names and the viewer."); });
   if (isData(C.brand.logo) === false && C.brand.logo) add("warn", "Logo linked by path", "A linked logo is not inside the exported file. Add it with Choose file to embed it.");
   mo.forEach(m => { if (ids.has(m.id)) add("err", `Duplicate module id: ${m.id}`); ids.add(m.id); });
+  if (consentOn(C)) {
+    const k = C.consent;
+    if (!k.endpoint) add("warn", "Consent is not recorded on a server", "With no consent address the choice is remembered in the reader's browser only. Fine for testing, not as a record.");
+    if (k.analytics && !k.eventsEndpoint) add("warn", "Usage statistics have nowhere to go", "The optional tick is shown but no usage events address is set, so nothing is sent.");
+    if (!k.privacyUrl) add("info", "No privacy notice link", "Add the link to the approved privacy notice.");
+  }
   const ph = placeholderHits();
   if (ph.length) add("warn", `Placeholder wording in ${ph.length} place${ph.length > 1 ? "s" : ""}`, ph.slice(0, 6).map(hitLabel).join("  ·  ") + (ph.length > 6 ? `  ·  and ${ph.length - 6} more` : "") + ". Replace it before sending the final copy.");
   const miss = [];
@@ -433,6 +451,7 @@ async function exportHtml(final) {
   try {
     status("Building the single file…", "busy");
     const c = final ? finalCopy() : clone(C);
+    if (!consentOn(c)) delete c.consent;
     for (const d of [c.core, ...c.modules]) if (isStored(d.pdf)) d.pdf = await readUri(STORE.get(d.pdf));
     const html = fillTemplate(c, true), name = base() + (final ? "-final.html" : "-offline.html");
     download(name, html, "text/html");
@@ -485,8 +504,9 @@ async function exportSite(final, working) {
     for (const k of Object.keys(c.brand.fonts || {})) { const u = c.brand.fonts[k]; if (isData(u)) { const f = uniq("assets/fonts/", "custom-" + k, "." + (EXT[dataMime(u)] || "woff")); add(f, new Blob([dataBytes(u)])); c.brand.fonts[k] = f; } else await keep(u); }
     const fonts = [...FONTS_EXPORT.matchAll(/url\(data:font\/woff;base64,([^)]+)\)/g)];
     fonts.forEach((m, i) => { if (DEFAULT_FONTS[i]) add("assets/fonts/" + DEFAULT_FONTS[i], new Blob([dataBytes("data:;base64," + m[1])])); });
+    if (!consentOn(c)) delete c.consent;
     const veeva = c.veeva && c.veeva.include;
-    let page = SITE_INDEX.split("{{CONTENT}}").join((veeva ? SCRIPT_OPEN + ' src="veeva-library.js">' + SCRIPT_CLOSE + "\n" : "") + siteContent(c));
+    let page = (consentOn(c) ? SITE_INDEX : stripConsent(SITE_INDEX)).split("{{CONTENT}}").join((veeva ? SCRIPT_OPEN + ' src="veeva-library.js">' + SCRIPT_CLOSE + "\n" : "") + siteContent(c));
     if (working) {
       // The editable copy carries the hidden editor (5 clicks on the header); it is stripped from the clean export
       const html = window.__EDITOR_HTML; if (!html) throw new Error("The editor source isn't available here. Open editor.html or a working copy.");
@@ -569,6 +589,7 @@ document.addEventListener("click", e => {
   else if (act === "exportSiteWorking") exportSite(false);
   else if (act === "exportEditable") exportSite(false, true);
   else if (act === "reloadPreview") reloadPreview();
+  else if (act === "consentDemo") { if (frameReady) frame.contentWindow.postMessage({ type: "hub-consent-demo" }, "*"); }
 });
 // Drag and drop onto file slots and the bulk drop zone
 ["dragenter", "dragover"].forEach(t => document.addEventListener(t, e => { const z = e.target.closest && e.target.closest(".slot, [data-bulk]"); if (z) { e.preventDefault(); z.classList.add("over"); } }));

@@ -205,6 +205,23 @@ window.HUB = {
   },
 
   /* ---- Veeva CLM (only used when the page runs inside Veeva) -------------- */
+  /* ---- Consent step and optional usage statistics (off by default) ---------
+     Shows a gate before the page. See README: "Consent and tracking". Switch "enabled" off and export again to remove it completely. */
+  consent: {
+    enabled: false,
+    version: "1.0",                // change it when the wording changes: everyone is asked again
+    title: "Before you continue",
+    intro: "This site contains promotional material intended for UK healthcare professionals.",
+    requiredLabel: "I confirm I am a UK healthcare professional.",
+    analytics: false,              // also ask the optional usage-statistics tick
+    analyticsLabel: "Allow anonymous usage statistics (which sections are used and which PDFs are downloaded).",
+    notice: "Your choice is recorded with the time and the notice version. Downloads of documents are logged.",
+    privacyUrl: "",
+    button: "Continue",
+    endpoint: "",                  // your server records the consent here (GET returns it, POST saves it). Blank = remembered in this browser only, for testing
+    eventsEndpoint: ""             // your server receives usage events here (POST), only if the reader ticked the optional box
+  },
+
   veeva: {
     include: false,                // adds a reference to veeva-library.js in exported files
     emailTemplate: "",             // Approved Email template ID

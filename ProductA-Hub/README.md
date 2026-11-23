@@ -99,9 +99,35 @@ Needs Node 18 or later and installs nothing. It rewrites `index.html` and `edito
 
 The same page can run inside Veeva. In the editor's **Veeva** section, tick **Include the Veeva library**, add the Approved Email template and fragment IDs, and export. Then put `veeva-library.js` (from your Veeva CLM resources) next to the exported file and zip them. Inside Veeva the download buttons become "Send by Approved Email" and choices are tracked. See `veeva/README.md` in the repository for the sandbox steps.
 
+## Consent and tracking (optional)
+
+In the editor, **Consent and tracking** adds a step before the page opens and, if you wish, optional usage statistics. It is **off by default**. Switch it off and export again and the code and wording are removed from the file.
+
+**What the page does**
+- Shows your wording with a required tick, and an optional second tick for usage statistics. A footer link lets the reader see and change the choice.
+- With a **consent address** set, it asks the server whether this reader has already agreed (to the current wording version) and sends the choice to the server. If the server can't be reached, the reader is asked again rather than let through unrecorded.
+- With a **usage events address** set, and only if the reader ticked the optional box, it sends small events: page view, stakeholder and engagement chosen, module added or removed, figure viewed, pack viewed, PDF downloaded, pack downloaded. Each carries a random id made for that page load (not stored, not linked to a person) and no name. Nothing is sent before consent or after it is withdrawn.
+- With both addresses blank, the choice is remembered in the reader's browser only. That is for testing: it is not a record.
+
+**What the server must do** (on Azure, Functions or App Service behind your login)
+1. `GET /api/consent` returns the signed-in reader's record (`{version, analytics}`), or 204 if none.
+2. `POST /api/consent` saves it, stamped with the **server's** knowledge of who is signed in and the time. The page never sends a name, because a page can't be trusted to say who it is.
+3. `POST /api/events` saves usage events, ignoring them unless that reader's record allows analytics.
+4. Refuse the pages' PDFs (and ideally everything) to anyone with no consent record. The page's gate is a notice; this check is what makes it enforceable.
+
+`examples/consent-server.mjs` is a small test server doing exactly these jobs (`node examples/consent-server.mjs <site-folder>`). It is for trying the flow, not for production.
+
+**How tracking fits together**
+- **Who:** your login (on Azure, Entra ID) knows who each reader is and records sign-ins. The server stamps that identity on consent records and events.
+- **Which PDFs:** the server's request log counts each download per PDF (the `?via=` marker says how it was used). This needs no consent code and works even with the page's tracking switched off, but it is still personal data, so the privacy notice must cover it.
+- **What they did on the page:** the optional events above.
+- Report from the stored records or the logs (for example in Log Analytics or a database).
+
+Check the wording, lawful basis and retention with the client's data protection team. The page can't decide those.
+
 ## Not included yet
 
-- **Password protection, logged consent and site analytics.** These need a server: a password inside a downloadable file is not real protection, and consent and analytics records have to be stored somewhere the user can't edit. They belong in the hosting layer in front of the website folder, which needs no change to the page. Per-PDF download counts come from the server's access log (see above). The page has no tracking of its own (outside Veeva).
+- **The login itself.** The page has no password or user accounts: that is the hosting layer's job.
 - **The FAQ search and checklist ticks** from the earlier prototype. Modules are now approved PDFs, so their detail lives in the PDF.
 
 ## Licences
