@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hub editor</title>
+<style>
+{{FONTS_UI}}
+{{EDITOR_CSS}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="tb">
+    <div class="tb-brand"><i></i><b>Hub editor</b><span id="projName"></span></div>
+    <div class="tb-actions">
+      <label class="tbtn">Open…<input type="file" id="openFile" accept=".json,.js,application/json,text/javascript" hidden></label>
+      <button class="tbtn" type="button" data-act="saveProject">Save project</button>
+      <button class="tbtn" type="button" data-act="saveContentJs">Save content.js</button>
+      <button class="tbtn primary" type="button" data-act="exportHtml">Export offline HTML ↓</button>
+    </div>
+  </header>
+  <div class="statusbar" id="status" role="status"><span id="statusText">Ready. Changes show in the preview straight away. Save your project before closing this page.</span></div>
+  <nav class="side" id="side" aria-label="Sections"></nav>
+  <main class="form" id="form"></main>
+  <section class="prev" aria-label="Preview">
+    <div class="prev-tb">
+      <div class="seg" role="group" aria-label="Preview width"><button type="button" data-view="desktop" aria-pressed="true">Desktop</button><button type="button" data-view="tablet" aria-pressed="false">iPad</button><button type="button" data-view="phone" aria-pressed="false">Phone</button></div>
+      <button class="tbtn" type="button" data-act="reloadPreview">Restart preview</button>
+    </div>
+    <div class="prev-stage" id="stage"><iframe id="preview" title="Live preview of the hub"></iframe></div>
+  </section>
+</div>
+
+<script type="text/plain" id="tpl">{{TEMPLATE}}</script>
+<script type="text/plain" id="fontsExport">{{FONTS_EXPORT}}</script>
+<script type="text/plain" id="contentDefault">{{CONTENT_DEFAULT}}</script>
+<script type="text/plain" id="logoPlaceholder">{{LOGO_PLACEHOLDER}}</script>
+<script id="pdflib">{{PDFLIB}}</script>
+<script id="pdfjs">{{PDFJS}}</script>
+<script type="text/plain" id="pdfworker">{{PDFJS_WORKER}}</script>
+<script>
+{{EDITOR_JS}}
+</script>
+</body>
+</html>

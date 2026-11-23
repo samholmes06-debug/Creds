@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="format-detection" content="telephone=no">
+<title>{{TITLE}}</title>
+<style>
+{{FONTS_CSS}}
+{{STYLE}}
+</style>
+</head>
+<body>
+<div class="concept-strip" id="conceptStrip"></div>
+<header class="bar">
+  <div class="wrap">
+    <div class="brand" id="brand"></div>
+    <div class="pick" data-pick="who">
+      <button class="pick-btn" type="button" aria-expanded="false" aria-haspopup="true" id="pickWho"><small data-t="builder.whoPick"></small><b class="empty"></b><i class="chev" aria-hidden="true"></i></button>
+      <div class="menu" role="menu" aria-labelledby="pickWho" hidden></div>
+    </div>
+    <div class="pick" data-pick="eng">
+      <button class="pick-btn" type="button" aria-expanded="false" aria-haspopup="true" id="pickEng"><small data-t="builder.engPick"></small><b class="empty"></b><i class="chev" aria-hidden="true"></i></button>
+      <div class="menu" role="menu" aria-labelledby="pickEng" hidden></div>
+    </div>
+    <button class="btn btn-black bar-core" type="button" data-pdf="core" id="barCore"></button>
+  </div>
+  <div class="readbar" id="readBar"></div>
+</header>
+
+<main>
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-top">
+      <div>
+        <div class="label eyebrow" data-t="hero.eyebrow"></div>
+        <h1 id="heroTitle"></h1>
+        <p class="hero-lede" data-t="hero.lede"></p>
+        <p class="hero-note" data-t="hero.note"></p>
+      </div>
+      <div class="core-feature">
+        <div class="cover-lg" aria-hidden="true">
+          <div class="brandline" id="coverBrand"></div>
+          <h2 data-t="core.name"></h2>
+          <div class="meta" id="coverMeta"></div>
+        </div>
+        <div class="core-actions">
+          <button class="btn btn-orange" type="button" data-pdf="core" id="heroDownload"></button>
+          <button class="btn btn-line" type="button" data-open-pack="core">Preview</button>
+          <small data-t="core.blurb"></small>
+        </div>
+      </div>
+    </div>
+
+    <div class="builder" id="builder">
+      <div class="builder-head">
+        <h2 data-t="builder.title"></h2>
+        <p data-t="builder.intro"></p>
+      </div>
+      <div class="brow"><span class="label" id="lblWho" data-t="builder.whoLabel"></span><div class="chips" id="chipsWho" role="group" aria-labelledby="lblWho"></div></div>
+      <div class="brow"><span class="label" id="lblEng" data-t="builder.engLabel"></span><div class="chips" id="chipsEng" role="group" aria-labelledby="lblEng"></div></div>
+      <div class="builder-status" id="builderStatus" aria-live="polite"></div>
+    </div>
+  </div>
+</section>
+
+<section class="stats" id="stats" aria-label="Key figures">
+  <div class="stats-pin">
+    <div class="wrap">
+      <div class="stats-top"><span class="label" data-t="stats.label"></span><span class="stat-count" id="statCount"></span></div>
+      <div class="slides" id="slides"></div>
+      <div class="stats-rail" id="statsRail" aria-hidden="true"></div>
+    </div>
+  </div>
+</section>
+
+<section class="story" id="story" aria-labelledby="storyHead">
+  <div class="wrap">
+    <div class="story-intro">
+      <div class="sec-head">
+        <h2 id="storyHead" data-t="story.title"></h2>
+        <p data-t="story.intro"></p>
+      </div>
+      <div class="row"><button class="btn btn-black" type="button" data-pdf="core" id="storyDownload"></button><span id="storyMeta"></span></div>
+    </div>
+    <div id="chapters"></div>
+  </div>
+</section>
+
+<section class="tl" id="tl" aria-labelledby="tlHead">
+  <div class="tl-pin">
+    <div class="wrap"><div class="sec-head"><h2 id="tlHead" data-t="timeline.title"></h2><p data-t="timeline.intro"></p></div></div>
+    <div class="tl-track" id="tlTrack"></div>
+  </div>
+</section>
+
+<section class="finale" id="pack" aria-labelledby="packHead">
+  <div class="wrap">
+    <div class="sec-head"><h2 id="packHead" data-t="finale.title"></h2><p id="finSub" data-t="finale.sub"></p></div>
+    <div class="finale-grid">
+      <div class="fan" id="fan" aria-hidden="true"></div>
+      <div class="finale-side" aria-live="polite">
+        <div class="fin-count"><b id="finDocs">1</b><span id="finPages"></span></div>
+        <p class="fin-for" id="finFor"></p>
+        <ol class="fin-list" id="finList"></ol>
+        <div class="fin-more" id="finMore"></div>
+        <div class="fin-btns">
+          <button class="btn btn-orange" type="button" data-open-pack="">Preview pack <span aria-hidden="true">→</span></button>
+          <button class="btn btn-white" type="button" id="dlPack"></button>
+          <button class="btn btn-line-dark" type="button" id="showEmail">Approved email</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap" id="footerInner"></div>
+</footer>
+
+<div class="dock away" id="dock">
+  <div class="dock-stack" id="dockStack" aria-hidden="true"></div>
+  <div class="dock-txt"><b id="dockCount">1 document</b><span id="dockPages"></span></div>
+  <button class="btn btn-orange" type="button" data-open-pack="">View pack</button>
+</div>
+
+<div class="pm" id="packModal" hidden>
+  <div class="pm-shell" role="dialog" aria-modal="true" aria-labelledby="pmTitle">
+    <header class="pm-bar">
+      <div><div class="label" id="pmCount"></div><h2 id="pmTitle">Your pack</h2></div>
+      <nav class="pm-jump" id="pmJump" aria-label="Documents in this pack"></nav>
+      <div class="pm-actions"><button class="btn btn-orange" type="button" id="pmDownload"></button><button class="pm-close" type="button" id="pmClose" aria-label="Close pack viewer">✕</button></div>
+    </header>
+    <div class="pm-scroll" id="pmScroll">
+      <p class="pm-note" id="pmNote" hidden></p>
+      <div id="pmDocs" style="display: contents"></div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="emailOverlay" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="emailTitle">
+    <div class="sheet-head">
+      <div><div class="label" id="emailCode"></div><h2 id="emailTitle">Email preview</h2></div>
+      <button class="chip-btn" id="closeEmail" type="button">Close</button>
+    </div>
+    <div class="email" id="emailBody" tabindex="0"></div>
+    <button class="btn btn-black" id="copyEmail" type="button">Copy email text</button>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+{{LIBS}}
+{{CONTENT}}
+<script>
+{{SCRIPT}}
+</script>
+</body>
+</html>
