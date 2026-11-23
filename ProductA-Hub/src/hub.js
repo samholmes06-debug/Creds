@@ -1,5 +1,4 @@
-/* Hub runtime: renders the whole page from window.HUB (see content.js).
-   The editor can push new content into a running page with postMessage({ type: "hub-content", content }). */
+/* Hub runtime: renders the whole page from window.HUB (see content.js). */
 (() => {
 "use strict";
 let HUB = window.HUB || {};
@@ -398,13 +397,16 @@ addEventListener("resize", onScroll);
 function renderAll() { renderChoices(); renderChapters(); renderPack(); syncPrompts(); }
 function boot() { sanitizeState(); applyBrand(); bindStatic(); renderStats(); renderAll(); onScroll(); }
 
-// Live updates from the editor's preview
-addEventListener("message", ev => {
+// Live updates from the editor's preview. Only attached in the editor's preview, never in a file that is shared.
+/*PREVIEW_START*/
+// The editor pushes new content into its preview with postMessage({ type: "hub-content", content })
+if (window.HUB_PREVIEW) addEventListener("message", ev => {
   const d = ev.data; if (!d || typeof d !== "object") return;
   if (d.type === "hub-content" && d.content) { HUB = d.content; window.HUB = HUB; boot(); }
   else if (d.type === "hub-goto") { if (d.id === "top") scrollTo(0, 0); else { const el = document.getElementById(d.id); if (el) el.scrollIntoView({ block: "start" }); } }
   else if (d.type === "hub-choose") { state.who = d.who || null; state.eng = d.eng || null; state.removed.clear(); renderAll(); }
 });
 
+/*PREVIEW_END*/
 boot();
 })();

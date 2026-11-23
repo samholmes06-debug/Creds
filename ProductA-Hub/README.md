@@ -19,8 +19,20 @@ Everything works **offline**: the fonts, libraries and files are inside the page
    - **Brand and logo:** product name, logo (SVG best), brand colour, job code, date, optional replacement fonts.
    - **Core notification** and **Modules:** add each approved PDF by choosing it or dragging it onto its box. The editor reads the PDF, counts the pages and makes the page pictures for the in-page viewer. In **Modules**, you can drop all the PDFs at once: each is matched by its code (a file called `PA-MOD-02.pdf` goes to the module with that code).
    - **Stakeholders and engagements**, **Recommendations**, **Key figures**, **Story chapters**, **Timeline**, **Pack, email and footer:** all the wording, with add, remove and reorder buttons.
-3. Open **Check and export**. It lists anything to fix (missing job code, items pointing at a deleted module, large file size).
-4. Choose **Export offline HTML**. You get one finished file with the fonts, logo, PDFs and page pictures inside. Open it with Wi-Fi off to check it, then share it.
+3. Open **Check and export**. It lists anything to fix (missing job code, items pointing at a deleted module, large file size) and any **placeholder wording** still in the text, such as "mock-up", "Condition X", an "XX-UK-" job code or "£X,XXX".
+4. Choose **Export final copy**. You get one clean file with the fonts, logo, approved PDFs and page pictures inside. Open it with Wi-Fi off to check it, then share it.
+
+### The final copy
+
+**Export final copy** is the version to send out. It is a finished page and nothing else:
+- no editor, editing marks or edit links, and none of the editor's preview code;
+- the concept label is removed;
+- every approved PDF is inside it, so readers can view the pages, download each PDF and download the whole pack as one merged PDF, all offline;
+- it makes no network requests, and a page from outside can't change what it shows.
+
+Before exporting it warns you if any document has no PDF yet (its draft pages would be visible), if the job code is missing, or if placeholder wording remains. **Export working copy** is the same file with the concept label kept, for internal review.
+
+Wording in the text itself (for example the footer line "placeholders for this mock-up") is content, so change it in the editor first. The Check page shows where it is.
 
 Other buttons in the top bar:
 - **Save project** keeps your work as a `.json` file. **Open…** reloads it (or a `content.js`).
@@ -28,7 +40,7 @@ Other buttons in the top bar:
 
 Nothing is stored in the browser, so save your project before closing the page. The editor warns you if you try to leave with unsaved changes.
 
-`examples/ProductA-launch-story-offline-example.html` is a finished export made with the placeholder PDFs in `assets/pdfs`.
+`examples/` holds two files made with the placeholder PDFs in `assets/pdfs`: the working copy (`…-offline-example.html`) and the final copy (`…-final-example.html`). The final example still shows the sample footer wording, because that is content.
 
 ## The folder route: edit content.js by hand
 

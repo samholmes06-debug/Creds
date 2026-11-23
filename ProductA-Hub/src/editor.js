@@ -67,9 +67,12 @@ const frame = $("#preview");
 let frameReady = false, sendTimer;
 function fillTemplate(content, forExport) {
   const json = JSON.stringify(content).split("</").join("<\\/");
+  const preview = forExport ? "" : "window.HUB_PREVIEW = true; ";
   const libs = `${SCRIPT_OPEN}>${PDFLIB_SRC}${SCRIPT_CLOSE}` + (forExport && content.veeva && content.veeva.include ? `\n${SCRIPT_OPEN} src="veeva-library.js">${SCRIPT_CLOSE}` : "");
-  const map = { TITLE: esc(content.brand.pageTitle || content.brand.productName + " launch story"), FONTS_CSS: FONTS_EXPORT, LIBS: libs, CONTENT: `${SCRIPT_OPEN}>window.HUB = ${json};${SCRIPT_CLOSE}` };
-  return Object.entries(map).reduce((s, [k, v]) => s.split(`{{${k}}}`).join(v), TPL);
+  // Shared files never carry the editor's live-preview code
+  let tpl = TPL; if (forExport) { const a = tpl.indexOf("/*PREVIEW_START*/"), b = tpl.indexOf("/*PREVIEW_END*/"); if (a > -1 && b > a) tpl = tpl.slice(0, a) + tpl.slice(b + "/*PREVIEW_END*/".length); }
+  const map = { TITLE: esc(content.brand.pageTitle || content.brand.productName + " launch story"), FONTS_CSS: FONTS_EXPORT, LIBS: libs, CONTENT: `${SCRIPT_OPEN}>${preview}window.HUB = ${json};${SCRIPT_CLOSE}` };
+  return Object.entries(map).reduce((s, [k, v]) => s.split(`{{${k}}}`).join(v), tpl);
 }
 function reloadPreview() { frameReady = false; frame.onload = () => { frameReady = true; }; frame.srcdoc = fillTemplate(C, false); }
 function touch() { dirty = true; updateSide(); clearTimeout(sendTimer); sendTimer = setTimeout(() => { if (frameReady) frame.contentWindow.postMessage({ type: "hub-content", content: C }, "*"); }, 350); }
@@ -200,11 +203,24 @@ const SECTIONS = [
   { id: "export", title: "Check and export", goto: "top", render: () => {
     const is = issues(), counts = { err: is.filter(i => i.k === "err").length, warn: is.filter(i => i.k === "warn").length };
     return frameSection("Check and export", "Review these points, then export one file that works offline.",
-      `<button class="bigbtn primary" type="button" data-act="exportHtml">Export offline HTML ↓</button><button class="bigbtn line" type="button" data-act="saveProject">Save project</button><button class="bigbtn line" type="button" data-act="saveContentJs">Save content.js</button>
-       <p class="small" style="margin:0 0 14px"><b>Export offline HTML</b> makes one finished file with the fonts, logo, PDFs and page pictures inside it, ready to share or test. <b>Save project</b> keeps your work so you can reopen it here. <b>Save content.js</b> is for the folder version.</p>
+      `<button class="bigbtn primary" type="button" data-act="exportFinal">Export final copy ↓</button><button class="bigbtn line" type="button" data-act="exportHtml">Export working copy ↓</button><button class="bigbtn line" type="button" data-act="saveProject">Save project</button><button class="bigbtn line" type="button" data-act="saveContentJs">Save content.js</button>
+       <p class="small" style="margin:0 0 14px"><b>Export final copy</b> makes the clean version to share: one offline file with the fonts, logo, approved PDFs and page pictures inside. It has no editor, no editing marks and no concept label. <b>Export working copy</b> is the same but keeps the concept label, for internal review. <b>Save project</b> keeps your work so you can reopen it here. <b>Save content.js</b> is for the folder version.</p>
        <h2>Checks · ${counts.err} to fix · ${counts.warn} to review</h2>${is.map(i => `<div class="issue ${i.k}"><i>${{ err: "✕", warn: "!", info: "i", ok: "✓" }[i.k]}</i><div><b>${esc(i.t)}</b>${i.d ? `<span>${esc(i.d)}</span>` : ""}</div></div>`).join("")}`);
   } }
 ];
+
+/* ---------- Placeholder wording scan: shown on the Check page and before a final copy ---------- */
+const PLACEHOLDER_RE = /mock-?up|placeholder|lorem|\bXX-UK-\d|\bCondition X\b|£\s?X[X,]*|\bTBC\b|\bTODO\b/i;
+function placeholderHits() {
+  const hits = [];
+  (function walk(o, path) {
+    if (typeof o === "string") { if (!isData(o) && PLACEHOLDER_RE.test(o) && !/^brand\.(mockLabel|jobCode)$/.test(path) || (path === "brand.jobCode" && /XX-UK/i.test(o))) hits.push({ path, text: o }); }
+    else if (Array.isArray(o)) o.forEach((v, i) => walk(v, path + "." + i));
+    else if (o && typeof o === "object") for (const k of Object.keys(o)) if (!["pdf", "images", "logo", "fonts", "pdfName", "id", "veeva"].includes(k)) walk(o[k], path ? path + "." + k : k);
+  })(C, "");
+  return hits;
+}
+const hitLabel = h => { const t = h.text.replace(/\s+/g, " "), m = t.match(PLACEHOLDER_RE), at = m ? Math.max(0, m.index - 28) : 0; return `${h.path.replace(/\./g, " › ")}: “${at ? "…" : ""}${t.slice(at, at + 70)}${t.length > at + 70 ? "…" : ""}”`; };
 
 /* ---------- Checks ---------- */
 function issues() {
@@ -219,6 +235,8 @@ function issues() {
   all.forEach((d, i) => { const n = d.name || "Unnamed document"; if (!d.pdf) add(i === 0 ? "warn" : "info", `${n}: no PDF yet`, "Draft pages are shown in the viewer, and downloads say the PDF is not available yet."); else if (!isData(d.pdf)) add("warn", `${n}: PDF linked by path`, "A linked file is not inside the exported file. Add the PDF with Choose PDF to embed it."); if (!d.code) add("warn", `${n}: no PDF code`, "The code is used for file names and the viewer."); });
   if (isData(C.brand.logo) === false && C.brand.logo) add("warn", "Logo linked by path", "A linked logo is not inside the exported file. Add it with Choose file to embed it.");
   mo.forEach(m => { if (ids.has(m.id)) add("err", `Duplicate module id: ${m.id}`); ids.add(m.id); });
+  const ph = placeholderHits();
+  if (ph.length) add("warn", `Placeholder wording in ${ph.length} place${ph.length > 1 ? "s" : ""}`, ph.slice(0, 6).map(hitLabel).join("  ·  ") + (ph.length > 6 ? `  ·  and ${ph.length - 6} more` : "") + ". Replace it before sending the final copy.");
   const miss = [];
   (C.chapters || []).forEach(c => { if (c.module && !mo.some(m => m.id === c.module)) miss.push(`chapter “${c.title}”`); });
   ((C.stats || {}).items || []).forEach(s => { if (s.module && !mo.some(m => m.id === s.module)) miss.push(`figure “${s.heading}”`); });
@@ -332,11 +350,26 @@ function bulkFiles(files) {
 /* ---------- Save, open, export ---------- */
 function download(name, text, type) { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 8000); }
 const base = () => slug(C.brand.productName) + "-launch-story";
-function exportHtml() {
+/* A clean copy for sharing: no concept label and no editor-only notes about the files */
+function finalCopy() {
+  const c = clone(C);
+  c.brand.mockLabel = "";
+  for (const d of [c.core, ...c.modules]) delete d.pdfName;
+  return c;
+}
+function exportHtml(final) {
   const is = issues(); const errs = is.filter(i => i.k === "err");
   if (errs.length && !confirm(`There ${errs.length === 1 ? "is 1 error" : "are " + errs.length + " errors"} on the Check page. Export anyway?`)) return go("export");
-  const html = fillTemplate(C, true);
-  download(base() + "-offline.html", html, "text/html"); status(`Exported ${base()}-offline.html (${fmtSize(html.length)}). Open it with Wi-Fi off to check it.`, "", 8000);
+  if (final) {
+    const draft = [C.core, ...modules()].filter(d => !d.images.length).map(d => d.name);
+    if (draft.length && !confirm(`${draft.length} document${draft.length > 1 ? "s have" : " has"} no PDF yet (${draft.slice(0, 4).join(", ")}${draft.length > 4 ? "…" : ""}). Their draft pages would be visible in the final copy. Export anyway?`)) return go("modules");
+    if (!C.brand.jobCode && !confirm("There is no job code. Export the final copy anyway?")) return go("brand");
+    const ph = placeholderHits();
+    if (ph.length && !confirm(`${ph.length} piece${ph.length > 1 ? "s" : ""} of placeholder wording found, for example: ${hitLabel(ph[0])}. Export the final copy anyway?`)) return go("export");
+  }
+  const html = fillTemplate(final ? finalCopy() : C, true), name = base() + (final ? "-final.html" : "-offline.html");
+  download(name, html, "text/html");
+  status(`Exported ${name} (${fmtSize(html.length)}). ${final ? "This copy has no editor and no concept label." : "Open it with Wi-Fi off to check it."}`, "", 9000);
 }
 function saveProject() { download(base() + "-project.json", JSON.stringify({ hubEditorProject: 1, content: C }), "application/json"); dirty = false; status("Project saved. Reopen it any time with Open.", "", 6000); }
 function saveContentJs() {
@@ -385,7 +418,8 @@ document.addEventListener("click", e => {
   if (["add", "del", "up", "down"].includes(act)) return structure(act, a.dataset.arr, +a.dataset.i, a.dataset.kind);
   if (act === "clearPdf") { const d = getP(a.dataset.path); d.pdf = ""; d.images = []; delete d.pdfName; renderForm(true); renderSide(); touch(); }
   else if (act === "clearFile") { setP(a.dataset.path, ""); renderForm(true); renderSide(); touch(); }
-  else if (act === "exportHtml") exportHtml();
+  else if (act === "exportHtml") exportHtml(false);
+  else if (act === "exportFinal") exportHtml(true);
   else if (act === "saveProject") saveProject();
   else if (act === "saveContentJs") saveContentJs();
   else if (act === "reloadPreview") reloadPreview();

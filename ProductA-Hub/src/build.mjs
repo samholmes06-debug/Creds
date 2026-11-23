@@ -20,6 +20,8 @@ const fontsCss = mode => FONTS.map(([, f, w, st]) =>
 
 const style = read("src/style.css");
 const script = read("src/hub.js");
+// Shared files never carry the editor's live-preview code; the editor keeps it for its own preview
+const sharedScript = script.replace(/\/\*PREVIEW_START\*\/[\s\S]*?\/\*PREVIEW_END\*\//, "");
 const template = read("src/template.html");
 
 // 1. Folder version: loads content.js and files from assets/
@@ -29,7 +31,7 @@ const index = fill(template, {
   STYLE: style,
   LIBS: '<script src="lib/pdf-lib.min.js"></script>',
   CONTENT: '<script src="content.js"></script>',
-  SCRIPT: script
+  SCRIPT: sharedScript
 });
 fs.writeFileSync(path.join(root, "index.html"), index);
 
