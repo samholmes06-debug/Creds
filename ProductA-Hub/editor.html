@@ -146,10 +146,10 @@ summary:hover { color: var(--black); }
   <header class="tb">
     <div class="tb-brand"><i></i><b>Hub editor</b><span id="projName"></span></div>
     <div class="tb-actions">
-      <label class="tbtn">Open…<input type="file" id="openFile" accept=".json,.js,application/json,text/javascript" hidden></label>
+      <label class="tbtn">Open…<input type="file" id="openFile" accept=".zip,.json,.js,application/zip,application/json,text/javascript" hidden></label>
       <button class="tbtn" type="button" data-act="saveProject">Save project</button>
-      <button class="tbtn" type="button" data-act="saveContentJs">Save content.js</button>
-      <button class="tbtn primary" type="button" data-act="exportFinal">Export final copy ↓</button>
+      <button class="tbtn primary" type="button" data-act="exportSite">Export website folder ↓</button>
+      <button class="tbtn" type="button" data-act="exportFinal">Single file ↓</button>
     </div>
   </header>
   <div class="statusbar" id="status" role="status"><span id="statusText">Ready. Changes show in the preview straight away. Save your project before closing this page.</span></div>
@@ -168,6 +168,7 @@ summary:hover { color: var(--black); }
 <html lang="en-GB">
 <head>
 <meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="format-detection" content="telephone=no">
 <title>{{TITLE}}</title>
@@ -413,7 +414,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .fin-for { color: #d9dcdf; }
 .fin-for b { color: var(--white); }
 .fin-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid #2a2c2e; }
-.fin-list li { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto auto; gap: 10px; align-items: center; padding: 12px 0; border-bottom: 1px solid #2a2c2e; }
+.fin-list li { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto auto auto; gap: 10px; align-items: center; padding: 12px 0; border-bottom: 1px solid #2a2c2e; }
 .fin-list .n { color: #8a8f94; font-variant-numeric: tabular-nums; font-size: 13px; }
 .fin-list li.core .n { color: var(--orange); }
 .fin-list .pp { color: #8a8f94; font-size: 13px; }
@@ -524,6 +525,8 @@ body.modal-open { overflow: hidden; }
 .pm-intro-note { width: min(760px, 100%); font-size: 13.5px; color: var(--muted); }
 .mod-intro { max-width: 60ch; }
 body.no-mock .concept, body.no-mock .concept-strip { display: none !important; }
+
+.pm-more { margin: 6px 0 0; font-size: 13px; color: #8a8f94; text-align: center; }
 
 </style>
 </head>
@@ -689,7 +692,7 @@ const slug = s => String(s || "hub").toLowerCase().replace(/[^a-z0-9]+/g, "-").r
 const modules = () => HUB.modules || [];
 const isCore = id => id === "core";
 const info = id => isCore(id) ? HUB.core : modules().find(m => m.id === id);
-const pagesOf = d => (d.images && d.images.length) ? d.images.length : Math.max(1, +d.pages || 1);
+const pagesOf = d => +d.pages > 0 ? +d.pages : Math.max(1, (d.images && d.images.length) || 1);
 const hasPdf = d => !!(d && d.pdf);
 const shortName = d => d.short || d.name;
 const covCls = id => isCore(id) ? "cv-core" : "cv-s" + (Math.max(0, modules().findIndex(m => m.id === id)) % 4);
@@ -895,6 +898,7 @@ function renderChapters() {
 }
 
 /* ---------- Pack: dock, finale, viewer ---------- */
+const dlBtn = id => hasPdf(info(id)) ? `<button type="button" class="x-btn" data-pdf="${esc(id)}" aria-label="Download ${esc(info(id).name)} as PDF">PDF ↓</button>` : `<span></span>`;
 function renderPack() {
   const ids = picked(), all = ["core", ...ids], pp = totalPages(ids), docs = `${all.length} document${all.length > 1 ? "s" : ""}`;
   $("#dockStack").innerHTML = all.map(id => cover(id)).join("");
@@ -902,8 +906,8 @@ function renderPack() {
   $("#finDocs").textContent = all.length;
   $("#finPages").innerHTML = `document${all.length > 1 ? "s" : ""}<br>${pp} pages`;
   $("#finFor").innerHTML = state.who && state.eng ? `Built for a <b>${esc(who().label.toLowerCase())}</b> · <b>${esc(eng().label.toLowerCase())}</b>` : "Choose a stakeholder and engagement in the bar above for recommended modules.";
-  $("#finList").innerHTML = `<li class="core"><span class="n">00</span><span>${esc(HUB.core.name)}</span><span class="pp">${pagesOf(HUB.core)} pp</span><span></span></li>` +
-    ids.map((id, i) => `<li><span class="n">${pad(i + 1)}</span><span>${esc(info(id).name)}</span><span class="pp">${pagesOf(info(id))} pp</span><button type="button" class="x-btn" data-toggle="${esc(id)}" aria-label="Remove ${esc(info(id).name)}">Remove</button></li>`).join("");
+  $("#finList").innerHTML = `<li class="core"><span class="n">00</span><span>${esc(HUB.core.name)}</span><span class="pp">${pagesOf(HUB.core)} pp</span>${dlBtn("core")}<span></span></li>` +
+    ids.map((id, i) => `<li><span class="n">${pad(i + 1)}</span><span>${esc(info(id).name)}</span><span class="pp">${pagesOf(info(id))} pp</span>${dlBtn(id)}<button type="button" class="x-btn" data-toggle="${esc(id)}" aria-label="Remove ${esc(info(id).name)}">Remove</button></li>`).join("");
   const rest = modules().filter(m => !ids.includes(m.id));
   $("#finMore").innerHTML = rest.length ? `<span>Add:</span>` + rest.map(m => `<button type="button" data-toggle="${esc(m.id)}">+ ${esc(m.name)}</button>`).join("") : "";
   const n = all.length;
@@ -938,7 +942,7 @@ function renderViewer(all, pp) {
   $("#pmDocs").innerHTML = all.map((id, i) => {
     const d = info(id), real = d.images && d.images.length;
     const btns = `${clm() && (V().pdfSlides || {})[id] ? `<button class="chip-btn" type="button" data-open-slide="${esc(id)}">Open PDF</button>` : ""}<button class="chip-btn" type="button" data-pdf="${esc(id)}">${clm() ? "Send PDF ✉" : "Download PDF ↓"}</button>${isCore(id) ? "" : `<button class="chip-btn" type="button" data-toggle="${esc(id)}">Remove</button>`}`;
-    return `<section class="pm-doc" id="doc-${esc(id)}" aria-label="${esc(d.name)}"><div class="pm-doc-head"><span class="n${isCore(id) ? " core" : ""}">${pad(i)}</span><div><div class="label">${esc(d.code || "")} · PDF · ${pagesOf(d)} pages</div><h3>${esc(d.name)}</h3></div><div class="btns">${btns}</div></div>${real ? d.images.map((src, n) => `<div class="pm-page img"><img src="${esc(src)}" alt="${esc(d.name)}, page ${n + 1}" loading="lazy"></div>`).join("") : mockPages(id, d)}</section>`;
+    return `<section class="pm-doc" id="doc-${esc(id)}" aria-label="${esc(d.name)}"><div class="pm-doc-head"><span class="n${isCore(id) ? " core" : ""}">${pad(i)}</span><div><div class="label">${esc(d.code || "")} · PDF · ${pagesOf(d)} pages</div><h3>${esc(d.name)}</h3></div><div class="btns">${btns}</div></div>${real ? d.images.map((src, n) => `<div class="pm-page img"><img src="${esc(src)}" alt="${esc(d.name)}, page ${n + 1}" loading="lazy"></div>`).join("") + (+d.pages > d.images.length ? `<p class="pm-more">Showing the first ${d.images.length} of ${+d.pages} pages here. Download the PDF to read all of it.</p>` : "") : mockPages(id, d)}</section>`;
   }).join("");
 }
 
@@ -991,7 +995,8 @@ function onScroll() {
 
 /* ---------- PDF files: download, merge ---------- */
 const dataToBytes = uri => { const b = atob(uri.split(",")[1]), a = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); return a; };
-async function getBytes(src) { if (src.startsWith("data:")) return dataToBytes(src); const r = await fetch(src); if (!r.ok) throw new Error("fetch"); return new Uint8Array(await r.arrayBuffer()); }
+const via = (src, tag) => /^(data|blob):/.test(src) ? src : src + (src.includes("?") ? "&" : "?") + "via=" + tag;
+async function getBytes(src, tag) { if (src.startsWith("data:")) return dataToBytes(src); const r = await fetch(via(src, tag || "pack")); if (!r.ok) throw new Error("fetch"); return new Uint8Array(await r.arrayBuffer()); }
 function saveBlob(blob, name) { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 5000); }
 function downloadDoc(id) {
   const d = info(id);
@@ -1000,7 +1005,7 @@ function downloadDoc(id) {
   if (d.pdf.startsWith("data:")) saveBlob(new Blob([dataToBytes(d.pdf)], { type: "application/pdf" }), name);
   else {
     // From a local folder browsers won't honour "download" on a file link, and would replace the hub with the PDF, so open it in a new tab
-    const a = document.createElement("a"); a.href = d.pdf;
+    const a = document.createElement("a"); a.href = via(d.pdf, "download");
     if (location.protocol === "file:") { a.target = "_blank"; a.rel = "noopener"; } else a.download = name;
     document.body.append(a); a.click(); a.remove();
   }
@@ -1011,10 +1016,10 @@ async function mergePack(ids) {
   if (!window.PDFLib) return toast("Merging isn't available in this copy. Download each PDF from the pack viewer.");
   try {
     const out = await PDFLib.PDFDocument.create();
-    for (const id of withPdf) { const src = await PDFLib.PDFDocument.load(await getBytes(info(id).pdf), { ignoreEncryption: true }); (await out.copyPages(src, src.getPageIndices())).forEach(p => out.addPage(p)); }
+    for (const id of withPdf) { const src = await PDFLib.PDFDocument.load(await getBytes(info(id).pdf, "pack"), { ignoreEncryption: true }); (await out.copyPages(src, src.getPageIndices())).forEach(p => out.addPage(p)); }
     saveBlob(new Blob([await out.save()], { type: "application/pdf" }), `${slug((HUB.brand || {}).productName)}-pack.pdf`);
     toast(withPdf.length < ids.length ? `Pack downloaded. ${ids.length - withPdf.length} document(s) have no PDF yet.` : "Pack downloaded as one PDF");
-  } catch (e) { toast("Couldn't merge here: browsers block reading PDF files from a local folder. Use the single-file export or a web host, or download each PDF from the pack viewer."); }
+  } catch (e) { toast("Couldn't merge the pack. Opened from a local folder, browsers block this; on a web host a very large PDF can also fail. Download each PDF separately instead."); }
 }
 
 /* ---------- Pack viewer and email ---------- */
@@ -1309,6 +1314,929 @@ window.HUB = {
   }
 };
 </script>
+<script type="text/plain" id="siteIndex"><!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="format-detection" content="telephone=no">
+<title>Product A Launch Story</title>
+<style>
+@font-face { font-family: "GSK"; src: url(assets/fonts/gsk-light.woff) format("woff"); font-weight: 300; font-style: normal; font-display: swap; }
+@font-face { font-family: "GSK"; src: url(assets/fonts/gsk-regular.woff) format("woff"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "GSK"; src: url(assets/fonts/gsk-regularitalic.woff) format("woff"); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: "GSK"; src: url(assets/fonts/gsk-bold.woff) format("woff"); font-weight: 700; font-style: normal; font-display: swap; }
+
+/* Layout: a scroll story under a sticky builder bar — hero with core PDF and builder, pinned numbers scene, sticky-split story chapters with module prompts, horizontal-scroll timeline, black pack finale; a PDF-cover dock collects the pack */
+:root {
+  --white: #ffffff;
+  --grey: #f0f1f2;
+  --grey-2: #e1e3e5;
+  --grey-3: #c9ccd0;
+  --black: #0d0e0f;
+  --ink-2: #2a2d30;
+  --muted: #5c6166;
+  --orange: #f36633;
+  --orange-ink: #b9461c;
+  --orange-soft: #fde4d9;
+  --accent-deep: #7a2a0a;
+  --on-accent: #0d0e0f;
+  --font: "BrandFont", "GSK", Arial, sans-serif;
+  --bar-h: 68px;
+  --radius: 18px;
+  --ease: cubic-bezier(.2, .7, .1, 1);
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--white); color: var(--black); font-family: var(--font); font-size: 16px; line-height: 1.55; }
+h1, h2, h3, h4 { margin: 0; text-wrap: balance; font-weight: 700; }
+p { margin: 0; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--black); outline-offset: 3px; }
+.wrap { max-width: 1320px; margin: 0 auto; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+.label { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; font-weight: 700; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; } }
+
+/* Buttons */
+.btn { white-space: nowrap; border: 0; border-radius: 999px; padding: 14px 22px; font-weight: 700; font-size: 15px; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; text-decoration: none; transition: transform .2s var(--ease), background .2s, color .2s, border-color .2s; }
+.btn:hover { transform: translateY(-2px); }
+.btn-orange { background: var(--orange); color: var(--on-accent); }
+.btn-black { background: var(--black); color: var(--white); }
+.btn-white { background: var(--white); color: var(--black); }
+.btn-line { background: transparent; border: 1.5px solid var(--grey-3); color: var(--black); }
+.btn-line:hover { border-color: var(--black); }
+.btn-line-dark { background: transparent; border: 1.5px solid #3b3e41; color: var(--white); }
+.btn-line-dark:hover { border-color: var(--white); }
+
+/* Sticky builder bar */
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--white); }
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 25; background: rgba(255, 255, 255, .9); backdrop-filter: saturate(1.4) blur(14px); -webkit-backdrop-filter: saturate(1.4) blur(14px); border-bottom: 1px solid var(--grey-2); }
+.bar .wrap { height: var(--bar-h); display: flex; align-items: center; gap: 12px; }
+.brand { display: flex; align-items: center; gap: 9px; font-weight: 700; white-space: nowrap; margin-right: auto; }
+.concept { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; background: var(--orange-soft); color: var(--accent-deep); padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+.concept-strip { display: none; background: var(--black); color: var(--white); text-align: center; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; padding: 6px 16px; }
+.brand i { width: 11px; height: 11px; border-radius: 50%; background: var(--orange); }
+.pick { position: relative; }
+.pick-btn { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 10px; align-items: center; text-align: left; border: 1.5px solid var(--grey-2); background: var(--white); border-radius: 14px; padding: 6px 12px 6px 14px; cursor: pointer; min-height: 48px; transition: border-color .2s; }
+.pick-btn:hover, .pick-btn[aria-expanded="true"] { border-color: var(--black); }
+.pick-btn small { grid-column: 1; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 700; line-height: 1.2; }
+.pick-btn b { grid-column: 1; font-size: 15px; line-height: 1.25; white-space: nowrap; }
+.pick-btn b.empty { color: var(--orange-ink); }
+.pick-btn .chev { grid-column: 2; grid-row: 1 / span 2; width: 10px; height: 10px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg) translateY(-3px); transition: transform .2s; }
+.pick-btn[aria-expanded="true"] .chev { transform: rotate(225deg) translateY(-1px); }
+.menu { position: absolute; top: calc(100% + 8px); left: 0; z-index: 2; min-width: 260px; background: var(--white); border: 1.5px solid var(--grey-2); border-radius: 16px; box-shadow: 0 20px 50px rgba(13, 14, 15, .16); padding: 6px; display: grid; gap: 2px; }
+.menu button { border: 0; background: none; text-align: left; padding: 10px 12px; border-radius: 10px; cursor: pointer; display: grid; gap: 1px; }
+.menu button:hover { background: var(--grey); }
+.menu button[aria-pressed="true"] { background: var(--black); color: var(--white); }
+.menu button b { font-size: 15px; }
+.menu button span { font-size: 13px; color: var(--muted); }
+.menu button[aria-pressed="true"] span { color: #b9bdc1; }
+.bar-core { white-space: nowrap; padding: 12px 18px; font-size: 14px; }
+.readbar { position: absolute; left: 0; right: 0; bottom: -1px; height: 3px; background: var(--orange); transform-origin: left; transform: scaleX(0); }
+.bar-core .short { display: none; }
+@media (max-width: 1080px) { .bar-core .long { display: none; } .bar-core .short { display: inline; } }
+@media (max-width: 1240px) { .brand .concept { font-size: 10px; } }
+@media (max-width: 900px) { .brand .concept { display: none; } .concept-strip { display: block; } }
+@media (max-width: 640px) {
+  :root { --bar-h: 64px; }
+  .pick-btn .chev { width: 8px; height: 8px; }
+  .brand { display: none; }
+  .bar .wrap { gap: 8px; }
+  .pick { flex: 1; min-width: 0; }
+  .pick-btn { width: 100%; padding: 5px 10px; }
+  .pick-btn b { overflow: hidden; text-overflow: ellipsis; font-size: 14px; }
+  .menu { position: fixed; left: 12px; right: 12px; top: calc(env(safe-area-inset-top, 0px) + var(--bar-h) + 8px); min-width: 0; }
+  .bar-core { padding: 12px 14px; }
+}
+
+/* Hero */
+.hero .wrap { padding-block: clamp(40px, 7vw, 96px) 56px; display: grid; gap: clamp(40px, 6vw, 72px); }
+.hero-top { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 40px 64px; align-items: center; }
+@media (max-width: 900px) { .hero-top { grid-template-columns: minmax(0, 1fr); } }
+.eyebrow { color: var(--orange-ink); margin-bottom: 22px; }
+.hero h1 { font-size: clamp(46px, 7.2vw, 104px); line-height: .98; letter-spacing: -.025em; }
+.hero h1 .line { display: block; overflow: hidden; padding-bottom: .06em; }
+.hero h1 .line span { display: block; animation: rise .9s var(--ease) both; }
+.hero h1 .line:nth-child(2) span { animation-delay: .08s; }
+.hero h1 .line:nth-child(3) span { animation-delay: .16s; }
+.hero h1 .line:nth-child(3) span { color: var(--orange); }
+@keyframes rise { from { transform: translateY(60%); } to { transform: none; } }
+.hero-lede { font-size: clamp(18px, 1.6vw, 21px); max-width: 44ch; margin-top: 26px; }
+.hero-note { font-size: 13.5px; color: var(--muted); max-width: 52ch; margin-top: 14px; }
+.core-feature { display: grid; justify-items: center; gap: 26px; }
+.cover-lg { width: min(300px, 70vw); aspect-ratio: 1 / 1.414; border-radius: 10px; background: var(--orange); color: var(--on-accent); padding: 28px 24px; display: grid; grid-template-rows: auto 1fr auto; box-shadow: 0 2px 4px rgba(13, 14, 15, .08), 0 40px 70px -20px rgba(13, 14, 15, .45); transform: perspective(1200px) rotateY(-14deg) rotateX(4deg) rotate(2deg); transition: transform .6s var(--ease); position: relative; overflow: hidden; }
+.cover-lg::after { content: ""; position: absolute; inset: 0; background: linear-gradient(115deg, rgba(255, 255, 255, .28), transparent 40%); pointer-events: none; }
+.core-feature:hover .cover-lg { transform: perspective(1200px) rotateY(0) rotateX(0) rotate(0); }
+.cover-lg .brandline { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; }
+.cover-lg .brandline i { width: 10px; height: 10px; border-radius: 50%; background: var(--on-accent); }
+.cover-lg h2 { align-self: end; font-size: 30px; line-height: 1.02; letter-spacing: -.02em; }
+.cover-lg .meta { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; margin-top: 14px; border-top: 1.5px solid rgba(13, 14, 15, .3); padding-top: 10px; }
+.core-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.core-actions small { width: 100%; text-align: center; color: var(--muted); font-size: 13px; }
+
+/* Builder (first step) */
+.builder { background: var(--grey); border-radius: 28px; padding: clamp(22px, 3.4vw, 44px); display: grid; gap: 28px; }
+.builder-head { display: flex; justify-content: space-between; gap: 12px 32px; align-items: end; flex-wrap: wrap; }
+.builder-head h2 { font-size: clamp(28px, 3.4vw, 44px); line-height: 1.05; letter-spacing: -.02em; }
+.builder-head p { color: var(--muted); max-width: 46ch; }
+.brow { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 12px 24px; align-items: start; }
+.brow > .label { padding-top: 16px; }
+@media (max-width: 760px) { .brow { grid-template-columns: minmax(0, 1fr); } .brow > .label { padding-top: 0; } }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 1.5px solid var(--grey-3); background: var(--white); border-radius: 999px; padding: 13px 20px; font-size: 16px; font-weight: 700; cursor: pointer; transition: background .2s, color .2s, border-color .2s, transform .2s var(--ease); display: inline-flex; align-items: center; gap: 10px; }
+.chip:hover { border-color: var(--black); transform: translateY(-2px); }
+.chip[aria-pressed="true"] { background: var(--black); border-color: var(--black); color: var(--white); }
+.chip[aria-pressed="true"]::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--orange); }
+.builder-status { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; border-top: 1.5px solid var(--grey-3); padding-top: 22px; font-size: 16px; }
+.builder-status b { font-weight: 700; }
+.builder-status .go { margin-left: auto; }
+
+/* Section heads */
+.sec-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .8fr); gap: 16px 56px; align-items: end; }
+.sec-head h2 { font-size: clamp(40px, 6vw, 84px); line-height: .98; letter-spacing: -.025em; }
+.sec-head p { color: var(--muted); font-size: 17px; max-width: 48ch; }
+@media (max-width: 800px) { .sec-head { grid-template-columns: minmax(0, 1fr); } }
+
+/* Pinned numbers scene */
+.stats { height: 460vh; position: relative; background: var(--black); color: var(--white); }
+.stats-pin { position: sticky; top: calc(env(safe-area-inset-top, 0px) + var(--bar-h)); height: calc(100svh - var(--bar-h) - env(safe-area-inset-top, 0px)); overflow: hidden; }
+.stats-pin .wrap { height: 100%; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; padding-block: clamp(20px, 4vh, 44px); }
+.stats-top { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.stats-top .label { color: #9a9fa4; }
+.stat-count { font-variant-numeric: tabular-nums; color: #9a9fa4; font-weight: 700; }
+.stat-count b { color: var(--white); }
+.slides { position: relative; }
+.slide { position: absolute; inset: 0; display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 24px 56px; align-items: center; opacity: 0; transform: translateY(40px); transition: opacity .6s var(--ease), transform .6s var(--ease); pointer-events: none; }
+.slide.on { opacity: 1; transform: none; pointer-events: auto; }
+.slide.past { transform: translateY(-40px); }
+.slide .num { font-size: clamp(88px, 17vw, 260px); line-height: .85; letter-spacing: -.04em; font-weight: 700; white-space: nowrap; }
+.slide .num em { font-style: normal; color: var(--orange); }
+.slide .num small { font-size: .3em; letter-spacing: -.01em; margin-left: .15em; }
+.slide .copy { display: grid; gap: 20px; align-content: center; }
+.slide .copy h3 { font-size: clamp(24px, 2.6vw, 36px); line-height: 1.12; letter-spacing: -.015em; }
+.slide .copy p { color: #b9bdc1; font-size: 17px; max-width: 40ch; }
+@media (max-width: 800px) { .slide { grid-template-columns: minmax(0, 1fr); align-content: center; } }
+.stats-rail { display: flex; gap: 6px; }
+.stats-rail i { flex: 1; height: 3px; background: #2f3236; border-radius: 2px; overflow: hidden; position: relative; }
+.stats-rail i::after { content: ""; position: absolute; inset: 0; background: var(--orange); transform: scaleX(var(--f, 0)); transform-origin: left; }
+
+/* Module prompt */
+.prompt { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 18px; align-items: center; background: var(--grey); border-radius: 18px; padding: 16px 18px 16px 16px; border: 1.5px solid transparent; transition: border-color .3s, background .3s; }
+.prompt.in { background: var(--white); border-color: var(--black); }
+.prompt .cv { width: 64px; }
+.prompt .p-label { color: var(--orange-ink); font-size: 11.5px; }
+.prompt .p-title { font-weight: 700; font-size: 17px; line-height: 1.25; }
+.prompt .p-q { font-size: 14px; color: var(--muted); }
+.prompt .rec { display: inline-block; background: var(--black); color: var(--white); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; font-weight: 700; padding: 3px 9px; border-radius: 999px; margin-left: 6px; vertical-align: 2px; }
+.add-btn { border: 0; border-radius: 999px; padding: 12px 18px; font-weight: 700; font-size: 14px; cursor: pointer; white-space: nowrap; background: var(--orange); color: var(--on-accent); transition: background .2s, color .2s, transform .2s var(--ease); }
+.add-btn:hover { transform: translateY(-2px); }
+.add-btn[aria-pressed="true"] { background: var(--black); color: var(--white); }
+@media (max-width: 560px) { .prompt { grid-template-columns: 48px minmax(0, 1fr); } .prompt .cv { width: 48px; } .add-btn { grid-column: 1 / -1; justify-self: start; } }
+.slide .prompt { background: #1b1d1f; color: var(--white); max-width: 460px; }
+.slide .prompt .p-q { color: #9a9fa4; }
+.slide .prompt .p-label { color: var(--orange); }
+.slide .prompt.in { background: #1b1d1f; border-color: var(--orange); }
+.slide .prompt .add-btn[aria-pressed="true"] { background: var(--white); color: var(--black); }
+
+/* Mini PDF covers */
+.cv { aspect-ratio: 1 / 1.414; border-radius: 4px; padding: 10% 9%; display: grid; grid-template-rows: auto 1fr; gap: 4px; font-weight: 700; box-shadow: 0 1px 2px rgba(13, 14, 15, .15), 0 6px 14px -6px rgba(13, 14, 15, .35); position: relative; overflow: hidden; flex: none; }
+.cv::before { content: ""; height: 3px; width: 46%; background: var(--orange); border-radius: 2px; }
+.cv .cv-t { align-self: end; font-size: 7px; line-height: 1.1; letter-spacing: -.01em; }
+.cv-core { background: var(--orange); color: var(--on-accent); }
+.cv-core::before { background: var(--on-accent); }
+.cv-s0 { background: var(--black); color: var(--white); }
+.cv-s1 { background: var(--ink-2); color: var(--white); }
+.cv-s2 { background: var(--white); color: var(--black); box-shadow: 0 0 0 1px var(--grey-2), 0 6px 14px -6px rgba(13, 14, 15, .35); }
+.cv-s3 { background: var(--grey-2); color: var(--black); }
+.cv.big .cv-t { font-size: clamp(12px, 1.6vw, 18px); }
+.cv.big::before { height: 6px; }
+
+/* Story */
+.story { padding-block: clamp(72px, 10vw, 140px) 40px; }
+.story-intro { display: grid; gap: 28px; margin-bottom: clamp(40px, 6vw, 80px); }
+.story-intro .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.story-intro .row span { color: var(--muted); font-size: 14px; }
+.chapter { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 32px 72px; padding-block: clamp(48px, 7vw, 96px); border-top: 1.5px solid var(--grey-2); min-height: 72vh; }
+.ch-side { position: sticky; top: calc(env(safe-area-inset-top, 0px) + var(--bar-h) + 40px); align-self: start; display: grid; gap: 14px; }
+.ch-n { font-size: clamp(64px, 9vw, 132px); font-weight: 700; line-height: .85; letter-spacing: -.04em; color: var(--grey-2); transition: color .5s; font-variant-numeric: tabular-nums; }
+.chapter.seen .ch-n { color: var(--orange); }
+.ch-side h3 { font-size: clamp(30px, 3.6vw, 52px); line-height: 1.02; letter-spacing: -.02em; }
+.ch-for { justify-self: start; background: var(--orange-soft); color: var(--accent-deep); padding: 5px 12px; border-radius: 999px; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; font-weight: 700; }
+.ch-body { display: grid; gap: 26px; align-content: start; }
+.ch-body .lead { font-size: clamp(21px, 2.1vw, 28px); line-height: 1.35; letter-spacing: -.005em; }
+.ch-body .lead b { background: linear-gradient(transparent 62%, var(--orange-soft) 62%); }
+.ch-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.ch-facts div { border-top: 2px solid var(--black); padding-top: 10px; display: grid; gap: 2px; }
+.ch-facts span { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+.ch-facts b { font-size: 19px; }
+@media (max-width: 860px) { .chapter { grid-template-columns: minmax(0, 1fr); min-height: 0; } .ch-side { position: static; } }
+
+/* Horizontal timeline */
+.tl { height: 320vh; position: relative; background: var(--grey); }
+.tl-pin { grid-template-columns: minmax(0, 1fr); position: sticky; top: calc(env(safe-area-inset-top, 0px) + var(--bar-h)); height: calc(100svh - var(--bar-h) - env(safe-area-inset-top, 0px)); overflow: hidden; display: grid; grid-template-rows: auto minmax(0, 1fr); }
+.tl-pin .wrap { width: 100%; padding-block: clamp(24px, 5vh, 56px) 0; }
+.tl-track { min-width: 0; display: flex; gap: 0; align-items: center; padding-left: max(20px, calc((100vw - 1320px) / 2 + 20px)); will-change: transform; }
+.ms { flex: none; width: clamp(280px, 34vw, 460px); padding-right: 40px; display: grid; gap: 16px; position: relative; }
+.ms .dot { width: 22px; height: 22px; border-radius: 50%; border: 3px solid var(--grey-3); background: var(--grey); position: relative; z-index: 1; }
+.ms::before { content: ""; position: absolute; top: 10px; left: 0; right: 0; height: 3px; background: var(--grey-3); }
+.ms.done .dot { background: var(--black); border-color: var(--black); }
+.ms.done::before { background: var(--black); }
+.ms.now .dot { background: var(--orange); border-color: var(--orange); box-shadow: 0 0 0 8px color-mix(in srgb, var(--orange) 22%, transparent); }
+.ms .when { font-size: clamp(56px, 7.5vw, 112px); font-weight: 700; line-height: .9; letter-spacing: -.035em; }
+.ms .what { font-size: 20px; font-weight: 700; }
+.ms p { color: var(--muted); max-width: 30ch; }
+.ms .tag { justify-self: start; font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: var(--white); }
+.ms.now .tag { background: var(--orange); color: var(--on-accent); }
+.ms.done .tag { background: var(--black); color: var(--white); }
+
+/* Pack finale */
+.finale { background: var(--black); color: var(--white); padding-block: clamp(72px, 10vw, 140px); }
+.finale .sec-head p { color: #b9bdc1; }
+.finale-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px 72px; margin-top: 56px; align-items: center; }
+@media (max-width: 900px) { .finale-grid { grid-template-columns: minmax(0, 1fr); } }
+.fan { overflow: clip; overflow-clip-margin: 40px; position: relative; height: clamp(280px, 34vw, 440px); }
+.fan .cv { position: absolute; top: 50%; left: 50%; width: clamp(110px, 13vw, 170px); transition: transform .6s var(--ease); }
+.fan .cv { grid-template-rows: auto auto; align-content: start; }
+.fan .cv .cv-t { align-self: start; margin-top: 8px; font-size: clamp(28px, 3.2vw, 40px); letter-spacing: -.04em; line-height: .9; }
+.finale-side { display: grid; gap: 22px; }
+.fin-count { display: flex; align-items: baseline; gap: 16px; }
+.fin-count b { font-size: clamp(80px, 10vw, 140px); line-height: .85; letter-spacing: -.04em; color: var(--orange); }
+.fin-count span { color: #b9bdc1; font-size: 17px; line-height: 1.35; }
+.fin-for { color: #d9dcdf; }
+.fin-for b { color: var(--white); }
+.fin-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid #2a2c2e; }
+.fin-list li { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto auto auto; gap: 10px; align-items: center; padding: 12px 0; border-bottom: 1px solid #2a2c2e; }
+.fin-list .n { color: #8a8f94; font-variant-numeric: tabular-nums; font-size: 13px; }
+.fin-list li.core .n { color: var(--orange); }
+.fin-list .pp { color: #8a8f94; font-size: 13px; }
+.x-btn { border: 1px solid #3b3e41; background: none; color: #b9bdc1; border-radius: 999px; padding: 4px 10px; font-size: 12.5px; cursor: pointer; }
+.x-btn:hover { border-color: var(--white); color: var(--white); }
+.fin-more { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.fin-more span { color: #8a8f94; font-size: 14px; margin-right: 4px; }
+.fin-more button { border: 1px dashed #4a4d51; background: none; color: #d9dcdf; border-radius: 999px; padding: 6px 12px; font-size: 13px; cursor: pointer; }
+.fin-more button:hover { border-color: var(--orange); color: var(--white); }
+.fin-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+
+footer { background: var(--black); color: #9a9fa4; font-size: 13px; border-top: 1px solid #2a2c2e; }
+footer .wrap { padding-block: 32px calc(110px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 8px; }
+footer b { color: var(--white); }
+
+/* Dock */
+.dock { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 18px); z-index: 22; transform: translate(-50%, 0); background: var(--black); color: var(--white); border-radius: 999px; padding: 10px 10px 10px 18px; display: flex; align-items: center; gap: 16px; box-shadow: 0 18px 40px rgba(13, 14, 15, .35); transition: transform .5s var(--ease), opacity .4s; max-width: calc(100% - 24px); }
+.dock.away { transform: translate(-50%, 140%); opacity: 0; pointer-events: none; }
+.dock.bump { animation: bump .5s var(--ease); }
+@keyframes bump { 40% { transform: translate(-50%, -6px) scale(1.04); } }
+.dock-stack { display: flex; align-items: center; height: 46px; }
+.dock-stack .cv { width: 32px; margin-left: -14px; transition: transform .3s var(--ease); }
+.dock-stack .cv:first-child { margin-left: 0; }
+.dock:hover .dock-stack .cv { margin-left: -6px; }
+.dock:hover .dock-stack .cv:first-child { margin-left: 0; }
+.dock-stack .cv .cv-t { display: none; }
+.dock-txt { display: grid; line-height: 1.2; }
+.dock-txt b { font-size: 15px; white-space: nowrap; }
+.dock-txt span { font-size: 12.5px; color: #9a9fa4; white-space: nowrap; }
+.dock .btn { padding: 12px 18px; font-size: 14px; }
+@media (max-width: 480px) { .dock { gap: 10px; padding-left: 12px; } .dock-txt span { display: none; } }
+.flyer { position: fixed; z-index: 40; pointer-events: none; }
+
+/* Pack viewer */
+.pm { position: fixed; inset: 0; z-index: 35; background: rgba(13, 14, 15, .72); padding: max(12px, env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px)) max(12px, env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px)); display: grid; }
+.pm-shell { background: var(--grey); border-radius: var(--radius); overflow: hidden; display: grid; grid-template-rows: auto minmax(0, 1fr); width: min(1180px, 100%); margin: 0 auto; }
+.pm-bar { background: var(--black); color: var(--white); padding: 16px 20px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px 24px; align-items: center; }
+.pm-bar .label { color: #9a9fa4; }
+.pm-bar h2 { font-size: 22px; white-space: nowrap; }
+.pm-jump { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+.pm-jump button { flex: none; border: 1px solid #3b3e41; background: transparent; color: var(--white); border-radius: 999px; padding: 7px 12px; font-size: 13px; cursor: pointer; white-space: nowrap; }
+.pm-jump button:hover { background: var(--white); color: var(--black); }
+.pm-actions { display: flex; gap: 8px; align-items: center; }
+.pm-actions .btn { padding: 10px 16px; font-size: 14px; }
+.pm-close { width: 42px; height: 42px; border-radius: 50%; border: 1px solid #3b3e41; background: transparent; color: var(--white); font-size: 18px; cursor: pointer; }
+.pm-close:hover { border-color: var(--white); }
+@media (max-width: 860px) { .pm-bar { grid-template-columns: minmax(0, 1fr) auto; } .pm-jump { grid-column: 1 / -1; grid-row: 2; } .pm-actions .btn { display: none; } }
+.pm-scroll { overflow-y: auto; padding: 28px max(16px, 4vw) 60px; display: grid; gap: 28px; justify-items: center; scroll-behavior: smooth; }
+.pm-note { width: min(760px, 100%); font-size: 13.5px; color: var(--muted); }
+.pm-doc { width: min(760px, 100%); display: grid; gap: 14px; scroll-margin-top: 16px; }
+.pm-doc-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: center; }
+.pm-doc-head .n { font-size: 36px; font-weight: 700; letter-spacing: -.04em; line-height: 1; }
+.pm-doc-head .n.core { color: var(--orange-ink); }
+.pm-doc-head .label { color: var(--muted); }
+.pm-doc-head h3 { font-size: 22px; }
+.pm-doc-head .btns { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.chip-btn { border: 1.5px solid var(--grey-3); background: var(--white); border-radius: 999px; padding: 7px 14px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.chip-btn:hover { border-color: var(--black); }
+@media (max-width: 560px) { .pm-doc-head { grid-template-columns: auto minmax(0, 1fr); } .pm-doc-head .btns { grid-column: 1 / -1; justify-content: flex-start; } }
+.pm-page { background: var(--white); aspect-ratio: 1 / 1.414; width: 100%; border-radius: 4px; box-shadow: 0 1px 2px rgba(13, 14, 15, .08), 0 12px 32px rgba(13, 14, 15, .08); padding: clamp(22px, 5.5%, 48px); display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 24px; font-size: 13.5px; position: relative; }
+@media (max-width: 560px) { .pm-page { aspect-ratio: auto; } }
+.pg-top, .pg-foot { display: flex; justify-content: space-between; gap: 12px; align-items: center; color: var(--muted); }
+.pg-top { border-bottom: 1px solid var(--grey-2); padding-bottom: 12px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; }
+.pg-foot { border-top: 1px solid var(--grey-2); padding-top: 12px; font-size: 10.5px; }
+.pg-brand { display: flex; align-items: center; gap: 8px; color: var(--black); font-size: 13px; letter-spacing: 0; text-transform: none; }
+.pg-brand i { width: 9px; height: 9px; border-radius: 50%; background: var(--orange); }
+.pg-body { display: grid; gap: 16px; align-content: start; min-width: 0; }
+.pg-kicker { color: var(--orange-ink); }
+.pg-title { font-size: clamp(22px, 3.4vw, 30px); line-height: 1.1; letter-spacing: -.015em; }
+.pg-ph { display: grid; gap: 10px; align-content: start; }
+.pg-ph b { height: 22px; width: 55%; background: var(--grey-2); border-radius: 4px; margin-bottom: 8px; }
+.pg-ph i { height: 9px; background: var(--grey); border-radius: 3px; }
+.pg-ph .box { height: 160px; background: var(--grey); border-radius: 8px; margin: 10px 0; }
+.pg-stamp { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-8deg); border: 2px dashed var(--grey-3); color: var(--muted); padding: 10px 18px; border-radius: 10px; font-size: 12px; background: var(--white); letter-spacing: .08em; text-transform: uppercase; font-weight: 700; }
+.pg-cover { display: grid; gap: 18px; align-content: center; min-height: 100%; }
+.pg-cover .bar-o { height: 8px; width: 80px; background: var(--orange); border-radius: 4px; }
+.pg-cover h1 { font-size: clamp(30px, 5.4vw, 52px); line-height: 1; letter-spacing: -.025em; }
+.pg-cover p { font-size: 15px; max-width: 42ch; }
+.pg-story { display: grid; }
+.pg-story article { display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: 6px 24px; padding-block: 14px; border-top: 1px solid var(--grey-2); }
+.pg-story article:first-child { border-top: 0; padding-top: 0; }
+.pg-story h4 { font-size: 15px; }
+@media (max-width: 560px) { .pg-story article { grid-template-columns: minmax(0, 1fr); } }
+/* Module content inside pages */
+.module { scroll-margin-top: 20px; }
+.mod-body { display: grid; gap: 12px; }
+.mod-body h4 { font-size: 15px; margin-top: 6px; }
+.mod-body ul { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+.fact { background: var(--grey); border-radius: 12px; padding: 10px 12px; display: grid; gap: 4px; }
+.fact span { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 700; }
+.fact b { font-size: 14px; }
+/* Email + toast */
+.overlay { position: fixed; inset: 0; background: rgba(13, 14, 15, .6); display: grid; place-items: center; padding: 16px; z-index: 45; }
+.sheet { background: var(--white); border-radius: var(--radius); width: min(700px, 100%); max-height: 88vh; overflow: auto; display: grid; gap: 16px; padding: 26px; }
+.sheet-head { display: flex; justify-content: space-between; gap: 12px; align-items: start; }
+.sheet-head .label { color: var(--orange-ink); }
+.sheet h2 { font-size: 26px; }
+.email { background: var(--grey); border-radius: 12px; padding: 18px; font-size: 14px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.toast { position: fixed; left: 50%; top: calc(env(safe-area-inset-top, 0px) + var(--bar-h) + 14px); transform: translateX(-50%); background: var(--black); color: var(--white); padding: 12px 18px; border-radius: 999px; font-size: 14px; z-index: 50; max-width: calc(100% - 32px); text-align: center; }
+body.modal-open { overflow: hidden; }
+
+/* Logo and page images */
+.brand img.logo { height: 30px; width: auto; max-width: 180px; display: block; }
+.pg-brand img.logo { height: 18px; width: auto; max-width: 110px; display: block; }
+.pm-page.img { padding: 0; display: block; overflow: hidden; aspect-ratio: auto; }
+.pm-page.img img { display: block; width: 100%; height: auto; }
+.pm-intro-note { width: min(760px, 100%); font-size: 13.5px; color: var(--muted); }
+.mod-intro { max-width: 60ch; }
+body.no-mock .concept, body.no-mock .concept-strip { display: none !important; }
+
+.pm-more { margin: 6px 0 0; font-size: 13px; color: #8a8f94; text-align: center; }
+
+</style>
+</head>
+<body>
+<div class="concept-strip" id="conceptStrip"></div>
+<header class="bar">
+  <div class="wrap">
+    <div class="brand" id="brand"></div>
+    <div class="pick" data-pick="who">
+      <button class="pick-btn" type="button" aria-expanded="false" aria-haspopup="true" id="pickWho"><small data-t="builder.whoPick"></small><b class="empty"></b><i class="chev" aria-hidden="true"></i></button>
+      <div class="menu" role="menu" aria-labelledby="pickWho" hidden></div>
+    </div>
+    <div class="pick" data-pick="eng">
+      <button class="pick-btn" type="button" aria-expanded="false" aria-haspopup="true" id="pickEng"><small data-t="builder.engPick"></small><b class="empty"></b><i class="chev" aria-hidden="true"></i></button>
+      <div class="menu" role="menu" aria-labelledby="pickEng" hidden></div>
+    </div>
+    <button class="btn btn-black bar-core" type="button" data-pdf="core" id="barCore"></button>
+  </div>
+  <div class="readbar" id="readBar"></div>
+</header>
+
+<main>
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-top">
+      <div>
+        <div class="label eyebrow" data-t="hero.eyebrow"></div>
+        <h1 id="heroTitle"></h1>
+        <p class="hero-lede" data-t="hero.lede"></p>
+        <p class="hero-note" data-t="hero.note"></p>
+      </div>
+      <div class="core-feature">
+        <div class="cover-lg" aria-hidden="true">
+          <div class="brandline" id="coverBrand"></div>
+          <h2 data-t="core.name"></h2>
+          <div class="meta" id="coverMeta"></div>
+        </div>
+        <div class="core-actions">
+          <button class="btn btn-orange" type="button" data-pdf="core" id="heroDownload"></button>
+          <button class="btn btn-line" type="button" data-open-pack="core">Preview</button>
+          <small data-t="core.blurb"></small>
+        </div>
+      </div>
+    </div>
+
+    <div class="builder" id="builder">
+      <div class="builder-head">
+        <h2 data-t="builder.title"></h2>
+        <p data-t="builder.intro"></p>
+      </div>
+      <div class="brow"><span class="label" id="lblWho" data-t="builder.whoLabel"></span><div class="chips" id="chipsWho" role="group" aria-labelledby="lblWho"></div></div>
+      <div class="brow"><span class="label" id="lblEng" data-t="builder.engLabel"></span><div class="chips" id="chipsEng" role="group" aria-labelledby="lblEng"></div></div>
+      <div class="builder-status" id="builderStatus" aria-live="polite"></div>
+    </div>
+  </div>
+</section>
+
+<section class="stats" id="stats" aria-label="Key figures">
+  <div class="stats-pin">
+    <div class="wrap">
+      <div class="stats-top"><span class="label" data-t="stats.label"></span><span class="stat-count" id="statCount"></span></div>
+      <div class="slides" id="slides"></div>
+      <div class="stats-rail" id="statsRail" aria-hidden="true"></div>
+    </div>
+  </div>
+</section>
+
+<section class="story" id="story" aria-labelledby="storyHead">
+  <div class="wrap">
+    <div class="story-intro">
+      <div class="sec-head">
+        <h2 id="storyHead" data-t="story.title"></h2>
+        <p data-t="story.intro"></p>
+      </div>
+      <div class="row"><button class="btn btn-black" type="button" data-pdf="core" id="storyDownload"></button><span id="storyMeta"></span></div>
+    </div>
+    <div id="chapters"></div>
+  </div>
+</section>
+
+<section class="tl" id="tl" aria-labelledby="tlHead">
+  <div class="tl-pin">
+    <div class="wrap"><div class="sec-head"><h2 id="tlHead" data-t="timeline.title"></h2><p data-t="timeline.intro"></p></div></div>
+    <div class="tl-track" id="tlTrack"></div>
+  </div>
+</section>
+
+<section class="finale" id="pack" aria-labelledby="packHead">
+  <div class="wrap">
+    <div class="sec-head"><h2 id="packHead" data-t="finale.title"></h2><p id="finSub" data-t="finale.sub"></p></div>
+    <div class="finale-grid">
+      <div class="fan" id="fan" aria-hidden="true"></div>
+      <div class="finale-side" aria-live="polite">
+        <div class="fin-count"><b id="finDocs">1</b><span id="finPages"></span></div>
+        <p class="fin-for" id="finFor"></p>
+        <ol class="fin-list" id="finList"></ol>
+        <div class="fin-more" id="finMore"></div>
+        <div class="fin-btns">
+          <button class="btn btn-orange" type="button" data-open-pack="">Preview pack <span aria-hidden="true">→</span></button>
+          <button class="btn btn-white" type="button" id="dlPack"></button>
+          <button class="btn btn-line-dark" type="button" id="showEmail">Approved email</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap" id="footerInner"></div>
+</footer>
+
+<div class="dock away" id="dock">
+  <div class="dock-stack" id="dockStack" aria-hidden="true"></div>
+  <div class="dock-txt"><b id="dockCount">1 document</b><span id="dockPages"></span></div>
+  <button class="btn btn-orange" type="button" data-open-pack="">View pack</button>
+</div>
+
+<div class="pm" id="packModal" hidden>
+  <div class="pm-shell" role="dialog" aria-modal="true" aria-labelledby="pmTitle">
+    <header class="pm-bar">
+      <div><div class="label" id="pmCount"></div><h2 id="pmTitle">Your pack</h2></div>
+      <nav class="pm-jump" id="pmJump" aria-label="Documents in this pack"></nav>
+      <div class="pm-actions"><button class="btn btn-orange" type="button" id="pmDownload"></button><button class="pm-close" type="button" id="pmClose" aria-label="Close pack viewer">✕</button></div>
+    </header>
+    <div class="pm-scroll" id="pmScroll">
+      <p class="pm-note" id="pmNote" hidden></p>
+      <div id="pmDocs" style="display: contents"></div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="emailOverlay" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="emailTitle">
+    <div class="sheet-head">
+      <div><div class="label" id="emailCode"></div><h2 id="emailTitle">Email preview</h2></div>
+      <button class="chip-btn" id="closeEmail" type="button">Close</button>
+    </div>
+    <div class="email" id="emailBody" tabindex="0"></div>
+    <button class="btn btn-black" id="copyEmail" type="button">Copy email text</button>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script src="lib/pdf-lib.min.js"><\/script>
+<script src="content.js"><\/script>
+<script>
+/* Hub runtime: renders the whole page from window.HUB (see content.js). */
+(() => {
+"use strict";
+let HUB = window.HUB || {};
+
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const pad = n => String(n).padStart(2, "0");
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const md = s => esc(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
+const get = (o, path) => path.split(".").reduce((a, k) => (a == null ? a : a[k]), o);
+const slug = s => String(s || "hub").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "hub";
+
+/* ---------- Documents: the core notification plus modules ---------- */
+const modules = () => HUB.modules || [];
+const isCore = id => id === "core";
+const info = id => isCore(id) ? HUB.core : modules().find(m => m.id === id);
+const pagesOf = d => +d.pages > 0 ? +d.pages : Math.max(1, (d.images && d.images.length) || 1);
+const hasPdf = d => !!(d && d.pdf);
+const shortName = d => d.short || d.name;
+const covCls = id => isCore(id) ? "cv-core" : "cv-s" + (Math.max(0, modules().findIndex(m => m.id === id)) % 4);
+const cover = (id, extra = "") => `<div class="cv ${covCls(id)} ${extra}"><span class="cv-t">${esc(shortName(info(id)))}</span></div>`;
+const who = () => (HUB.stakeholders || []).find(s => s.id === state.who);
+const eng = () => (HUB.engagements || []).find(e => e.id === state.eng);
+
+/* ---------- State ---------- */
+const state = { who: null, eng: null, added: new Set(), removed: new Set() };
+const rec = () => {
+  if (!state.who || !state.eng) return [];
+  const ids = (HUB.recommend && HUB.recommend[state.who] && HUB.recommend[state.who][state.eng]) || [];
+  return ids.filter(id => info(id));
+};
+const picked = () => {
+  const r = rec().filter(id => !state.removed.has(id));
+  return [...r, ...modules().map(m => m.id).filter(id => state.added.has(id) && !r.includes(id))];
+};
+const inPack = id => picked().includes(id);
+const totalPages = ids => pagesOf(HUB.core) + ids.reduce((s, id) => s + pagesOf(info(id)), 0);
+const sanitizeState = () => {
+  if (state.who && !who()) state.who = null;
+  if (state.eng && !eng()) state.eng = null;
+  state.added = new Set([...state.added].filter(id => info(id)));
+  state.removed = new Set([...state.removed].filter(id => info(id)));
+};
+
+/* ---------- Veeva CLM (only active when the Veeva library is present) ---------- */
+const clm = () => (window.com && com.veeva && com.veeva.clm) || null;
+const V = () => HUB.veeva || {};
+const tracked = new Set();
+function veevaTrack(type, id, desc, once) {
+  if (!clm() || V().trackEvents === false) return;
+  const key = type + ":" + id;
+  if (once && tracked.has(key)) return;
+  tracked.add(key);
+  try {
+    clm().createRecord("Call_Clickstream_vod__c", {
+      Track_Element_Type_vod__c: type, Track_Element_Id_vod__c: id, Track_Element_Description_vod__c: desc || ""
+    }, () => {});
+  } catch (e) {}
+}
+function veevaSend(ids, fallback) {
+  const frags = ids.map(id => (V().fragments || {})[id]).filter(Boolean);
+  if (clm() && V().emailTemplate) {
+    try {
+      clm().launchApprovedEmail(V().emailTemplate, frags, r => { if (r && r.success === false) toast("Approved Email didn't open. Check the template and fragment IDs."); });
+      veevaTrack("approved_email", ids.join(","), `Approved Email opened with ${ids.length} document(s)`);
+      return;
+    } catch (e) {}
+  }
+  toast(clm() ? "Approved Email isn't set up yet. Add the template and fragment IDs in the editor's Veeva section." : fallback);
+}
+function veevaOpenSlide(id) {
+  try {
+    const name = (V().pdfSlides || {})[id];
+    if (V().presentationId) clm().gotoSlide(name, V().presentationId); else clm().gotoSlide(name);
+    veevaTrack("pdf_opened", id, info(id).name);
+  } catch (e) { toast("That PDF slide couldn't open. Check the key message names."); }
+}
+
+/* ---------- Colour helpers: derive the page's accent shades from one brand colour ---------- */
+const hex2rgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const lum = h => { const c = hex2rgb(h).map(v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }); return .2126 * c[0] + .7152 * c[1] + .0722 * c[2]; };
+const contrast = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); };
+function rgb2hsl(h) {
+  let [r, g, b] = hex2rgb(h).map(v => v / 255); const mx = Math.max(r, g, b), mn = Math.min(r, g, b); let hh = 0, s = 0; const l = (mx + mn) / 2;
+  if (mx !== mn) { const d = mx - mn; s = l > .5 ? d / (2 - mx - mn) : d / (mx + mn); hh = mx === r ? (g - b) / d + (g < b ? 6 : 0) : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; hh *= 60; }
+  return [hh, s * 100, l * 100];
+}
+function hsl2hex(h, s, l) {
+  s /= 100; l /= 100; const k = n => (n + h / 30) % 12, a = s * Math.min(l, 1 - l), f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+  return "#" + [f(0), f(8), f(4)].map(v => Math.round(v * 255).toString(16).padStart(2, "0")).join("");
+}
+function applyBrand() {
+  const b = HUB.brand || {}, root = document.documentElement.style;
+  const acc = /^#[0-9a-f]{6}$/i.test(b.accent || "") ? b.accent : "#f36633";
+  const [h, s] = rgb2hsl(acc); let l = rgb2hsl(acc)[2], ink = acc;
+  while (contrast(ink, "#ffffff") < 4.5 && l > 4) { l -= 2; ink = hsl2hex(h, s, l); }
+  root.setProperty("--orange", acc);
+  root.setProperty("--on-accent", contrast(acc, "#0d0e0f") >= contrast(acc, "#ffffff") ? "#0d0e0f" : "#ffffff");
+  root.setProperty("--orange-ink", ink);
+  root.setProperty("--orange-soft", hsl2hex(h, Math.min(s, 92), 92));
+  root.setProperty("--accent-deep", hsl2hex(h, Math.min(s, 80), 22));
+  // Optional font overrides from the editor (data: URIs)
+  let st = $("#brandFonts");
+  if (!st) { st = document.createElement("style"); st.id = "brandFonts"; document.head.append(st); }
+  const f = b.fonts || {}, face = (src, w, style) => src ? `@font-face{font-family:"BrandFont";src:url(${src});font-weight:${w};font-style:${style};font-display:swap}` : "";
+  st.textContent = face(f.light, 300, "normal") + face(f.regular, 400, "normal") + face(f.italic, 400, "italic") + face(f.bold, 700, "normal");
+  document.title = b.pageTitle || ((b.productName || "Launch story") + " launch story");
+  document.body.classList.toggle("no-mock", !b.mockLabel);
+  $("#conceptStrip").textContent = b.mockLabel || "";
+}
+const mark = (cls = "") => HUB.brand && HUB.brand.logo ? `<img class="logo" src="${esc(HUB.brand.logo)}" alt="${esc(HUB.brand.productName)}">` : `<i aria-hidden="true"></i>${esc((HUB.brand || {}).productName)}`;
+
+/* ---------- Static text and shell ---------- */
+function bindStatic() {
+  $$("[data-t]").forEach(el => { const v = get(HUB, el.dataset.t); el.textContent = v == null ? "" : v; });
+  const b = HUB.brand || {}, h = HUB.hero || {}, c = HUB.core || {};
+  $("#brand").innerHTML = (HUB.brand && HUB.brand.logo ? mark() : `<i aria-hidden="true"></i><span>${esc(b.productName)}</span>`) + (b.mockLabel ? `<span class="concept">${esc(b.mockLabel)}</span>` : "");
+  $("#coverBrand").innerHTML = (HUB.brand && HUB.brand.logo) ? "" : `<i></i>${esc(b.productName)}`;
+  // Only redraw the title when its text changes, so its rise-in animation doesn't replay on every edit
+  const titleHtml = (h.titleLines || []).map(t => `<span class="line"><span>${esc(t)}</span></span>`).join("");
+  if ($("#heroTitle").dataset.h !== titleHtml) { $("#heroTitle").innerHTML = titleHtml; $("#heroTitle").dataset.h = titleHtml; }
+  $("#coverMeta").textContent = `PDF · ${pagesOf(c)} pages · ${b.jobCode || ""}`;
+  const inV = !!clm();
+  $("#barCore").innerHTML = inV ? `<span class="long">Send core PDF</span><span class="short">Send PDF</span><span aria-hidden="true">✉</span>` : `<span class="long">Download core PDF</span><span class="short">Core PDF</span><span aria-hidden="true">↓</span>`;
+  $("#heroDownload").innerHTML = inV ? `Send core PDF <span aria-hidden="true">✉</span>` : `Download PDF <span aria-hidden="true">↓</span>`;
+  $("#storyDownload").innerHTML = (esc((HUB.story || {}).downloadLabel || "Download the core notification")) + (inV ? ` <span aria-hidden="true">✉</span>` : ` <span aria-hidden="true">↓</span>`);
+  $("#storyMeta").textContent = `PDF · ${pagesOf(c)} pages`;
+  $("#dlPack").innerHTML = inV ? `Send pack by Approved Email <span aria-hidden="true">✉</span>` : `Download as one PDF <span aria-hidden="true">↓</span>`;
+  $("#pmDownload").innerHTML = inV ? `Send pack <span aria-hidden="true">✉</span>` : `Download pack <span aria-hidden="true">↓</span>`;
+  $("#showEmail").hidden = inV;
+  $("#emailCode").textContent = `Approved email · ${b.jobCode || ""}`;
+  const lg = HUB.legal || {};
+  $("#footerInner").innerHTML = `<p><b>${esc(lg.title)}</b> · Job code ${esc(b.jobCode)} · Date of preparation ${esc(b.datePrepared)}</p>` + (lg.paragraphs || []).map(p => `<p>${esc(p)}</p>`).join("");
+  $("#pickWho b").textContent = who() ? who().label : (HUB.builder || {}).whoPlaceholder || "Choose";
+  $("#pickEng b").textContent = eng() ? eng().label : (HUB.builder || {}).engPlaceholder || "Choose";
+  $("#pickWho b").classList.toggle("empty", !who());
+  $("#pickEng b").classList.toggle("empty", !eng());
+  // Timeline
+  $("#tlTrack").innerHTML = ((HUB.timeline || {}).items || []).map(i => `<div class="ms ${i.state === "done" ? "done" : i.state === "now" ? "now" : ""}"><span class="dot"></span><span class="tag">${esc(i.tag)}</span><span class="when">${esc(i.when)}</span><span class="what">${esc(i.what)}</span><p>${esc(i.text)}</p></div>`).join("");
+}
+
+/* ---------- Builder: chips in the hero, menus in the bar ---------- */
+function renderChoices() {
+  const chips = (el, data, key) => { el.innerHTML = data.map(d => `<button type="button" class="chip" data-set="${key}:${esc(d.id)}" aria-pressed="${state[key] === d.id}">${esc(d.label)}</button>`).join(""); };
+  chips($("#chipsWho"), HUB.stakeholders || [], "who");
+  chips($("#chipsEng"), HUB.engagements || [], "eng");
+  const menu = (key, data) => {
+    $(`[data-pick="${key}"] .menu`).innerHTML = data.map(d => `<button type="button" role="menuitemradio" aria-checked="${state[key] === d.id}" aria-pressed="${state[key] === d.id}" data-set="${key}:${esc(d.id)}"><b>${esc(d.label)}</b><span>${esc(d.desc || "")}</span></button>`).join("");
+  };
+  menu("who", HUB.stakeholders || []); menu("eng", HUB.engagements || []);
+  $("#pickWho b").textContent = who() ? who().label : (HUB.builder || {}).whoPlaceholder || "Choose";
+  $("#pickEng b").textContent = eng() ? eng().label : (HUB.builder || {}).engPlaceholder || "Choose";
+  $("#pickWho b").classList.toggle("empty", !who());
+  $("#pickEng b").classList.toggle("empty", !eng());
+  const st = $("#builderStatus");
+  if (state.who && state.eng) {
+    const r = rec();
+    st.innerHTML = `<span>Recommended for <b>${esc(who().plural || who().label)}</b>: the core notification${r.length ? " plus <b>" + r.map(id => esc(info(id).name)).join("</b> and <b>") + "</b>" : ""}. They're in your pack.</span><a class="btn btn-black go" href="#stats">Start reading <span aria-hidden="true">↓</span></a>`;
+  } else {
+    st.innerHTML = `<span>${state.who ? "Now choose the type of engagement." : state.eng ? "Now choose who you're engaging." : "Or just start reading. You can add modules from any chapter."}</span><a class="btn btn-line go" href="#stats">Skip to the story <span aria-hidden="true">↓</span></a>`;
+  }
+}
+function setChoice(key, id) {
+  const before = picked();
+  state[key] = id; state.removed.clear();
+  veevaTrack(key === "who" ? "stakeholder" : "engagement", id, (key === "who" ? who() : eng()).label);
+  closeMenus(); renderAll();
+  const gained = picked().filter(x => !before.includes(x));
+  if (gained.length) { bumpDock(); toast(`${gained.length === 1 ? "1 recommended module" : gained.length + " recommended modules"} added to your pack`); }
+}
+function closeMenus() { $$(".pick").forEach(p => { $(".menu", p).hidden = true; $(".pick-btn", p).setAttribute("aria-expanded", "false"); }); }
+
+/* ---------- Pinned figures ---------- */
+const statHtml = s => esc(s.value) + (s.suffix ? (s.suffixStyle === "accent" ? `<em>${esc(s.suffix)}</em>` : `<small>${esc(s.suffix)}</small>`) : "");
+let statIdx = -1;
+function renderStats() {
+  const st = (HUB.stats && HUB.stats.items) || [];
+  $("#slides").innerHTML = st.map((s, i) => `<div class="slide${i === 0 ? " on" : ""}" data-i="${i}"><div class="num" data-count="${/^[\d,]+$/.test(s.value) && s.countUp !== false ? 1 : ""}">${statHtml(s)}</div><div class="copy"><h3>${esc(s.heading)}</h3><p>${esc(s.text)}</p>${s.module && info(s.module) ? promptCard(s.module) : ""}</div></div>`).join("");
+  $("#statsRail").innerHTML = st.map(() => "<i></i>").join("");
+  $("#statCount").innerHTML = st.length ? `<b>01</b> / ${pad(st.length)}` : "";
+  $("#stats").style.display = st.length ? "" : "none";
+  statIdx = 0;
+}
+function countUp(el) {
+  if (!el || !el.dataset.count || reduced) return;
+  const final = el.innerHTML, m = final.match(/^[\d,]+/); if (!m) return;
+  const target = +m[0].replace(/,/g, ""), t0 = performance.now(), dur = 900;
+  const step = t => { const k = Math.min(1, (t - t0) / dur), v = Math.round(target * (1 - Math.pow(1 - k, 3))); el.innerHTML = k < 1 ? final.replace(/^[\d,]+/, v.toLocaleString("en-GB")) : final; if (k < 1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+
+/* ---------- Module prompts ---------- */
+function promptCard(id) {
+  const m = info(id);
+  return `<div class="prompt" data-prompt="${esc(id)}">${cover(id)}<div><div class="label p-label">Related module · ${pagesOf(m)} pages</div><div class="p-title">${esc(m.name)}<span class="rec" hidden>Recommended</span></div><div class="p-q">${esc(m.question || "")}</div></div><button type="button" class="add-btn" data-toggle="${esc(id)}" aria-pressed="false">Add to pack</button></div>`;
+}
+function syncPrompts() {
+  const r = rec();
+  $$("[data-prompt]").forEach(p => {
+    const id = p.dataset.prompt, on = inPack(id);
+    p.classList.toggle("in", on);
+    const b = $(".add-btn", p); b.setAttribute("aria-pressed", String(on)); b.textContent = on ? "✓ In your pack" : "+ Add to pack";
+    $(".rec", p).hidden = !r.includes(id);
+  });
+}
+
+/* ---------- Story chapters ---------- */
+function chapterOrder() {
+  const ch = HUB.chapters || [], flex = ch.filter(c => !c.pin), pr = (state.who && (HUB.chapterPriority || {})[state.who]) || [];
+  const ordered = [...pr.map(id => flex.find(c => c.id === id)).filter(Boolean), ...flex.filter(c => !pr.includes(c.id))];
+  return { list: [...ch.filter(c => c.pin === "first"), ...ordered, ...ch.filter(c => c.pin === "last")], top: state.who ? ordered.slice(0, HUB.keyCount == null ? 2 : HUB.keyCount).map(c => c.id) : [] };
+}
+let chObs;
+function renderChapters() {
+  const { list, top } = chapterOrder();
+  $("#chapters").innerHTML = list.map((c, i) => `<article class="chapter" data-ch="${esc(c.id)}"><div class="ch-side"><span class="ch-n">${pad(i + 1)}</span><h3>${esc(c.title)}</h3>${top.includes(c.id) && who() ? `<span class="ch-for">Key for ${esc(who().plural || who().label)}</span>` : ""}</div><div class="ch-body"><p class="lead">${md(c.lead)}</p>${(c.facts || []).length ? `<div class="ch-facts">${c.facts.map(f => `<div><span>${esc(f[0])}</span><b>${esc(f[1])}</b></div>`).join("")}</div>` : ""}${c.module && info(c.module) ? promptCard(c.module) : ""}</div></article>`).join("");
+  if (chObs) chObs.disconnect();
+  chObs = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("seen"); const c = (HUB.chapters || []).find(x => x.id === e.target.dataset.ch); veevaTrack("chapter_viewed", e.target.dataset.ch, c ? c.title : "", true); } }), { rootMargin: "0px 0px -45% 0px" });
+  $$(".chapter").forEach(c => chObs.observe(c));
+}
+
+/* ---------- Pack: dock, finale, viewer ---------- */
+const dlBtn = id => hasPdf(info(id)) ? `<button type="button" class="x-btn" data-pdf="${esc(id)}" aria-label="Download ${esc(info(id).name)} as PDF">PDF ↓</button>` : `<span></span>`;
+function renderPack() {
+  const ids = picked(), all = ["core", ...ids], pp = totalPages(ids), docs = `${all.length} document${all.length > 1 ? "s" : ""}`;
+  $("#dockStack").innerHTML = all.map(id => cover(id)).join("");
+  $("#dockCount").textContent = docs; $("#dockPages").textContent = `${pp} pages`;
+  $("#finDocs").textContent = all.length;
+  $("#finPages").innerHTML = `document${all.length > 1 ? "s" : ""}<br>${pp} pages`;
+  $("#finFor").innerHTML = state.who && state.eng ? `Built for a <b>${esc(who().label.toLowerCase())}</b> · <b>${esc(eng().label.toLowerCase())}</b>` : "Choose a stakeholder and engagement in the bar above for recommended modules.";
+  $("#finList").innerHTML = `<li class="core"><span class="n">00</span><span>${esc(HUB.core.name)}</span><span class="pp">${pagesOf(HUB.core)} pp</span>${dlBtn("core")}<span></span></li>` +
+    ids.map((id, i) => `<li><span class="n">${pad(i + 1)}</span><span>${esc(info(id).name)}</span><span class="pp">${pagesOf(info(id))} pp</span>${dlBtn(id)}<button type="button" class="x-btn" data-toggle="${esc(id)}" aria-label="Remove ${esc(info(id).name)}">Remove</button></li>`).join("");
+  const rest = modules().filter(m => !ids.includes(m.id));
+  $("#finMore").innerHTML = rest.length ? `<span>Add:</span>` + rest.map(m => `<button type="button" data-toggle="${esc(m.id)}">+ ${esc(m.name)}</button>`).join("") : "";
+  const n = all.length;
+  $("#fan").innerHTML = all.map((id, i) => {
+    const t = n === 1 ? 0 : i / (n - 1) - .5, spread = Math.min(340, 92 * (n - 1), ($("#fan").clientWidth || 600) * .5);
+    return `<div class="cv ${covCls(id)}" style="transform: translate(calc(-50% + ${t * spread}px), calc(-50% + ${Math.abs(t) * 36}px)) rotate(${t * Math.min(24, 8 * (n - 1))}deg); z-index: ${i}"><span class="cv-t">${pad(i)}</span></div>`;
+  }).join("");
+  renderViewer(all, pp);
+}
+const html = s => { const t = document.createElement("template"); t.innerHTML = s.trim(); return t.content.firstElementChild; };
+function mockPages(id, d) {
+  const out = [], b = HUB.brand || {};
+  const head = n => `<div class="pg-top"><span class="pg-brand">${HUB.brand && HUB.brand.logo ? mark() : `<i></i>${esc(b.productName)}`}</span><span>${esc(d.name)}</span></div>`;
+  const foot = n => `<div class="pg-foot"><span>Job code ${esc(b.jobCode)} · ${esc(b.datePrepared)}</span><span>Page ${n} of ${pagesOf(d)}</span></div>`;
+  for (let n = 1; n <= pagesOf(d); n++) {
+    let body;
+    if (isCore(id) && n === 1) body = `<div class="pg-cover"><div class="bar-o"></div><div class="label pg-kicker">${esc((HUB.hero || {}).eyebrow)}</div><h1>${esc(d.name)}</h1><p>${esc(d.draftIntro || "")}</p><p style="color: var(--muted); font-size: 12.5px">${esc(d.draftNote || "")}</p></div>`;
+    else if (isCore(id) && n === 2) body = `<div class="pg-story">${(HUB.chapters || []).map(c => `<article><h4>${esc(c.title)}</h4><p>${md(c.lead)}</p></article>`).join("")}</div>`;
+    else if (!isCore(id) && n === 1) body = `<div style="display: grid; gap: 6px"><div class="label pg-kicker">${esc(d.name)}</div><h2 class="pg-title">${esc(d.question || d.name)}</h2></div>${d.intro ? `<p class="mod-intro">${md(d.intro)}</p>` : ""}${(d.facts || []).length ? `<div class="facts">${d.facts.map(f => `<div class="fact"><span>${esc(f[0])}</span><b>${esc(f[1])}</b></div>`).join("")}</div>` : ""}${(d.points || []).length ? `<div class="mod-body">${d.pointsTitle ? `<h4>${esc(d.pointsTitle)}</h4>` : ""}<ul>${d.points.map(p => `<li>${md(p)}</li>`).join("")}</ul></div>` : ""}`;
+    else body = `<div class="pg-ph" aria-hidden="true"><b></b><i></i><i></i><i style="width: 80%"></i><div class="box"></div><i></i><i></i><i style="width: 60%"></i></div><div class="pg-stamp">Artwork to follow</div>`;
+    out.push(`<div class="pm-page">${head(n)}<div class="pg-body">${body}</div>${foot(n)}</div>`);
+  }
+  return out.join("");
+}
+function renderViewer(all, pp) {
+  $("#pmCount").textContent = `${all.length} documents · ${pp} pages`;
+  $("#pmTitle").textContent = who() ? `Pack for ${who().label.toLowerCase()}` : "Your pack";
+  $("#pmJump").innerHTML = all.map((id, i) => `<button type="button" data-jump="${esc(id)}">${pad(i)} · ${esc(shortName(info(id)))}</button>`).join("");
+  const draft = all.filter(id => !(info(id).images && info(id).images.length));
+  const note = $("#pmNote"); note.hidden = !draft.length;
+  note.textContent = draft.length ? `Draft pages: ${draft.length === all.length ? "these pages stand in for the artworked PDFs." : draft.length + " of " + all.length + " documents still show draft pages in place of the artworked PDF."} Once the approved PDF is added, it appears here and downloads as the same file.` : "";
+  $("#pmDocs").innerHTML = all.map((id, i) => {
+    const d = info(id), real = d.images && d.images.length;
+    const btns = `${clm() && (V().pdfSlides || {})[id] ? `<button class="chip-btn" type="button" data-open-slide="${esc(id)}">Open PDF</button>` : ""}<button class="chip-btn" type="button" data-pdf="${esc(id)}">${clm() ? "Send PDF ✉" : "Download PDF ↓"}</button>${isCore(id) ? "" : `<button class="chip-btn" type="button" data-toggle="${esc(id)}">Remove</button>`}`;
+    return `<section class="pm-doc" id="doc-${esc(id)}" aria-label="${esc(d.name)}"><div class="pm-doc-head"><span class="n${isCore(id) ? " core" : ""}">${pad(i)}</span><div><div class="label">${esc(d.code || "")} · PDF · ${pagesOf(d)} pages</div><h3>${esc(d.name)}</h3></div><div class="btns">${btns}</div></div>${real ? d.images.map((src, n) => `<div class="pm-page img"><img src="${esc(src)}" alt="${esc(d.name)}, page ${n + 1}" loading="lazy"></div>`).join("") + (+d.pages > d.images.length ? `<p class="pm-more">Showing the first ${d.images.length} of ${+d.pages} pages here. Download the PDF to read all of it.</p>` : "") : mockPages(id, d)}</section>`;
+  }).join("");
+}
+
+/* ---------- Toggle modules, with covers flying to the dock ---------- */
+function toggle(id, from) {
+  const on = !inPack(id);
+  veevaTrack(on ? "module_added" : "module_removed", id, info(id).name);
+  if (on) { state.added.add(id); state.removed.delete(id); } else { state.added.delete(id); if (rec().includes(id)) state.removed.add(id); }
+  if (on && from) fly(id, from);
+  renderPack(); syncPrompts();
+  if (on) { bumpDock(); toast(`${info(id).name} added to your pack`); } else toast(`${info(id).name} removed from your pack`);
+}
+function fly(id, from) {
+  const dock = $("#dock");
+  if (reduced || dock.classList.contains("away")) return;
+  const src = (from.closest && from.closest(".prompt") && from.closest(".prompt").querySelector(".cv")) || from;
+  const a = src.getBoundingClientRect(), b = $("#dockStack").getBoundingClientRect();
+  const f = html(cover(id, "flyer")); f.style.cssText = `left:${a.left}px; top:${a.top}px; width:${a.width}px`; document.body.append(f);
+  const dx = b.right - a.left - 20, dy = b.top - a.top;
+  f.animate([{ transform: "translate(0,0) rotate(0) scale(1)", opacity: 1 }, { transform: `translate(${dx * .5}px, ${dy * .5 - 120}px) rotate(-12deg) scale(.9)`, opacity: 1, offset: .5 }, { transform: `translate(${dx}px, ${dy}px) rotate(0) scale(${32 / a.width})`, opacity: .2 }], { duration: 750, easing: "cubic-bezier(.5,0,.2,1)" }).onfinish = () => f.remove();
+}
+function bumpDock() { const d = $("#dock"); d.classList.remove("bump"); void d.offsetWidth; d.classList.add("bump"); }
+
+/* ---------- Scroll: progress, pinned scenes, dock ---------- */
+const vh = () => window.innerHeight;
+function onScroll() {
+  const doc = document.documentElement;
+  $("#readBar").style.transform = `scaleX(${Math.min(1, scrollY / Math.max(1, doc.scrollHeight - vh()))})`;
+  const items = (HUB.stats && HUB.stats.items) || [];
+  const st = $("#stats");
+  if (items.length && st.offsetHeight) {
+    const r = st.getBoundingClientRect(), pin = $(".stats-pin", st).offsetHeight;
+    const p = Math.min(1, Math.max(0, -r.top / Math.max(1, r.height - pin))), idx = Math.min(items.length - 1, Math.floor(p * items.length));
+    $$(".stats-rail i").forEach((el, i) => el.style.setProperty("--f", Math.min(1, Math.max(0, p * items.length - i))));
+    if (idx !== statIdx) {
+      veevaTrack("figure_viewed", "stat" + (idx + 1), items[idx].heading, true);
+      $$(".slide").forEach((s, i) => { s.classList.toggle("on", i === idx); s.classList.toggle("past", i < idx); });
+      $("#statCount").innerHTML = `<b>${pad(idx + 1)}</b> / ${pad(items.length)}`;
+      countUp($(`.slide[data-i="${idx}"] .num`)); statIdx = idx;
+    }
+  }
+  const tl = $("#tl"), track = $("#tlTrack");
+  if (tl.offsetHeight) {
+    const tr = tl.getBoundingClientRect(), tpin = $(".tl-pin", tl).offsetHeight, tp = Math.min(1, Math.max(0, -tr.top / Math.max(1, tr.height - tpin)));
+    track.style.transform = `translateX(${-tp * Math.max(0, track.scrollWidth - innerWidth + 40)}px)`;
+  }
+  const heroGone = $(".hero").getBoundingClientRect().bottom < vh() * .4, finR = $("#pack").getBoundingClientRect();
+  $("#dock").classList.toggle("away", !heroGone || (finR.top < vh() * .7 && finR.bottom > vh() * .3) || !$("#packModal").hidden);
+}
+
+/* ---------- PDF files: download, merge ---------- */
+const dataToBytes = uri => { const b = atob(uri.split(",")[1]), a = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); return a; };
+const via = (src, tag) => /^(data|blob):/.test(src) ? src : src + (src.includes("?") ? "&" : "?") + "via=" + tag;
+async function getBytes(src, tag) { if (src.startsWith("data:")) return dataToBytes(src); const r = await fetch(via(src, tag || "pack")); if (!r.ok) throw new Error("fetch"); return new Uint8Array(await r.arrayBuffer()); }
+function saveBlob(blob, name) { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 5000); }
+function downloadDoc(id) {
+  const d = info(id);
+  if (!hasPdf(d)) return toast(`${d.name} will be available to download once the artwork is approved.`);
+  const name = (d.code || id) + ".pdf";
+  if (d.pdf.startsWith("data:")) saveBlob(new Blob([dataToBytes(d.pdf)], { type: "application/pdf" }), name);
+  else {
+    // From a local folder browsers won't honour "download" on a file link, and would replace the hub with the PDF, so open it in a new tab
+    const a = document.createElement("a"); a.href = via(d.pdf, "download");
+    if (location.protocol === "file:") { a.target = "_blank"; a.rel = "noopener"; } else a.download = name;
+    document.body.append(a); a.click(); a.remove();
+  }
+}
+async function mergePack(ids) {
+  const withPdf = ids.filter(id => hasPdf(info(id)));
+  if (!withPdf.length) return toast("The pack will be available as one PDF once the artwork is approved.");
+  if (!window.PDFLib) return toast("Merging isn't available in this copy. Download each PDF from the pack viewer.");
+  try {
+    const out = await PDFLib.PDFDocument.create();
+    for (const id of withPdf) { const src = await PDFLib.PDFDocument.load(await getBytes(info(id).pdf, "pack"), { ignoreEncryption: true }); (await out.copyPages(src, src.getPageIndices())).forEach(p => out.addPage(p)); }
+    saveBlob(new Blob([await out.save()], { type: "application/pdf" }), `${slug((HUB.brand || {}).productName)}-pack.pdf`);
+    toast(withPdf.length < ids.length ? `Pack downloaded. ${ids.length - withPdf.length} document(s) have no PDF yet.` : "Pack downloaded as one PDF");
+  } catch (e) { toast("Couldn't merge the pack. Opened from a local folder, browsers block this; on a web host a very large PDF can also fail. Download each PDF separately instead."); }
+}
+
+/* ---------- Pack viewer and email ---------- */
+const packModal = $("#packModal"), overlay = $("#emailOverlay");
+function openPack(target) {
+  veevaTrack("pack_viewed", ["core", ...picked()].join(","), "Pack viewer opened");
+  packModal.hidden = false; document.body.classList.add("modal-open"); $("#dock").classList.add("away"); $("#pmScroll").scrollTop = 0;
+  const d = target && document.getElementById("doc-" + target); if (d) d.scrollIntoView({ block: "start" });
+  $("#pmClose").focus();
+}
+function closePack() { packModal.hidden = true; document.body.classList.remove("modal-open"); onScroll(); }
+function emailText() {
+  const e = eng() || (HUB.engagements || [])[0] || { subject: "Information", intro: "" }, em = HUB.email || {};
+  const links = [HUB.core.name, ...picked().map(id => info(id).name)];
+  return `Subject: ${e.subject}\n\nDear [Name],\n\n${e.intro}\n\n${links.map(l => "• " + l + ": [hub link]").join("\n")}\n\n${em.closing || ""}\n\n${em.signoff || ""}\n\nJob code ${(HUB.brand || {}).jobCode || ""} · Date of preparation ${(HUB.brand || {}).datePrepared || ""}`;
+}
+let toastTimer;
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 3200); }
+
+/* ---------- Events (attached once) ---------- */
+document.addEventListener("click", e => {
+  const set = e.target.closest("[data-set]"); if (set) { const [k, v] = set.dataset.set.split(":"); setChoice(k, v); return; }
+  const tg = e.target.closest("[data-toggle]"); if (tg) { toggle(tg.dataset.toggle, tg); return; }
+  const op = e.target.closest("[data-open-pack]"); if (op) { openPack(op.dataset.openPack); return; }
+  const os = e.target.closest("[data-open-slide]"); if (os) { veevaOpenSlide(os.dataset.openSlide); return; }
+  const pdf = e.target.closest("[data-pdf]"); if (pdf) { const id = pdf.dataset.pdf; if (clm()) veevaSend([id], ""); else downloadDoc(id); return; }
+  const jump = e.target.closest("[data-jump]"); if (jump) { document.getElementById("doc-" + jump.dataset.jump).scrollIntoView({ block: "start" }); return; }
+  if (!e.target.closest(".pick")) closeMenus();
+});
+$$(".pick-btn").forEach(b => b.addEventListener("click", e => { const m = b.nextElementSibling, open = m.hidden; closeMenus(); if (open) { m.hidden = false; b.setAttribute("aria-expanded", "true"); const f = m.querySelector("button"); if (f) f.focus(); } e.stopPropagation(); }));
+document.addEventListener("keydown", e => {
+  const m = e.target.closest && e.target.closest(".menu");
+  if (m && (e.key === "ArrowDown" || e.key === "ArrowUp")) { e.preventDefault(); const items = $$("button", m), i = items.indexOf(e.target); items[(i + (e.key === "ArrowDown" ? 1 : items.length - 1)) % items.length].focus(); }
+  if (e.key !== "Escape") return;
+  if (!overlay.hidden) { overlay.hidden = true; $("#showEmail").focus(); } else if (!packModal.hidden) closePack(); else closeMenus();
+});
+$("#pmClose").addEventListener("click", closePack);
+packModal.addEventListener("click", e => { if (e.target === packModal) closePack(); });
+$("#dlPack").addEventListener("click", () => { const ids = ["core", ...picked()]; if (clm()) veevaSend(ids, ""); else mergePack(ids); });
+$("#pmDownload").addEventListener("click", () => $("#dlPack").click());
+$("#showEmail").addEventListener("click", () => { $("#emailBody").textContent = emailText(); overlay.hidden = false; $("#closeEmail").focus(); });
+$("#closeEmail").addEventListener("click", () => { overlay.hidden = true; $("#showEmail").focus(); });
+overlay.addEventListener("click", e => { if (e.target === overlay) overlay.hidden = true; });
+$("#copyEmail").addEventListener("click", () => {
+  const fallback = () => { const r = document.createRange(); r.selectNodeContents($("#emailBody")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast("Text selected. Press Ctrl+C or ⌘C to copy."); };
+  if (navigator.clipboard) navigator.clipboard.writeText(emailText()).then(() => toast("Email text copied"), fallback); else fallback();
+});
+let ticking = false;
+addEventListener("scroll", () => { if (!ticking) { ticking = true; requestAnimationFrame(() => { onScroll(); ticking = false; }); } }, { passive: true });
+addEventListener("resize", onScroll);
+
+/* ---------- Render ---------- */
+function renderAll() { renderChoices(); renderChapters(); renderPack(); syncPrompts(); }
+function boot() { sanitizeState(); applyBrand(); bindStatic(); renderStats(); renderAll(); onScroll(); }
+
+// Live updates from the editor's preview. Only attached in the editor's preview, never in a file that is shared.
+
+boot();
+})();
+
+<\/script>
+</body>
+</html>
+</script>
 <script type="text/plain" id="logoPlaceholder"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 48" role="img" aria-label="Your logo"><circle cx="24" cy="24" r="14" fill="#f36633"/><text x="48" y="31" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#0d0e0f" letter-spacing="-0.5">YOUR LOGO</text></svg>
 </script>
 <script id="pdflib">!function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"function"==typeof define&&define.amd?define(["exports"],e):e((t=t||self).PDFLib={})}(this,(function(t){"use strict";
@@ -1384,11 +2312,24 @@ const clone = o => JSON.parse(JSON.stringify(o));
 const fmtSize = n => n > 1048576 ? (n / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(n / 1024)) + " KB";
 const uriBytes = u => Math.round((u.length - u.indexOf(",") - 1) * 0.75);
 const isData = u => typeof u === "string" && u.startsWith("data:");
+const dataBytes = u => { const b = atob(u.slice(u.indexOf(",") + 1)), a = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); return a; };
+const pad2 = n => String(n).padStart(2, "0");
+
+/* ---------- PDF store: PDFs live here as Blobs (not inside the content), so large files stay light ---------- */
+const STORE = new Map(), URLS = new Map(); let storeN = 0;
+const isStored = u => typeof u === "string" && u.startsWith("@store:");
+const putStore = blob => { const k = "@store:" + (++storeN); STORE.set(k, blob); return k; };
+const fileSize = d => (isStored(d.pdf) && STORE.get(d.pdf) ? STORE.get(d.pdf).size : 0);
+const blobUrl = k => { if (!URLS.has(k)) URLS.set(k, URL.createObjectURL(STORE.get(k))); return URLS.get(k); };
+const withPdfUrls = c => { for (const d of [c.core, ...c.modules]) if (isStored(d.pdf)) d.pdf = blobUrl(d.pdf); return c; };
+const MAX_IMG = 30;   // page pictures made per PDF for the in-page viewer
+const DEFAULT_FONTS = ["gsk-light.woff", "gsk-regular.woff", "gsk-regularitalic.woff", "gsk-bold.woff"];
 
 /* ---------- Embedded resources ---------- */
 const SCRIPT_OPEN = "<" + "script", SCRIPT_CLOSE = "<" + "/script>";
 const T = id => document.getElementById(id).textContent.split("<\\" + "/script").join("<" + "/script");
 const TPL = T("tpl"), FONTS_EXPORT = T("fontsExport"), CONTENT_DEFAULT = T("contentDefault"), LOGO_SVG = T("logoPlaceholder");
+const SITE_INDEX = T("siteIndex");
 const PDFLIB_SRC = document.getElementById("pdflib").textContent;
 const svgUri = svg => "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svg)));
 function parseJs(text) { const w = {}; new Function("window", text)(w); if (!w.HUB) throw new Error("No window.HUB found in that file."); return w.HUB; }
@@ -1423,7 +2364,7 @@ function normalize(c) {
     if (c[k] && typeof c[k] === "object" && !Array.isArray(c[k]) && out[k] && typeof out[k] === "object" && !Array.isArray(out[k])) out[k] = Object.assign(out[k], c[k]);
     else out[k] = c[k];
   }
-  for (const d of [out.core, ...out.modules]) { d.pdf = d.pdf || ""; d.images = d.images || []; d.facts = d.facts || []; d.points = d.points || []; }
+  for (const d of [out.core, ...out.modules]) { if (isData(d.pdf)) d.pdf = putStore(new Blob([dataBytes(d.pdf)], { type: "application/pdf" })); if (isStored(d.pdf) && !STORE.has(d.pdf)) d.pdf = ""; d.pdf = d.pdf || ""; d.images = d.images || []; d.facts = d.facts || []; d.points = d.points || []; }
   out.brand.fonts = out.brand.fonts || {};
   return out;
 }
@@ -1449,8 +2390,8 @@ function fillTemplate(content, forExport) {
   const map = { TITLE: esc(content.brand.pageTitle || content.brand.productName + " launch story"), FONTS_CSS: FONTS_EXPORT, LIBS: libs, CONTENT: `${SCRIPT_OPEN}>${preview}window.HUB = ${json};${SCRIPT_CLOSE}` };
   return Object.entries(map).reduce((s, [k, v]) => s.split(`{{${k}}}`).join(v), tpl);
 }
-function reloadPreview() { frameReady = false; frame.onload = () => { frameReady = true; }; frame.srcdoc = fillTemplate(C, false); }
-function touch() { dirty = true; updateSide(); clearTimeout(sendTimer); sendTimer = setTimeout(() => { if (frameReady) frame.contentWindow.postMessage({ type: "hub-content", content: C }, "*"); }, 350); }
+function reloadPreview() { frameReady = false; frame.onload = () => { frameReady = true; }; frame.srcdoc = fillTemplate(withPdfUrls(clone(C)), false); }
+function touch() { dirty = true; updateSide(); clearTimeout(sendTimer); sendTimer = setTimeout(() => { if (frameReady) frame.contentWindow.postMessage({ type: "hub-content", content: withPdfUrls(clone(C)) }, "*"); }, 350); }
 function gotoPreview(id) { if (frameReady) frame.contentWindow.postMessage({ type: "hub-goto", id }, "*"); }
 
 /* ---------- Form building blocks ---------- */
@@ -1489,10 +2430,10 @@ function slot(kind, path, label, accept, o = {}) {
   const d = getP(path);
   let statusHtml, body = "";
   if (kind === "pdf") {
-    if (isData(d.pdf)) statusHtml = `<span class="ok">✓ ${esc(d.pdfName || "PDF added")}</span><span>${d.images.length} pages · ${fmtSize(uriBytes(d.pdf))}</span>`;
+    if (isStored(d.pdf)) statusHtml = `<span class="ok">✓ ${esc(d.pdfName || "PDF added")}</span><span>${d.pages || d.images.length} pages · ${fmtSize(fileSize(d))}</span>`;
     else if (d.pdf) statusHtml = `<span class="linked">Linked by path</span><span>${esc(d.pdf)}</span>`;
     else statusHtml = `<span class="none">No PDF yet. Draft pages are shown until you add one.</span>`;
-    if (isData(d.pdf) && d.images.length) body = `<div class="thumbs">${d.images.slice(0, 8).map(s => `<img src="${s}" alt="">`).join("")}</div>`;
+    if (isStored(d.pdf) && d.images.length) body = `<div class="thumbs">${d.images.slice(0, 8).map(s => `<img src="${s}" alt="">`).join("")}</div>`;
     const has = !!d.pdf;
     return `<div class="slot" data-slot="pdf" data-path="${path}"><div class="slot-h"><b>${label}</b><span class="slot-b"><label class="sbtn">${has ? "Replace" : "Choose"} PDF<input type="file" accept="${accept}" data-file="pdf" data-path="${path}" hidden></label>${has ? `<button class="sbtn" type="button" data-act="clearPdf" data-path="${path}">Remove</button>` : ""}</span></div><div class="slot-s">${statusHtml}</div>${body}<div class="small">Or drag a PDF onto this box.</div></div>`;
   }
@@ -1528,7 +2469,7 @@ const SECTIONS = [
   { id: "core", title: "Core notification", goto: "top", render: () => frameSection("Core notification", "The core deliverable. It is included in every pack.",
     `${fText("Name", "core.name")}<div class="cols">${fText("Short name (for small covers)", "core.short")}${fText("PDF code", "core.code")}</div>${fText("Line under the cover", "core.blurb")}
      <h2>PDF</h2>${slot("pdf", "core", "Core notification PDF", "application/pdf")}
-     ${fNum("Page count", "core.pages", { dis: isData(C.core.pdf), hint: isData(C.core.pdf) ? "Counted from the PDF." : "Used until a PDF is added." })}
+     ${fNum("Page count", "core.pages", { dis: isStored(C.core.pdf), hint: isStored(C.core.pdf) ? "Counted from the PDF." : "Used until a PDF is added." })}
      <h2>Draft cover text</h2><p class="small">Only shown on the draft pages, until the approved PDF is added.</p>${fArea("Intro", "core.draftIntro")}${fArea("Note", "core.draftNote")}`) },
   { id: "people", title: "Stakeholders and engagements", goto: "builder", render: () => frameSection("Stakeholders and engagements", "Who is being engaged, and why. Each choice leads to recommended modules.",
     `<h2>Stakeholders</h2>${cards("stakeholders", "stakeholder", "Add stakeholder", s => s.label || "New stakeholder", (s, i, p) => `<div class="cols">${fText("Name", p + ".label")}${fText("Plural (used in sentences)", p + ".plural")}</div>${fText("Short description", p + ".desc")}`, { noDel: 1 })}
@@ -1537,7 +2478,7 @@ const SECTIONS = [
     `<div class="bulk" data-bulk><b>Drop several PDFs here.</b><br>Each one is matched to a document by its code, for example PA-MOD-02.pdf goes to the module with the code PA-MOD-02.</div>
      ${cards("modules", "module", "Add module", m => m.name || "New module", (m, i, p) => `
        <div class="cols">${fText("Name", p + ".name")}${fText("Short name", p + ".short")}</div>${fText("Question it answers", p + ".question")}
-       <div class="cols">${fText("PDF code", p + ".code")}${fNum("Page count", p + ".pages", { dis: isData(m.pdf), hint: isData(m.pdf) ? "Counted from the PDF." : "" })}</div>
+       <div class="cols">${fText("PDF code", p + ".code")}${fNum("Page count", p + ".pages", { dis: isStored(m.pdf), hint: isStored(m.pdf) ? "Counted from the PDF." : "" })}</div>
        ${slot("pdf", p, "Approved PDF", "application/pdf")}
        <details><summary>Draft page text (shown until the PDF is added)</summary>${fArea("Intro", p + ".intro", { rows: 2, hint: "Use **double asterisks** for bold." })}<h2>Key facts</h2>${pairs(p + ".facts")}${fText("List heading", p + ".pointsTitle")}<h2>List</h2>${strs(p + ".points", "Point", 2)}</details>`)}`) },
   { id: "recommend", title: "Recommendations", goto: "builder", render: () => {
@@ -1577,10 +2518,10 @@ const SECTIONS = [
      ${docs().map(d => `<div class="card"><div class="card-h"><b>${esc(d.name)}</b></div><div class="cols">${fText("Fragment ID", "veeva.fragments." + d.id)}${fText("PDF slide name", "veeva.pdfSlides." + d.id)}</div></div>`).join("")}`) },
   { id: "export", title: "Check and export", goto: "top", render: () => {
     const is = issues(), counts = { err: is.filter(i => i.k === "err").length, warn: is.filter(i => i.k === "warn").length };
-    return frameSection("Check and export", "Review these points, then export one file that works offline.",
-      `<button class="bigbtn primary" type="button" data-act="exportFinal">Export final copy ↓</button><button class="bigbtn line" type="button" data-act="exportHtml">Export working copy ↓</button><button class="bigbtn line" type="button" data-act="saveProject">Save project</button><button class="bigbtn line" type="button" data-act="saveContentJs">Save content.js</button>
-       <p class="small" style="margin:0 0 14px"><b>Export final copy</b> makes the clean version to share: one offline file with the fonts, logo, approved PDFs and page pictures inside. It has no editor, no editing marks and no concept label. <b>Export working copy</b> is the same but keeps the concept label, for internal review. <b>Save project</b> keeps your work so you can reopen it here. <b>Save content.js</b> is for the folder version.</p>
-       <h2>Checks · ${counts.err} to fix · ${counts.warn} to review</h2>${is.map(i => `<div class="issue ${i.k}"><i>${{ err: "✕", warn: "!", info: "i", ok: "✓" }[i.k]}</i><div><b>${esc(i.t)}</b>${i.d ? `<span>${esc(i.d)}</span>` : ""}</div></div>`).join("")}`);
+    return frameSection("Check and export", "Review these points, then export the website folder or a single offline file.",
+      `<button class="bigbtn primary" type="button" data-act="exportSite">Export website folder (.zip) ↓</button><button class="bigbtn line" type="button" data-act="exportFinal">Export single file ↓</button><button class="bigbtn line" type="button" data-act="exportSiteWorking">Website folder, working copy ↓</button><button class="bigbtn line" type="button" data-act="exportHtml">Single file, working copy ↓</button><button class="bigbtn line" type="button" data-act="saveProject">Save project</button>
+        <p class="small" style="margin:0 0 14px"><b>Website folder</b> is the version to host: index.html, content.js, the fonts and logo, and each approved PDF as its own file in <code>assets/pdfs</code>, so every download is logged per PDF and readers can download one PDF or build and download a merged pack. No editor, no editing marks, no concept label. <b>Single file</b> is one offline page with everything inside, for email or CLM. <b>Working copy</b> keeps the concept label for internal review. <b>Save project</b> keeps your work (with the PDFs) as a zip so you can reopen it here.</p>
+        <h2>Checks · ${counts.err} to fix · ${counts.warn} to review</h2>${is.map(i => `<div class="issue ${i.k}"><i>${{ err: "✕", warn: "!", info: "i", ok: "✓" }[i.k]}</i><div><b>${esc(i.t)}</b>${i.d ? `<span>${esc(i.d)}</span>` : ""}</div></div>`).join("")}`);
   } }
 ];
 
@@ -1607,7 +2548,7 @@ function issues() {
   const acc = /^#[0-9a-f]{6}$/i.test(C.brand.accent) ? C.brand.accent : null;
   if (!acc) add("err", "The brand colour isn't a valid hex colour", "Use a value like #f36633.");
   else { const c = ((a, b) => { const l = h => { const r = [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255).map(v => v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4)); return .2126 * r[0] + .7152 * r[1] + .0722 * r[2]; }; const x = l(a), y = l(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); })(acc, "#0d0e0f"); if (c < 3) add("warn", "The brand colour is hard to read on the black sections", `Contrast is ${c.toFixed(1)}:1 on black. Try a lighter colour.`); }
-  all.forEach((d, i) => { const n = d.name || "Unnamed document"; if (!d.pdf) add(i === 0 ? "warn" : "info", `${n}: no PDF yet`, "Draft pages are shown in the viewer, and downloads say the PDF is not available yet."); else if (!isData(d.pdf)) add("warn", `${n}: PDF linked by path`, "A linked file is not inside the exported file. Add the PDF with Choose PDF to embed it."); if (!d.code) add("warn", `${n}: no PDF code`, "The code is used for file names and the viewer."); });
+  all.forEach((d, i) => { const n = d.name || "Unnamed document"; if (!d.pdf) add(i === 0 ? "warn" : "info", `${n}: no PDF yet`, "Draft pages are shown in the viewer, and downloads say the PDF is not available yet."); else if (!isStored(d.pdf)) add("warn", `${n}: PDF linked by path`, "A linked file is not inside the exported file or website folder. Add the PDF with Choose PDF to include it."); if (!d.code) add("warn", `${n}: no PDF code`, "The code is used for file names and the viewer."); });
   if (isData(C.brand.logo) === false && C.brand.logo) add("warn", "Logo linked by path", "A linked logo is not inside the exported file. Add it with Choose file to embed it.");
   mo.forEach(m => { if (ids.has(m.id)) add("err", `Duplicate module id: ${m.id}`); ids.add(m.id); });
   const ph = placeholderHits();
@@ -1618,9 +2559,10 @@ function issues() {
   if (miss.length) add("err", "Some items point to a module that no longer exists", miss.join(", "));
   const empty = []; (C.stakeholders || []).forEach(s => (C.engagements || []).forEach(e => { const r = ((C.recommend || {})[s.id] || {})[e.id] || []; if (!r.filter(id => mo.some(m => m.id === id)).length) empty.push(`${s.label} · ${e.label}`); }));
   if (empty.length) add("info", `${empty.length} choice${empty.length > 1 ? "s" : ""} recommend no modules`, empty.slice(0, 5).join("; ") + (empty.length > 5 ? "…" : ""));
-  const size = [...all.flatMap(d => [d.pdf, ...(d.images || [])]), C.brand.logo, ...Object.values(C.brand.fonts || {})].reduce((s, u) => s + (isData(u) ? uriBytes(u) : 0), 0);
-  const est = size * 1.34 + 700000;
-  add(est > 15e6 ? "warn" : "ok", `Estimated export size: ${fmtSize(est)}`, est > 15e6 ? "Large files can be blocked by email and CLM limits. Consider fewer or lighter PDFs." : "Includes fonts and the PDF merge library.");
+  const pdfBytes = all.reduce((t, d) => t + fileSize(d), 0), imgBytes = all.reduce((t, d) => t + (d.images || []).reduce((x, u) => x + (isData(u) ? uriBytes(u) : 0), 0), 0);
+  const est = pdfBytes * 1.34 + imgBytes * 1.34 + 700000;
+  add("ok", `Website folder: about ${fmtSize(pdfBytes + imgBytes + 900000)}`, `The PDFs stay as separate files (${fmtSize(pdfBytes)} in total) in assets/pdfs, so each is requested and logged on its own.`);
+  add(est > 60e6 ? "warn" : "ok", `Single file would be about ${fmtSize(est)}`, est > 60e6 ? "Too large for a single file to be comfortable (slow to open, blocked by email). Use the website folder." : "A single file suits sharing by email or a CLM; use the website folder for hosting.");
   if (!out.some(i => i.k === "err")) add("ok", "No errors found");
   return out.sort((a, b) => ({ err: 0, warn: 1, info: 2, ok: 3 }[a.k] - { err: 0, warn: 1, info: 2, ok: 3 }[b.k]));
 }
@@ -1682,15 +2624,15 @@ function initPdfJs() {
 async function ingestPdf(path, file) {
   initPdfJs();
   const d = getP(path), bytes = new Uint8Array(await file.arrayBuffer());
-  const pdf = await pdfjsLib.getDocument({ data: bytes.slice() }).promise, imgs = [];
-  for (let n = 1; n <= pdf.numPages; n++) {
-    status(`Reading ${file.name}: page ${n} of ${pdf.numPages}…`, "busy");
+  const pdf = await pdfjsLib.getDocument({ data: bytes }).promise, imgs = [], shown = Math.min(pdf.numPages, MAX_IMG);
+  for (let n = 1; n <= shown; n++) {
+    status(`Reading ${file.name}: page ${n} of ${shown}${shown < pdf.numPages ? " (of " + pdf.numPages + ")" : ""}…`, "busy");
     const pg = await pdf.getPage(n), w = pg.getViewport({ scale: 1 }).width, vp = pg.getViewport({ scale: 1000 / w });
     const cv = document.createElement("canvas"); cv.width = Math.round(vp.width); cv.height = Math.round(vp.height);
     await pg.render({ canvasContext: cv.getContext("2d"), viewport: vp, background: "rgb(255,255,255)" }).promise;
     imgs.push(cv.toDataURL("image/jpeg", 0.82));
   }
-  d.pdf = await readUri(new Blob([bytes], { type: "application/pdf" })); d.images = imgs; d.pages = pdf.numPages; d.pdfName = file.name;
+  d.pdf = putStore(new Blob([file], { type: "application/pdf" })); d.images = imgs; d.pages = pdf.numPages; d.pdfName = file.name;
 }
 let queue = Promise.resolve();
 function handleFile(kind, path, file) {
@@ -1698,7 +2640,7 @@ function handleFile(kind, path, file) {
     try {
       if (kind === "pdf") {
         if (!/pdf$/i.test(file.type) && !/\.pdf$/i.test(file.name)) throw new Error(`${file.name} is not a PDF.`);
-        await ingestPdf(path, file); status(`${file.name} added: ${getP(path).images.length} pages.`, "", 4000);
+        await ingestPdf(path, file); { const dd = getP(path); status(`${file.name} added: ${dd.pages} pages${dd.images.length < dd.pages ? " (the viewer shows the first " + dd.images.length + ")" : ""}, ${fmtSize(file.size)}.`, "", 5000); }
       } else if (kind === "logo") {
         let u = await readUri(file); if (!/^data:image\//.test(u)) throw new Error("That file isn't an image.");
         if (/\.svg$/i.test(file.name) && !u.startsWith("data:image/svg+xml")) u = "data:image/svg+xml;base64," + u.split(",")[1];
@@ -1722,8 +2664,52 @@ function bulkFiles(files) {
   if (unmatched.length) queue = queue.then(() => status(`Not matched to a document: ${unmatched.join(", ")}. Name files starting with the PDF code, or add them to a module directly.`, "err"));
 }
 
+/* ---------- Zip files (stored, no compression, so big PDFs are not copied or recompressed) ---------- */
+const CRC_T = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+const crc32 = u8 => { let c = -1; for (let i = 0; i < u8.length; i++) c = CRC_T[(c ^ u8[i]) & 255] ^ (c >>> 8); return (c ^ -1) >>> 0; };
+async function makeZip(entries) {
+  const enc = new TextEncoder(), parts = [], central = []; let off = 0;
+  for (const e of entries) {
+    const blob = e.data instanceof Blob ? e.data : new Blob([e.data]), name = enc.encode(e.name), size = blob.size;
+    if (size > 0xFFFFFFF0 || off > 0xFFFFFFF0) throw new Error("That folder is over 4 GB, which this zip writer can't make. Export fewer PDFs.");
+    const crc = crc32(new Uint8Array(await blob.arrayBuffer()));
+    const h = new DataView(new ArrayBuffer(30));
+    h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0x0800, true); h.setUint16(12, 0x21, true);
+    h.setUint32(14, crc, true); h.setUint32(18, size, true); h.setUint32(22, size, true); h.setUint16(26, name.length, true);
+    parts.push(h.buffer, name, blob);
+    const c = new DataView(new ArrayBuffer(46));
+    c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true); c.setUint16(8, 0x0800, true); c.setUint16(14, 0x21, true);
+    c.setUint32(16, crc, true); c.setUint32(20, size, true); c.setUint32(24, size, true); c.setUint16(28, name.length, true); c.setUint32(42, off, true);
+    central.push(c.buffer, name);
+    off += 30 + name.length + size;
+  }
+  const cd = central.reduce((t, x) => t + x.byteLength, 0), end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0, 0x06054b50, true); end.setUint16(8, entries.length, true); end.setUint16(10, entries.length, true); end.setUint32(12, cd, true); end.setUint32(16, off, true);
+  return new Blob([...parts, ...central, end.buffer], { type: "application/zip" });
+}
+async function readZip(file) {
+  const tail = new DataView(await file.slice(Math.max(0, file.size - 70000)).arrayBuffer());
+  let p = tail.byteLength - 22; while (p >= 0 && tail.getUint32(p, true) !== 0x06054b50) p--;
+  if (p < 0) throw new Error("That isn't a zip file.");
+  const n = tail.getUint16(p + 10, true), cdSize = tail.getUint32(p + 12, true), cdOff = tail.getUint32(p + 16, true);
+  const cd = new DataView(await file.slice(cdOff, cdOff + cdSize).arrayBuffer()), dec = new TextDecoder(), entries = []; let q = 0;
+  for (let i = 0; i < n; i++) {
+    if (cd.getUint32(q, true) !== 0x02014b50) throw new Error("The zip file is damaged.");
+    const nl = cd.getUint16(q + 28, true), el = cd.getUint16(q + 30, true), cl = cd.getUint16(q + 32, true);
+    entries.push({ method: cd.getUint16(q + 10, true), csize: cd.getUint32(q + 20, true), off: cd.getUint32(q + 42, true), name: dec.decode(new Uint8Array(cd.buffer, q + 46, nl)) });
+    q += 46 + nl + el + cl;
+  }
+  return { entries, async blob(e) {
+    const lh = new DataView(await file.slice(e.off, e.off + 30).arrayBuffer()), start = e.off + 30 + lh.getUint16(26, true) + lh.getUint16(28, true);
+    const raw = file.slice(start, start + e.csize);
+    if (e.method === 0) return raw;
+    if (e.method === 8) return new Response(raw.stream().pipeThrough(new DecompressionStream("deflate-raw"))).blob();
+    throw new Error("That zip uses a compression this editor can't read.");
+  } };
+}
+
 /* ---------- Save, open, export ---------- */
-function download(name, text, type) { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 8000); }
+function download(name, data, type) { const a = document.createElement("a"), blob = data instanceof Blob ? data : new Blob([data], { type }); a.href = URL.createObjectURL(blob); a.download = name; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 60000); }
 const base = () => slug(C.brand.productName) + "-launch-story";
 /* A clean copy for sharing: no concept label and no editor-only notes about the files */
 function finalCopy() {
@@ -1732,29 +2718,97 @@ function finalCopy() {
   for (const d of [c.core, ...c.modules]) delete d.pdfName;
   return c;
 }
-function exportHtml(final) {
-  const is = issues(); const errs = is.filter(i => i.k === "err");
-  if (errs.length && !confirm(`There ${errs.length === 1 ? "is 1 error" : "are " + errs.length + " errors"} on the Check page. Export anyway?`)) return go("export");
+/* The checks and confirmations before any export; false means the user stopped */
+function preflight(final) {
+  const errs = issues().filter(i => i.k === "err");
+  if (errs.length && !confirm(`There ${errs.length === 1 ? "is 1 error" : "are " + errs.length + " errors"} on the Check page. Export anyway?`)) return go("export"), false;
   if (final) {
-    const draft = [C.core, ...modules()].filter(d => !d.images.length).map(d => d.name);
-    if (draft.length && !confirm(`${draft.length} document${draft.length > 1 ? "s have" : " has"} no PDF yet (${draft.slice(0, 4).join(", ")}${draft.length > 4 ? "…" : ""}). Their draft pages would be visible in the final copy. Export anyway?`)) return go("modules");
-    if (!C.brand.jobCode && !confirm("There is no job code. Export the final copy anyway?")) return go("brand");
+    const draft = [C.core, ...modules()].filter(d => !d.pdf).map(d => d.name);
+    if (draft.length && !confirm(`${draft.length} document${draft.length > 1 ? "s have" : " has"} no PDF yet (${draft.slice(0, 4).join(", ")}${draft.length > 4 ? "…" : ""}). Their draft pages would be visible in the final copy. Export anyway?`)) return go("modules"), false;
+    if (!C.brand.jobCode && !confirm("There is no job code. Export the final copy anyway?")) return go("brand"), false;
     const ph = placeholderHits();
-    if (ph.length && !confirm(`${ph.length} piece${ph.length > 1 ? "s" : ""} of placeholder wording found, for example: ${hitLabel(ph[0])}. Export the final copy anyway?`)) return go("export");
+    if (ph.length && !confirm(`${ph.length} piece${ph.length > 1 ? "s" : ""} of placeholder wording found, for example: ${hitLabel(ph[0])}. Export the final copy anyway?`)) return go("export"), false;
   }
-  const html = fillTemplate(final ? finalCopy() : C, true), name = base() + (final ? "-final.html" : "-offline.html");
-  download(name, html, "text/html");
-  status(`Exported ${name} (${fmtSize(html.length)}). ${final ? "This copy has no editor and no concept label." : "Open it with Wi-Fi off to check it."}`, "", 9000);
+  return true;
 }
-function saveProject() { download(base() + "-project.json", JSON.stringify({ hubEditorProject: 1, content: C }), "application/json"); dirty = false; status("Project saved. Reopen it any time with Open.", "", 6000); }
-function saveContentJs() {
-  const header = `/* ${C.brand.productName} launch story: CONTENT. Saved from the hub editor. Replace content.js in the hub folder with this file. */\n`;
-  download("content.js", header + "window.HUB = " + JSON.stringify(C, null, 2) + ";\n", "text/javascript"); status("content.js saved. Files embedded in it stay inside the file.", "", 6000);
+async function exportHtml(final) {
+  if (!preflight(final)) return;
+  try {
+    status("Building the single file…", "busy");
+    const c = final ? finalCopy() : clone(C);
+    for (const d of [c.core, ...c.modules]) if (isStored(d.pdf)) d.pdf = await readUri(STORE.get(d.pdf));
+    const html = fillTemplate(c, true), name = base() + (final ? "-final.html" : "-offline.html");
+    download(name, html, "text/html");
+    status(`Exported ${name} (${fmtSize(html.length)}). ${final ? "This copy has no editor and no concept label." : "Open it with Wi-Fi off to check it."}`, "", 9000);
+  } catch (e) { status("Couldn't build the single file (it may be too large). Use the website folder instead. " + (e.message || ""), "err"); }
+}
+const EXT = { "image/svg+xml": "svg", "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "image/gif": "gif", "font/woff": "woff", "font/woff2": "woff2", "font/ttf": "ttf", "font/otf": "otf" };
+const dataMime = u => u.slice(5, u.indexOf(";"));
+const SITE_NOTES = `HOSTING NOTES
+=============
+Upload everything in this folder to your web host, keeping the folder layout. Open index.html on the host to check it.
+
+Protect the WHOLE folder, not just index.html. If login only guards the page, anyone who knows the address of a file in assets/pdfs/ can still download it. Put the login (and the consent step) in front of every request to this folder.
+
+Per-PDF logging: every document is its own file in assets/pdfs/. Each download is one request in your server's access log, so you can count them per PDF and per signed-in user. The page adds a marker to the address so you can tell how the file was used:
+  assets/pdfs/PA-MOD-02.pdf?via=download   the reader downloaded that one PDF
+  assets/pdfs/PA-MOD-02.pdf?via=pack       the file was read to build a merged pack
+The page images in assets/pages/ are only for the on-screen viewer: leave them out of download counts.
+
+Large PDFs: the server should send assets/pdfs/ with the correct type (application/pdf), allow range requests (most do), and not cache signed-in content in shared caches. Merging a very large pack happens in the reader's browser, so a pack of several hundred MB may fail on a phone: the separate downloads still work.
+
+Open index.html straight from your computer and the page works, but merging a pack needs a web host (browsers block reading files from a local folder).
+`;
+async function exportSite(final) {
+  if (!preflight(final)) return;
+  try {
+    status("Building the website folder…", "busy");
+    const root = slug(C.brand.productName) + "-hub/", c = final ? finalCopy() : clone(C), entries = [], names = new Set();
+    const add = (name, data) => entries.push({ name: root + name, data });
+    const uniq = (dir, stem, ext) => { let n = stem, i = 2; while (names.has(dir + n + ext)) n = stem + "-" + i++; names.add(dir + n + ext); return dir + n + ext; };
+    for (const d of [c.core, ...c.modules]) {
+      const stem = String(d.code || d.id || "doc").replace(/[^A-Za-z0-9._-]+/g, "-");
+      if (isStored(d.pdf)) { const f = uniq("assets/pdfs/", stem, ".pdf"); add(f, STORE.get(d.pdf)); d.pdf = f; }
+      d.images = (d.images || []).map((u, i) => { if (!isData(u)) return u; const f = uniq("assets/pages/", `${stem}-${pad2(i + 1)}`, ".jpg"); add(f, new Blob([dataBytes(u)], { type: "image/jpeg" })); return f; });
+      delete d.pdfName;
+    }
+    if (isData(c.brand.logo)) { const f = uniq("assets/logo/", "logo", "." + (EXT[dataMime(c.brand.logo)] || "png")); add(f, new Blob([dataBytes(c.brand.logo)])); c.brand.logo = f; }
+    for (const k of Object.keys(c.brand.fonts || {})) { const u = c.brand.fonts[k]; if (isData(u)) { const f = uniq("assets/fonts/", "custom-" + k, "." + (EXT[dataMime(u)] || "woff")); add(f, new Blob([dataBytes(u)])); c.brand.fonts[k] = f; } }
+    const fonts = [...FONTS_EXPORT.matchAll(/url\(data:font\/woff;base64,([^)]+)\)/g)];
+    fonts.forEach((m, i) => { if (DEFAULT_FONTS[i]) add("assets/fonts/" + DEFAULT_FONTS[i], new Blob([dataBytes("data:;base64," + m[1])])); });
+    const veeva = c.veeva && c.veeva.include;
+    add("index.html", veeva ? SITE_INDEX.replace(SCRIPT_OPEN + ' src="content.js">', SCRIPT_OPEN + ' src="veeva-library.js">' + SCRIPT_CLOSE + "\n" + SCRIPT_OPEN + ' src="content.js">') : SITE_INDEX);
+    add("content.js", `/* ${c.brand.productName} launch story: content for the website folder. Edit it in the hub editor, or by hand (paths point at the files in assets/). */\nwindow.HUB = ${JSON.stringify(c, null, 2)};\n`);
+    add("lib/pdf-lib.min.js", PDFLIB_SRC);
+    add("HOSTING-NOTES.txt", SITE_NOTES);
+    const zip = await makeZip(entries), name = slug(C.brand.productName) + "-hub" + (final ? "" : "-working") + ".zip";
+    download(name, zip);
+    const nPdf = entries.filter(e => e.name.includes("/assets/pdfs/")).length;
+    status(`Exported ${name} (${fmtSize(zip.size)}, ${nPdf} PDF${nPdf === 1 ? "" : "s"}). Unzip it and upload the folder to your host.`, "", 12000);
+  } catch (e) { status("Couldn't build the website folder: " + (e.message || e), "err"); }
+}
+async function saveProject() {
+  try {
+    const c = clone(C), entries = []; let n = 0;
+    for (const d of [c.core, ...c.modules]) if (isStored(d.pdf)) { const f = `files/pdf-${++n}.pdf`; entries.push({ name: f, data: STORE.get(d.pdf) }); d.pdf = "@zip:" + f; }
+    entries.unshift({ name: "project.json", data: JSON.stringify({ hubEditorProject: 2, content: c }) });
+    const zip = await makeZip(entries); download(base() + "-project.zip", zip);
+    dirty = false; status(`Project saved (${fmtSize(zip.size)}). Reopen it any time with Open.`, "", 6000);
+  } catch (e) { status("Couldn't save the project: " + (e.message || e), "err"); }
 }
 async function openFile(file) {
   try {
-    const text = await file.text(); let obj;
-    if (/^\s*[{\[]/.test(text)) { const j = JSON.parse(text); obj = j.content || j; } else obj = parseJs(text);
+    let obj;
+    if (/\.zip$/i.test(file.name)) {
+      const z = await readZip(file), pj = z.entries.find(e => e.name === "project.json"); if (!pj) throw new Error("That zip isn't a hub project.");
+      const j = JSON.parse(await (await z.blob(pj)).text()); obj = j.content;
+      for (const d of [obj.core, ...obj.modules]) if (typeof d.pdf === "string" && d.pdf.startsWith("@zip:")) {
+        const e = z.entries.find(x => x.name === d.pdf.slice(5)); d.pdf = e ? putStore(new Blob([await z.blob(e)], { type: "application/pdf" })) : "";
+      }
+    } else {
+      const text = await file.text();
+      if (/^\s*[{\[]/.test(text)) { const j = JSON.parse(text); obj = j.content || j; } else obj = parseJs(text);
+    }
     if (dirty && !confirm("Replace the current project? Unsaved changes will be lost.")) return;
     C = normalize(obj); tidy(); dirty = false; renderSide(); renderForm(false); reloadPreview(); status(`Opened ${file.name}.`, "", 5000);
   } catch (e) { status("Couldn't open that file: " + (e.message || e), "err"); }
@@ -1796,7 +2850,8 @@ document.addEventListener("click", e => {
   else if (act === "exportHtml") exportHtml(false);
   else if (act === "exportFinal") exportHtml(true);
   else if (act === "saveProject") saveProject();
-  else if (act === "saveContentJs") saveContentJs();
+  else if (act === "exportSite") exportSite(true);
+  else if (act === "exportSiteWorking") exportSite(false);
   else if (act === "reloadPreview") reloadPreview();
 });
 // Drag and drop onto file slots and the bulk drop zone
@@ -1812,7 +2867,7 @@ document.addEventListener("dragover", e => e.preventDefault()); document.addEven
 addEventListener("beforeunload", e => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
 
 /* ---------- Test hooks and start ---------- */
-window.__editor = { get content() { return C; }, set content(v) { C = normalize(v); tidy(); renderSide(); renderForm(false); reloadPreview(); }, buildExport: () => fillTemplate(C, true), issues, go };
+window.__editor = { get content() { return C; }, set content(v) { C = normalize(v); tidy(); renderSide(); renderForm(false); reloadPreview(); }, buildExport: () => fillTemplate(C, true), exportSite, exportHtml, saveProject, openFile, makeZip, readZip, STORE, issues, go };
 tidy(); renderSide(); renderForm(false); reloadPreview();
 })();
 

@@ -16,7 +16,7 @@ const slug = s => String(s || "hub").toLowerCase().replace(/[^a-z0-9]+/g, "-").r
 const modules = () => HUB.modules || [];
 const isCore = id => id === "core";
 const info = id => isCore(id) ? HUB.core : modules().find(m => m.id === id);
-const pagesOf = d => (d.images && d.images.length) ? d.images.length : Math.max(1, +d.pages || 1);
+const pagesOf = d => +d.pages > 0 ? +d.pages : Math.max(1, (d.images && d.images.length) || 1);
 const hasPdf = d => !!(d && d.pdf);
 const shortName = d => d.short || d.name;
 const covCls = id => isCore(id) ? "cv-core" : "cv-s" + (Math.max(0, modules().findIndex(m => m.id === id)) % 4);
@@ -222,6 +222,7 @@ function renderChapters() {
 }
 
 /* ---------- Pack: dock, finale, viewer ---------- */
+const dlBtn = id => hasPdf(info(id)) ? `<button type="button" class="x-btn" data-pdf="${esc(id)}" aria-label="Download ${esc(info(id).name)} as PDF">PDF ↓</button>` : `<span></span>`;
 function renderPack() {
   const ids = picked(), all = ["core", ...ids], pp = totalPages(ids), docs = `${all.length} document${all.length > 1 ? "s" : ""}`;
   $("#dockStack").innerHTML = all.map(id => cover(id)).join("");
@@ -229,8 +230,8 @@ function renderPack() {
   $("#finDocs").textContent = all.length;
   $("#finPages").innerHTML = `document${all.length > 1 ? "s" : ""}<br>${pp} pages`;
   $("#finFor").innerHTML = state.who && state.eng ? `Built for a <b>${esc(who().label.toLowerCase())}</b> · <b>${esc(eng().label.toLowerCase())}</b>` : "Choose a stakeholder and engagement in the bar above for recommended modules.";
-  $("#finList").innerHTML = `<li class="core"><span class="n">00</span><span>${esc(HUB.core.name)}</span><span class="pp">${pagesOf(HUB.core)} pp</span><span></span></li>` +
-    ids.map((id, i) => `<li><span class="n">${pad(i + 1)}</span><span>${esc(info(id).name)}</span><span class="pp">${pagesOf(info(id))} pp</span><button type="button" class="x-btn" data-toggle="${esc(id)}" aria-label="Remove ${esc(info(id).name)}">Remove</button></li>`).join("");
+  $("#finList").innerHTML = `<li class="core"><span class="n">00</span><span>${esc(HUB.core.name)}</span><span class="pp">${pagesOf(HUB.core)} pp</span>${dlBtn("core")}<span></span></li>` +
+    ids.map((id, i) => `<li><span class="n">${pad(i + 1)}</span><span>${esc(info(id).name)}</span><span class="pp">${pagesOf(info(id))} pp</span>${dlBtn(id)}<button type="button" class="x-btn" data-toggle="${esc(id)}" aria-label="Remove ${esc(info(id).name)}">Remove</button></li>`).join("");
   const rest = modules().filter(m => !ids.includes(m.id));
   $("#finMore").innerHTML = rest.length ? `<span>Add:</span>` + rest.map(m => `<button type="button" data-toggle="${esc(m.id)}">+ ${esc(m.name)}</button>`).join("") : "";
   const n = all.length;
@@ -265,7 +266,7 @@ function renderViewer(all, pp) {
   $("#pmDocs").innerHTML = all.map((id, i) => {
     const d = info(id), real = d.images && d.images.length;
     const btns = `${clm() && (V().pdfSlides || {})[id] ? `<button class="chip-btn" type="button" data-open-slide="${esc(id)}">Open PDF</button>` : ""}<button class="chip-btn" type="button" data-pdf="${esc(id)}">${clm() ? "Send PDF ✉" : "Download PDF ↓"}</button>${isCore(id) ? "" : `<button class="chip-btn" type="button" data-toggle="${esc(id)}">Remove</button>`}`;
-    return `<section class="pm-doc" id="doc-${esc(id)}" aria-label="${esc(d.name)}"><div class="pm-doc-head"><span class="n${isCore(id) ? " core" : ""}">${pad(i)}</span><div><div class="label">${esc(d.code || "")} · PDF · ${pagesOf(d)} pages</div><h3>${esc(d.name)}</h3></div><div class="btns">${btns}</div></div>${real ? d.images.map((src, n) => `<div class="pm-page img"><img src="${esc(src)}" alt="${esc(d.name)}, page ${n + 1}" loading="lazy"></div>`).join("") : mockPages(id, d)}</section>`;
+    return `<section class="pm-doc" id="doc-${esc(id)}" aria-label="${esc(d.name)}"><div class="pm-doc-head"><span class="n${isCore(id) ? " core" : ""}">${pad(i)}</span><div><div class="label">${esc(d.code || "")} · PDF · ${pagesOf(d)} pages</div><h3>${esc(d.name)}</h3></div><div class="btns">${btns}</div></div>${real ? d.images.map((src, n) => `<div class="pm-page img"><img src="${esc(src)}" alt="${esc(d.name)}, page ${n + 1}" loading="lazy"></div>`).join("") + (+d.pages > d.images.length ? `<p class="pm-more">Showing the first ${d.images.length} of ${+d.pages} pages here. Download the PDF to read all of it.</p>` : "") : mockPages(id, d)}</section>`;
   }).join("");
 }
 
@@ -318,7 +319,8 @@ function onScroll() {
 
 /* ---------- PDF files: download, merge ---------- */
 const dataToBytes = uri => { const b = atob(uri.split(",")[1]), a = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); return a; };
-async function getBytes(src) { if (src.startsWith("data:")) return dataToBytes(src); const r = await fetch(src); if (!r.ok) throw new Error("fetch"); return new Uint8Array(await r.arrayBuffer()); }
+const via = (src, tag) => /^(data|blob):/.test(src) ? src : src + (src.includes("?") ? "&" : "?") + "via=" + tag;
+async function getBytes(src, tag) { if (src.startsWith("data:")) return dataToBytes(src); const r = await fetch(via(src, tag || "pack")); if (!r.ok) throw new Error("fetch"); return new Uint8Array(await r.arrayBuffer()); }
 function saveBlob(blob, name) { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 5000); }
 function downloadDoc(id) {
   const d = info(id);
@@ -327,7 +329,7 @@ function downloadDoc(id) {
   if (d.pdf.startsWith("data:")) saveBlob(new Blob([dataToBytes(d.pdf)], { type: "application/pdf" }), name);
   else {
     // From a local folder browsers won't honour "download" on a file link, and would replace the hub with the PDF, so open it in a new tab
-    const a = document.createElement("a"); a.href = d.pdf;
+    const a = document.createElement("a"); a.href = via(d.pdf, "download");
     if (location.protocol === "file:") { a.target = "_blank"; a.rel = "noopener"; } else a.download = name;
     document.body.append(a); a.click(); a.remove();
   }
@@ -338,10 +340,10 @@ async function mergePack(ids) {
   if (!window.PDFLib) return toast("Merging isn't available in this copy. Download each PDF from the pack viewer.");
   try {
     const out = await PDFLib.PDFDocument.create();
-    for (const id of withPdf) { const src = await PDFLib.PDFDocument.load(await getBytes(info(id).pdf), { ignoreEncryption: true }); (await out.copyPages(src, src.getPageIndices())).forEach(p => out.addPage(p)); }
+    for (const id of withPdf) { const src = await PDFLib.PDFDocument.load(await getBytes(info(id).pdf, "pack"), { ignoreEncryption: true }); (await out.copyPages(src, src.getPageIndices())).forEach(p => out.addPage(p)); }
     saveBlob(new Blob([await out.save()], { type: "application/pdf" }), `${slug((HUB.brand || {}).productName)}-pack.pdf`);
     toast(withPdf.length < ids.length ? `Pack downloaded. ${ids.length - withPdf.length} document(s) have no PDF yet.` : "Pack downloaded as one PDF");
-  } catch (e) { toast("Couldn't merge here: browsers block reading PDF files from a local folder. Use the single-file export or a web host, or download each PDF from the pack viewer."); }
+  } catch (e) { toast("Couldn't merge the pack. Opened from a local folder, browsers block this; on a web host a very large PDF can also fail. Download each PDF separately instead."); }
 }
 
 /* ---------- Pack viewer and email ---------- */

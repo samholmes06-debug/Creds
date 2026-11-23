@@ -14,10 +14,10 @@
   <header class="tb">
     <div class="tb-brand"><i></i><b>Hub editor</b><span id="projName"></span></div>
     <div class="tb-actions">
-      <label class="tbtn">Open…<input type="file" id="openFile" accept=".json,.js,application/json,text/javascript" hidden></label>
+      <label class="tbtn">Open…<input type="file" id="openFile" accept=".zip,.json,.js,application/zip,application/json,text/javascript" hidden></label>
       <button class="tbtn" type="button" data-act="saveProject">Save project</button>
-      <button class="tbtn" type="button" data-act="saveContentJs">Save content.js</button>
-      <button class="tbtn primary" type="button" data-act="exportFinal">Export final copy ↓</button>
+      <button class="tbtn primary" type="button" data-act="exportSite">Export website folder ↓</button>
+      <button class="tbtn" type="button" data-act="exportFinal">Single file ↓</button>
     </div>
   </header>
   <div class="statusbar" id="status" role="status"><span id="statusText">Ready. Changes show in the preview straight away. Save your project before closing this page.</span></div>
@@ -35,6 +35,7 @@
 <script type="text/plain" id="tpl">{{TEMPLATE}}</script>
 <script type="text/plain" id="fontsExport">{{FONTS_EXPORT}}</script>
 <script type="text/plain" id="contentDefault">{{CONTENT_DEFAULT}}</script>
+<script type="text/plain" id="siteIndex">{{SITE_INDEX}}</script>
 <script type="text/plain" id="logoPlaceholder">{{LOGO_PLACEHOLDER}}</script>
 <script id="pdflib">{{PDFLIB}}</script>
 <script id="pdfjs">{{PDFJS}}</script>

@@ -9,11 +9,24 @@ const clone = o => JSON.parse(JSON.stringify(o));
 const fmtSize = n => n > 1048576 ? (n / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(n / 1024)) + " KB";
 const uriBytes = u => Math.round((u.length - u.indexOf(",") - 1) * 0.75);
 const isData = u => typeof u === "string" && u.startsWith("data:");
+const dataBytes = u => { const b = atob(u.slice(u.indexOf(",") + 1)), a = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); return a; };
+const pad2 = n => String(n).padStart(2, "0");
+
+/* ---------- PDF store: PDFs live here as Blobs (not inside the content), so large files stay light ---------- */
+const STORE = new Map(), URLS = new Map(); let storeN = 0;
+const isStored = u => typeof u === "string" && u.startsWith("@store:");
+const putStore = blob => { const k = "@store:" + (++storeN); STORE.set(k, blob); return k; };
+const fileSize = d => (isStored(d.pdf) && STORE.get(d.pdf) ? STORE.get(d.pdf).size : 0);
+const blobUrl = k => { if (!URLS.has(k)) URLS.set(k, URL.createObjectURL(STORE.get(k))); return URLS.get(k); };
+const withPdfUrls = c => { for (const d of [c.core, ...c.modules]) if (isStored(d.pdf)) d.pdf = blobUrl(d.pdf); return c; };
+const MAX_IMG = 30;   // page pictures made per PDF for the in-page viewer
+const DEFAULT_FONTS = ["gsk-light.woff", "gsk-regular.woff", "gsk-regularitalic.woff", "gsk-bold.woff"];
 
 /* ---------- Embedded resources ---------- */
 const SCRIPT_OPEN = "<" + "script", SCRIPT_CLOSE = "<" + "/script>";
 const T = id => document.getElementById(id).textContent.split("<\\" + "/script").join("<" + "/script");
 const TPL = T("tpl"), FONTS_EXPORT = T("fontsExport"), CONTENT_DEFAULT = T("contentDefault"), LOGO_SVG = T("logoPlaceholder");
+const SITE_INDEX = T("siteIndex");
 const PDFLIB_SRC = document.getElementById("pdflib").textContent;
 const svgUri = svg => "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svg)));
 function parseJs(text) { const w = {}; new Function("window", text)(w); if (!w.HUB) throw new Error("No window.HUB found in that file."); return w.HUB; }
@@ -48,7 +61,7 @@ function normalize(c) {
     if (c[k] && typeof c[k] === "object" && !Array.isArray(c[k]) && out[k] && typeof out[k] === "object" && !Array.isArray(out[k])) out[k] = Object.assign(out[k], c[k]);
     else out[k] = c[k];
   }
-  for (const d of [out.core, ...out.modules]) { d.pdf = d.pdf || ""; d.images = d.images || []; d.facts = d.facts || []; d.points = d.points || []; }
+  for (const d of [out.core, ...out.modules]) { if (isData(d.pdf)) d.pdf = putStore(new Blob([dataBytes(d.pdf)], { type: "application/pdf" })); if (isStored(d.pdf) && !STORE.has(d.pdf)) d.pdf = ""; d.pdf = d.pdf || ""; d.images = d.images || []; d.facts = d.facts || []; d.points = d.points || []; }
   out.brand.fonts = out.brand.fonts || {};
   return out;
 }
@@ -74,8 +87,8 @@ function fillTemplate(content, forExport) {
   const map = { TITLE: esc(content.brand.pageTitle || content.brand.productName + " launch story"), FONTS_CSS: FONTS_EXPORT, LIBS: libs, CONTENT: `${SCRIPT_OPEN}>${preview}window.HUB = ${json};${SCRIPT_CLOSE}` };
   return Object.entries(map).reduce((s, [k, v]) => s.split(`{{${k}}}`).join(v), tpl);
 }
-function reloadPreview() { frameReady = false; frame.onload = () => { frameReady = true; }; frame.srcdoc = fillTemplate(C, false); }
-function touch() { dirty = true; updateSide(); clearTimeout(sendTimer); sendTimer = setTimeout(() => { if (frameReady) frame.contentWindow.postMessage({ type: "hub-content", content: C }, "*"); }, 350); }
+function reloadPreview() { frameReady = false; frame.onload = () => { frameReady = true; }; frame.srcdoc = fillTemplate(withPdfUrls(clone(C)), false); }
+function touch() { dirty = true; updateSide(); clearTimeout(sendTimer); sendTimer = setTimeout(() => { if (frameReady) frame.contentWindow.postMessage({ type: "hub-content", content: withPdfUrls(clone(C)) }, "*"); }, 350); }
 function gotoPreview(id) { if (frameReady) frame.contentWindow.postMessage({ type: "hub-goto", id }, "*"); }
 
 /* ---------- Form building blocks ---------- */
@@ -114,10 +127,10 @@ function slot(kind, path, label, accept, o = {}) {
   const d = getP(path);
   let statusHtml, body = "";
   if (kind === "pdf") {
-    if (isData(d.pdf)) statusHtml = `<span class="ok">✓ ${esc(d.pdfName || "PDF added")}</span><span>${d.images.length} pages · ${fmtSize(uriBytes(d.pdf))}</span>`;
+    if (isStored(d.pdf)) statusHtml = `<span class="ok">✓ ${esc(d.pdfName || "PDF added")}</span><span>${d.pages || d.images.length} pages · ${fmtSize(fileSize(d))}</span>`;
     else if (d.pdf) statusHtml = `<span class="linked">Linked by path</span><span>${esc(d.pdf)}</span>`;
     else statusHtml = `<span class="none">No PDF yet. Draft pages are shown until you add one.</span>`;
-    if (isData(d.pdf) && d.images.length) body = `<div class="thumbs">${d.images.slice(0, 8).map(s => `<img src="${s}" alt="">`).join("")}</div>`;
+    if (isStored(d.pdf) && d.images.length) body = `<div class="thumbs">${d.images.slice(0, 8).map(s => `<img src="${s}" alt="">`).join("")}</div>`;
     const has = !!d.pdf;
     return `<div class="slot" data-slot="pdf" data-path="${path}"><div class="slot-h"><b>${label}</b><span class="slot-b"><label class="sbtn">${has ? "Replace" : "Choose"} PDF<input type="file" accept="${accept}" data-file="pdf" data-path="${path}" hidden></label>${has ? `<button class="sbtn" type="button" data-act="clearPdf" data-path="${path}">Remove</button>` : ""}</span></div><div class="slot-s">${statusHtml}</div>${body}<div class="small">Or drag a PDF onto this box.</div></div>`;
   }
@@ -153,7 +166,7 @@ const SECTIONS = [
   { id: "core", title: "Core notification", goto: "top", render: () => frameSection("Core notification", "The core deliverable. It is included in every pack.",
     `${fText("Name", "core.name")}<div class="cols">${fText("Short name (for small covers)", "core.short")}${fText("PDF code", "core.code")}</div>${fText("Line under the cover", "core.blurb")}
      <h2>PDF</h2>${slot("pdf", "core", "Core notification PDF", "application/pdf")}
-     ${fNum("Page count", "core.pages", { dis: isData(C.core.pdf), hint: isData(C.core.pdf) ? "Counted from the PDF." : "Used until a PDF is added." })}
+     ${fNum("Page count", "core.pages", { dis: isStored(C.core.pdf), hint: isStored(C.core.pdf) ? "Counted from the PDF." : "Used until a PDF is added." })}
      <h2>Draft cover text</h2><p class="small">Only shown on the draft pages, until the approved PDF is added.</p>${fArea("Intro", "core.draftIntro")}${fArea("Note", "core.draftNote")}`) },
   { id: "people", title: "Stakeholders and engagements", goto: "builder", render: () => frameSection("Stakeholders and engagements", "Who is being engaged, and why. Each choice leads to recommended modules.",
     `<h2>Stakeholders</h2>${cards("stakeholders", "stakeholder", "Add stakeholder", s => s.label || "New stakeholder", (s, i, p) => `<div class="cols">${fText("Name", p + ".label")}${fText("Plural (used in sentences)", p + ".plural")}</div>${fText("Short description", p + ".desc")}`, { noDel: 1 })}
@@ -162,7 +175,7 @@ const SECTIONS = [
     `<div class="bulk" data-bulk><b>Drop several PDFs here.</b><br>Each one is matched to a document by its code, for example PA-MOD-02.pdf goes to the module with the code PA-MOD-02.</div>
      ${cards("modules", "module", "Add module", m => m.name || "New module", (m, i, p) => `
        <div class="cols">${fText("Name", p + ".name")}${fText("Short name", p + ".short")}</div>${fText("Question it answers", p + ".question")}
-       <div class="cols">${fText("PDF code", p + ".code")}${fNum("Page count", p + ".pages", { dis: isData(m.pdf), hint: isData(m.pdf) ? "Counted from the PDF." : "" })}</div>
+       <div class="cols">${fText("PDF code", p + ".code")}${fNum("Page count", p + ".pages", { dis: isStored(m.pdf), hint: isStored(m.pdf) ? "Counted from the PDF." : "" })}</div>
        ${slot("pdf", p, "Approved PDF", "application/pdf")}
        <details><summary>Draft page text (shown until the PDF is added)</summary>${fArea("Intro", p + ".intro", { rows: 2, hint: "Use **double asterisks** for bold." })}<h2>Key facts</h2>${pairs(p + ".facts")}${fText("List heading", p + ".pointsTitle")}<h2>List</h2>${strs(p + ".points", "Point", 2)}</details>`)}`) },
   { id: "recommend", title: "Recommendations", goto: "builder", render: () => {
@@ -202,10 +215,10 @@ const SECTIONS = [
      ${docs().map(d => `<div class="card"><div class="card-h"><b>${esc(d.name)}</b></div><div class="cols">${fText("Fragment ID", "veeva.fragments." + d.id)}${fText("PDF slide name", "veeva.pdfSlides." + d.id)}</div></div>`).join("")}`) },
   { id: "export", title: "Check and export", goto: "top", render: () => {
     const is = issues(), counts = { err: is.filter(i => i.k === "err").length, warn: is.filter(i => i.k === "warn").length };
-    return frameSection("Check and export", "Review these points, then export one file that works offline.",
-      `<button class="bigbtn primary" type="button" data-act="exportFinal">Export final copy ↓</button><button class="bigbtn line" type="button" data-act="exportHtml">Export working copy ↓</button><button class="bigbtn line" type="button" data-act="saveProject">Save project</button><button class="bigbtn line" type="button" data-act="saveContentJs">Save content.js</button>
-       <p class="small" style="margin:0 0 14px"><b>Export final copy</b> makes the clean version to share: one offline file with the fonts, logo, approved PDFs and page pictures inside. It has no editor, no editing marks and no concept label. <b>Export working copy</b> is the same but keeps the concept label, for internal review. <b>Save project</b> keeps your work so you can reopen it here. <b>Save content.js</b> is for the folder version.</p>
-       <h2>Checks · ${counts.err} to fix · ${counts.warn} to review</h2>${is.map(i => `<div class="issue ${i.k}"><i>${{ err: "✕", warn: "!", info: "i", ok: "✓" }[i.k]}</i><div><b>${esc(i.t)}</b>${i.d ? `<span>${esc(i.d)}</span>` : ""}</div></div>`).join("")}`);
+    return frameSection("Check and export", "Review these points, then export the website folder or a single offline file.",
+      `<button class="bigbtn primary" type="button" data-act="exportSite">Export website folder (.zip) ↓</button><button class="bigbtn line" type="button" data-act="exportFinal">Export single file ↓</button><button class="bigbtn line" type="button" data-act="exportSiteWorking">Website folder, working copy ↓</button><button class="bigbtn line" type="button" data-act="exportHtml">Single file, working copy ↓</button><button class="bigbtn line" type="button" data-act="saveProject">Save project</button>
+        <p class="small" style="margin:0 0 14px"><b>Website folder</b> is the version to host: index.html, content.js, the fonts and logo, and each approved PDF as its own file in <code>assets/pdfs</code>, so every download is logged per PDF and readers can download one PDF or build and download a merged pack. No editor, no editing marks, no concept label. <b>Single file</b> is one offline page with everything inside, for email or CLM. <b>Working copy</b> keeps the concept label for internal review. <b>Save project</b> keeps your work (with the PDFs) as a zip so you can reopen it here.</p>
+        <h2>Checks · ${counts.err} to fix · ${counts.warn} to review</h2>${is.map(i => `<div class="issue ${i.k}"><i>${{ err: "✕", warn: "!", info: "i", ok: "✓" }[i.k]}</i><div><b>${esc(i.t)}</b>${i.d ? `<span>${esc(i.d)}</span>` : ""}</div></div>`).join("")}`);
   } }
 ];
 
@@ -232,7 +245,7 @@ function issues() {
   const acc = /^#[0-9a-f]{6}$/i.test(C.brand.accent) ? C.brand.accent : null;
   if (!acc) add("err", "The brand colour isn't a valid hex colour", "Use a value like #f36633.");
   else { const c = ((a, b) => { const l = h => { const r = [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255).map(v => v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4)); return .2126 * r[0] + .7152 * r[1] + .0722 * r[2]; }; const x = l(a), y = l(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); })(acc, "#0d0e0f"); if (c < 3) add("warn", "The brand colour is hard to read on the black sections", `Contrast is ${c.toFixed(1)}:1 on black. Try a lighter colour.`); }
-  all.forEach((d, i) => { const n = d.name || "Unnamed document"; if (!d.pdf) add(i === 0 ? "warn" : "info", `${n}: no PDF yet`, "Draft pages are shown in the viewer, and downloads say the PDF is not available yet."); else if (!isData(d.pdf)) add("warn", `${n}: PDF linked by path`, "A linked file is not inside the exported file. Add the PDF with Choose PDF to embed it."); if (!d.code) add("warn", `${n}: no PDF code`, "The code is used for file names and the viewer."); });
+  all.forEach((d, i) => { const n = d.name || "Unnamed document"; if (!d.pdf) add(i === 0 ? "warn" : "info", `${n}: no PDF yet`, "Draft pages are shown in the viewer, and downloads say the PDF is not available yet."); else if (!isStored(d.pdf)) add("warn", `${n}: PDF linked by path`, "A linked file is not inside the exported file or website folder. Add the PDF with Choose PDF to include it."); if (!d.code) add("warn", `${n}: no PDF code`, "The code is used for file names and the viewer."); });
   if (isData(C.brand.logo) === false && C.brand.logo) add("warn", "Logo linked by path", "A linked logo is not inside the exported file. Add it with Choose file to embed it.");
   mo.forEach(m => { if (ids.has(m.id)) add("err", `Duplicate module id: ${m.id}`); ids.add(m.id); });
   const ph = placeholderHits();
@@ -243,9 +256,10 @@ function issues() {
   if (miss.length) add("err", "Some items point to a module that no longer exists", miss.join(", "));
   const empty = []; (C.stakeholders || []).forEach(s => (C.engagements || []).forEach(e => { const r = ((C.recommend || {})[s.id] || {})[e.id] || []; if (!r.filter(id => mo.some(m => m.id === id)).length) empty.push(`${s.label} · ${e.label}`); }));
   if (empty.length) add("info", `${empty.length} choice${empty.length > 1 ? "s" : ""} recommend no modules`, empty.slice(0, 5).join("; ") + (empty.length > 5 ? "…" : ""));
-  const size = [...all.flatMap(d => [d.pdf, ...(d.images || [])]), C.brand.logo, ...Object.values(C.brand.fonts || {})].reduce((s, u) => s + (isData(u) ? uriBytes(u) : 0), 0);
-  const est = size * 1.34 + 700000;
-  add(est > 15e6 ? "warn" : "ok", `Estimated export size: ${fmtSize(est)}`, est > 15e6 ? "Large files can be blocked by email and CLM limits. Consider fewer or lighter PDFs." : "Includes fonts and the PDF merge library.");
+  const pdfBytes = all.reduce((t, d) => t + fileSize(d), 0), imgBytes = all.reduce((t, d) => t + (d.images || []).reduce((x, u) => x + (isData(u) ? uriBytes(u) : 0), 0), 0);
+  const est = pdfBytes * 1.34 + imgBytes * 1.34 + 700000;
+  add("ok", `Website folder: about ${fmtSize(pdfBytes + imgBytes + 900000)}`, `The PDFs stay as separate files (${fmtSize(pdfBytes)} in total) in assets/pdfs, so each is requested and logged on its own.`);
+  add(est > 60e6 ? "warn" : "ok", `Single file would be about ${fmtSize(est)}`, est > 60e6 ? "Too large for a single file to be comfortable (slow to open, blocked by email). Use the website folder." : "A single file suits sharing by email or a CLM; use the website folder for hosting.");
   if (!out.some(i => i.k === "err")) add("ok", "No errors found");
   return out.sort((a, b) => ({ err: 0, warn: 1, info: 2, ok: 3 }[a.k] - { err: 0, warn: 1, info: 2, ok: 3 }[b.k]));
 }
@@ -307,15 +321,15 @@ function initPdfJs() {
 async function ingestPdf(path, file) {
   initPdfJs();
   const d = getP(path), bytes = new Uint8Array(await file.arrayBuffer());
-  const pdf = await pdfjsLib.getDocument({ data: bytes.slice() }).promise, imgs = [];
-  for (let n = 1; n <= pdf.numPages; n++) {
-    status(`Reading ${file.name}: page ${n} of ${pdf.numPages}…`, "busy");
+  const pdf = await pdfjsLib.getDocument({ data: bytes }).promise, imgs = [], shown = Math.min(pdf.numPages, MAX_IMG);
+  for (let n = 1; n <= shown; n++) {
+    status(`Reading ${file.name}: page ${n} of ${shown}${shown < pdf.numPages ? " (of " + pdf.numPages + ")" : ""}…`, "busy");
     const pg = await pdf.getPage(n), w = pg.getViewport({ scale: 1 }).width, vp = pg.getViewport({ scale: 1000 / w });
     const cv = document.createElement("canvas"); cv.width = Math.round(vp.width); cv.height = Math.round(vp.height);
     await pg.render({ canvasContext: cv.getContext("2d"), viewport: vp, background: "rgb(255,255,255)" }).promise;
     imgs.push(cv.toDataURL("image/jpeg", 0.82));
   }
-  d.pdf = await readUri(new Blob([bytes], { type: "application/pdf" })); d.images = imgs; d.pages = pdf.numPages; d.pdfName = file.name;
+  d.pdf = putStore(new Blob([file], { type: "application/pdf" })); d.images = imgs; d.pages = pdf.numPages; d.pdfName = file.name;
 }
 let queue = Promise.resolve();
 function handleFile(kind, path, file) {
@@ -323,7 +337,7 @@ function handleFile(kind, path, file) {
     try {
       if (kind === "pdf") {
         if (!/pdf$/i.test(file.type) && !/\.pdf$/i.test(file.name)) throw new Error(`${file.name} is not a PDF.`);
-        await ingestPdf(path, file); status(`${file.name} added: ${getP(path).images.length} pages.`, "", 4000);
+        await ingestPdf(path, file); { const dd = getP(path); status(`${file.name} added: ${dd.pages} pages${dd.images.length < dd.pages ? " (the viewer shows the first " + dd.images.length + ")" : ""}, ${fmtSize(file.size)}.`, "", 5000); }
       } else if (kind === "logo") {
         let u = await readUri(file); if (!/^data:image\//.test(u)) throw new Error("That file isn't an image.");
         if (/\.svg$/i.test(file.name) && !u.startsWith("data:image/svg+xml")) u = "data:image/svg+xml;base64," + u.split(",")[1];
@@ -347,8 +361,52 @@ function bulkFiles(files) {
   if (unmatched.length) queue = queue.then(() => status(`Not matched to a document: ${unmatched.join(", ")}. Name files starting with the PDF code, or add them to a module directly.`, "err"));
 }
 
+/* ---------- Zip files (stored, no compression, so big PDFs are not copied or recompressed) ---------- */
+const CRC_T = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+const crc32 = u8 => { let c = -1; for (let i = 0; i < u8.length; i++) c = CRC_T[(c ^ u8[i]) & 255] ^ (c >>> 8); return (c ^ -1) >>> 0; };
+async function makeZip(entries) {
+  const enc = new TextEncoder(), parts = [], central = []; let off = 0;
+  for (const e of entries) {
+    const blob = e.data instanceof Blob ? e.data : new Blob([e.data]), name = enc.encode(e.name), size = blob.size;
+    if (size > 0xFFFFFFF0 || off > 0xFFFFFFF0) throw new Error("That folder is over 4 GB, which this zip writer can't make. Export fewer PDFs.");
+    const crc = crc32(new Uint8Array(await blob.arrayBuffer()));
+    const h = new DataView(new ArrayBuffer(30));
+    h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0x0800, true); h.setUint16(12, 0x21, true);
+    h.setUint32(14, crc, true); h.setUint32(18, size, true); h.setUint32(22, size, true); h.setUint16(26, name.length, true);
+    parts.push(h.buffer, name, blob);
+    const c = new DataView(new ArrayBuffer(46));
+    c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true); c.setUint16(8, 0x0800, true); c.setUint16(14, 0x21, true);
+    c.setUint32(16, crc, true); c.setUint32(20, size, true); c.setUint32(24, size, true); c.setUint16(28, name.length, true); c.setUint32(42, off, true);
+    central.push(c.buffer, name);
+    off += 30 + name.length + size;
+  }
+  const cd = central.reduce((t, x) => t + x.byteLength, 0), end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0, 0x06054b50, true); end.setUint16(8, entries.length, true); end.setUint16(10, entries.length, true); end.setUint32(12, cd, true); end.setUint32(16, off, true);
+  return new Blob([...parts, ...central, end.buffer], { type: "application/zip" });
+}
+async function readZip(file) {
+  const tail = new DataView(await file.slice(Math.max(0, file.size - 70000)).arrayBuffer());
+  let p = tail.byteLength - 22; while (p >= 0 && tail.getUint32(p, true) !== 0x06054b50) p--;
+  if (p < 0) throw new Error("That isn't a zip file.");
+  const n = tail.getUint16(p + 10, true), cdSize = tail.getUint32(p + 12, true), cdOff = tail.getUint32(p + 16, true);
+  const cd = new DataView(await file.slice(cdOff, cdOff + cdSize).arrayBuffer()), dec = new TextDecoder(), entries = []; let q = 0;
+  for (let i = 0; i < n; i++) {
+    if (cd.getUint32(q, true) !== 0x02014b50) throw new Error("The zip file is damaged.");
+    const nl = cd.getUint16(q + 28, true), el = cd.getUint16(q + 30, true), cl = cd.getUint16(q + 32, true);
+    entries.push({ method: cd.getUint16(q + 10, true), csize: cd.getUint32(q + 20, true), off: cd.getUint32(q + 42, true), name: dec.decode(new Uint8Array(cd.buffer, q + 46, nl)) });
+    q += 46 + nl + el + cl;
+  }
+  return { entries, async blob(e) {
+    const lh = new DataView(await file.slice(e.off, e.off + 30).arrayBuffer()), start = e.off + 30 + lh.getUint16(26, true) + lh.getUint16(28, true);
+    const raw = file.slice(start, start + e.csize);
+    if (e.method === 0) return raw;
+    if (e.method === 8) return new Response(raw.stream().pipeThrough(new DecompressionStream("deflate-raw"))).blob();
+    throw new Error("That zip uses a compression this editor can't read.");
+  } };
+}
+
 /* ---------- Save, open, export ---------- */
-function download(name, text, type) { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 8000); }
+function download(name, data, type) { const a = document.createElement("a"), blob = data instanceof Blob ? data : new Blob([data], { type }); a.href = URL.createObjectURL(blob); a.download = name; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 60000); }
 const base = () => slug(C.brand.productName) + "-launch-story";
 /* A clean copy for sharing: no concept label and no editor-only notes about the files */
 function finalCopy() {
@@ -357,29 +415,97 @@ function finalCopy() {
   for (const d of [c.core, ...c.modules]) delete d.pdfName;
   return c;
 }
-function exportHtml(final) {
-  const is = issues(); const errs = is.filter(i => i.k === "err");
-  if (errs.length && !confirm(`There ${errs.length === 1 ? "is 1 error" : "are " + errs.length + " errors"} on the Check page. Export anyway?`)) return go("export");
+/* The checks and confirmations before any export; false means the user stopped */
+function preflight(final) {
+  const errs = issues().filter(i => i.k === "err");
+  if (errs.length && !confirm(`There ${errs.length === 1 ? "is 1 error" : "are " + errs.length + " errors"} on the Check page. Export anyway?`)) return go("export"), false;
   if (final) {
-    const draft = [C.core, ...modules()].filter(d => !d.images.length).map(d => d.name);
-    if (draft.length && !confirm(`${draft.length} document${draft.length > 1 ? "s have" : " has"} no PDF yet (${draft.slice(0, 4).join(", ")}${draft.length > 4 ? "…" : ""}). Their draft pages would be visible in the final copy. Export anyway?`)) return go("modules");
-    if (!C.brand.jobCode && !confirm("There is no job code. Export the final copy anyway?")) return go("brand");
+    const draft = [C.core, ...modules()].filter(d => !d.pdf).map(d => d.name);
+    if (draft.length && !confirm(`${draft.length} document${draft.length > 1 ? "s have" : " has"} no PDF yet (${draft.slice(0, 4).join(", ")}${draft.length > 4 ? "…" : ""}). Their draft pages would be visible in the final copy. Export anyway?`)) return go("modules"), false;
+    if (!C.brand.jobCode && !confirm("There is no job code. Export the final copy anyway?")) return go("brand"), false;
     const ph = placeholderHits();
-    if (ph.length && !confirm(`${ph.length} piece${ph.length > 1 ? "s" : ""} of placeholder wording found, for example: ${hitLabel(ph[0])}. Export the final copy anyway?`)) return go("export");
+    if (ph.length && !confirm(`${ph.length} piece${ph.length > 1 ? "s" : ""} of placeholder wording found, for example: ${hitLabel(ph[0])}. Export the final copy anyway?`)) return go("export"), false;
   }
-  const html = fillTemplate(final ? finalCopy() : C, true), name = base() + (final ? "-final.html" : "-offline.html");
-  download(name, html, "text/html");
-  status(`Exported ${name} (${fmtSize(html.length)}). ${final ? "This copy has no editor and no concept label." : "Open it with Wi-Fi off to check it."}`, "", 9000);
+  return true;
 }
-function saveProject() { download(base() + "-project.json", JSON.stringify({ hubEditorProject: 1, content: C }), "application/json"); dirty = false; status("Project saved. Reopen it any time with Open.", "", 6000); }
-function saveContentJs() {
-  const header = `/* ${C.brand.productName} launch story: CONTENT. Saved from the hub editor. Replace content.js in the hub folder with this file. */\n`;
-  download("content.js", header + "window.HUB = " + JSON.stringify(C, null, 2) + ";\n", "text/javascript"); status("content.js saved. Files embedded in it stay inside the file.", "", 6000);
+async function exportHtml(final) {
+  if (!preflight(final)) return;
+  try {
+    status("Building the single file…", "busy");
+    const c = final ? finalCopy() : clone(C);
+    for (const d of [c.core, ...c.modules]) if (isStored(d.pdf)) d.pdf = await readUri(STORE.get(d.pdf));
+    const html = fillTemplate(c, true), name = base() + (final ? "-final.html" : "-offline.html");
+    download(name, html, "text/html");
+    status(`Exported ${name} (${fmtSize(html.length)}). ${final ? "This copy has no editor and no concept label." : "Open it with Wi-Fi off to check it."}`, "", 9000);
+  } catch (e) { status("Couldn't build the single file (it may be too large). Use the website folder instead. " + (e.message || ""), "err"); }
+}
+const EXT = { "image/svg+xml": "svg", "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "image/gif": "gif", "font/woff": "woff", "font/woff2": "woff2", "font/ttf": "ttf", "font/otf": "otf" };
+const dataMime = u => u.slice(5, u.indexOf(";"));
+const SITE_NOTES = `HOSTING NOTES
+=============
+Upload everything in this folder to your web host, keeping the folder layout. Open index.html on the host to check it.
+
+Protect the WHOLE folder, not just index.html. If login only guards the page, anyone who knows the address of a file in assets/pdfs/ can still download it. Put the login (and the consent step) in front of every request to this folder.
+
+Per-PDF logging: every document is its own file in assets/pdfs/. Each download is one request in your server's access log, so you can count them per PDF and per signed-in user. The page adds a marker to the address so you can tell how the file was used:
+  assets/pdfs/PA-MOD-02.pdf?via=download   the reader downloaded that one PDF
+  assets/pdfs/PA-MOD-02.pdf?via=pack       the file was read to build a merged pack
+The page images in assets/pages/ are only for the on-screen viewer: leave them out of download counts.
+
+Large PDFs: the server should send assets/pdfs/ with the correct type (application/pdf), allow range requests (most do), and not cache signed-in content in shared caches. Merging a very large pack happens in the reader's browser, so a pack of several hundred MB may fail on a phone: the separate downloads still work.
+
+Open index.html straight from your computer and the page works, but merging a pack needs a web host (browsers block reading files from a local folder).
+`;
+async function exportSite(final) {
+  if (!preflight(final)) return;
+  try {
+    status("Building the website folder…", "busy");
+    const root = slug(C.brand.productName) + "-hub/", c = final ? finalCopy() : clone(C), entries = [], names = new Set();
+    const add = (name, data) => entries.push({ name: root + name, data });
+    const uniq = (dir, stem, ext) => { let n = stem, i = 2; while (names.has(dir + n + ext)) n = stem + "-" + i++; names.add(dir + n + ext); return dir + n + ext; };
+    for (const d of [c.core, ...c.modules]) {
+      const stem = String(d.code || d.id || "doc").replace(/[^A-Za-z0-9._-]+/g, "-");
+      if (isStored(d.pdf)) { const f = uniq("assets/pdfs/", stem, ".pdf"); add(f, STORE.get(d.pdf)); d.pdf = f; }
+      d.images = (d.images || []).map((u, i) => { if (!isData(u)) return u; const f = uniq("assets/pages/", `${stem}-${pad2(i + 1)}`, ".jpg"); add(f, new Blob([dataBytes(u)], { type: "image/jpeg" })); return f; });
+      delete d.pdfName;
+    }
+    if (isData(c.brand.logo)) { const f = uniq("assets/logo/", "logo", "." + (EXT[dataMime(c.brand.logo)] || "png")); add(f, new Blob([dataBytes(c.brand.logo)])); c.brand.logo = f; }
+    for (const k of Object.keys(c.brand.fonts || {})) { const u = c.brand.fonts[k]; if (isData(u)) { const f = uniq("assets/fonts/", "custom-" + k, "." + (EXT[dataMime(u)] || "woff")); add(f, new Blob([dataBytes(u)])); c.brand.fonts[k] = f; } }
+    const fonts = [...FONTS_EXPORT.matchAll(/url\(data:font\/woff;base64,([^)]+)\)/g)];
+    fonts.forEach((m, i) => { if (DEFAULT_FONTS[i]) add("assets/fonts/" + DEFAULT_FONTS[i], new Blob([dataBytes("data:;base64," + m[1])])); });
+    const veeva = c.veeva && c.veeva.include;
+    add("index.html", veeva ? SITE_INDEX.replace(SCRIPT_OPEN + ' src="content.js">', SCRIPT_OPEN + ' src="veeva-library.js">' + SCRIPT_CLOSE + "\n" + SCRIPT_OPEN + ' src="content.js">') : SITE_INDEX);
+    add("content.js", `/* ${c.brand.productName} launch story: content for the website folder. Edit it in the hub editor, or by hand (paths point at the files in assets/). */\nwindow.HUB = ${JSON.stringify(c, null, 2)};\n`);
+    add("lib/pdf-lib.min.js", PDFLIB_SRC);
+    add("HOSTING-NOTES.txt", SITE_NOTES);
+    const zip = await makeZip(entries), name = slug(C.brand.productName) + "-hub" + (final ? "" : "-working") + ".zip";
+    download(name, zip);
+    const nPdf = entries.filter(e => e.name.includes("/assets/pdfs/")).length;
+    status(`Exported ${name} (${fmtSize(zip.size)}, ${nPdf} PDF${nPdf === 1 ? "" : "s"}). Unzip it and upload the folder to your host.`, "", 12000);
+  } catch (e) { status("Couldn't build the website folder: " + (e.message || e), "err"); }
+}
+async function saveProject() {
+  try {
+    const c = clone(C), entries = []; let n = 0;
+    for (const d of [c.core, ...c.modules]) if (isStored(d.pdf)) { const f = `files/pdf-${++n}.pdf`; entries.push({ name: f, data: STORE.get(d.pdf) }); d.pdf = "@zip:" + f; }
+    entries.unshift({ name: "project.json", data: JSON.stringify({ hubEditorProject: 2, content: c }) });
+    const zip = await makeZip(entries); download(base() + "-project.zip", zip);
+    dirty = false; status(`Project saved (${fmtSize(zip.size)}). Reopen it any time with Open.`, "", 6000);
+  } catch (e) { status("Couldn't save the project: " + (e.message || e), "err"); }
 }
 async function openFile(file) {
   try {
-    const text = await file.text(); let obj;
-    if (/^\s*[{\[]/.test(text)) { const j = JSON.parse(text); obj = j.content || j; } else obj = parseJs(text);
+    let obj;
+    if (/\.zip$/i.test(file.name)) {
+      const z = await readZip(file), pj = z.entries.find(e => e.name === "project.json"); if (!pj) throw new Error("That zip isn't a hub project.");
+      const j = JSON.parse(await (await z.blob(pj)).text()); obj = j.content;
+      for (const d of [obj.core, ...obj.modules]) if (typeof d.pdf === "string" && d.pdf.startsWith("@zip:")) {
+        const e = z.entries.find(x => x.name === d.pdf.slice(5)); d.pdf = e ? putStore(new Blob([await z.blob(e)], { type: "application/pdf" })) : "";
+      }
+    } else {
+      const text = await file.text();
+      if (/^\s*[{\[]/.test(text)) { const j = JSON.parse(text); obj = j.content || j; } else obj = parseJs(text);
+    }
     if (dirty && !confirm("Replace the current project? Unsaved changes will be lost.")) return;
     C = normalize(obj); tidy(); dirty = false; renderSide(); renderForm(false); reloadPreview(); status(`Opened ${file.name}.`, "", 5000);
   } catch (e) { status("Couldn't open that file: " + (e.message || e), "err"); }
@@ -421,7 +547,8 @@ document.addEventListener("click", e => {
   else if (act === "exportHtml") exportHtml(false);
   else if (act === "exportFinal") exportHtml(true);
   else if (act === "saveProject") saveProject();
-  else if (act === "saveContentJs") saveContentJs();
+  else if (act === "exportSite") exportSite(true);
+  else if (act === "exportSiteWorking") exportSite(false);
   else if (act === "reloadPreview") reloadPreview();
 });
 // Drag and drop onto file slots and the bulk drop zone
@@ -437,6 +564,6 @@ document.addEventListener("dragover", e => e.preventDefault()); document.addEven
 addEventListener("beforeunload", e => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
 
 /* ---------- Test hooks and start ---------- */
-window.__editor = { get content() { return C; }, set content(v) { C = normalize(v); tidy(); renderSide(); renderForm(false); reloadPreview(); }, buildExport: () => fillTemplate(C, true), issues, go };
+window.__editor = { get content() { return C; }, set content(v) { C = normalize(v); tidy(); renderSide(); renderForm(false); reloadPreview(); }, buildExport: () => fillTemplate(C, true), exportSite, exportHtml, saveProject, openFile, makeZip, readZip, STORE, issues, go };
 tidy(); renderSide(); renderForm(false); reloadPreview();
 })();

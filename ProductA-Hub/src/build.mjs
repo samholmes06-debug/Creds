@@ -46,6 +46,7 @@ const editor = fill(read("src/editor.html"), {
   EDITOR_JS: read("src/editor.js"),
   FONTS_UI: fontsCss("data"),
   TEMPLATE: escClose(tplForEditor),
+  SITE_INDEX: escClose(index),
   FONTS_EXPORT: escClose(fontsCss("data")),
   CONTENT_DEFAULT: escClose(read("content.js")),
   LOGO_PLACEHOLDER: escClose(read("assets/logo/placeholder-logo.svg")),
