@@ -14,11 +14,10 @@
   <header class="tb">
     <div class="tb-brand"><i></i><b>Hub editor</b><span id="projName"></span></div>
     <div class="tb-actions">
-      <label class="tbtn">Open…<input type="file" id="openFile" accept=".zip,.json,.js,application/zip,application/json,text/javascript" hidden></label>
-      <button class="tbtn" type="button" data-act="saveProject">Save project</button>
-      <button class="tbtn primary" type="button" data-act="exportSite">Export clean site ↓</button>
-      <button class="tbtn" type="button" data-act="exportEditable">Editable folder ↓</button>
-      <button class="tbtn" type="button" data-act="exportFinal">Single file ↓</button>
+      <button class="tbtn primary" type="button" data-act="backToSite" id="backBtn" hidden>← Back to site</button>
+      <label class="tbtn">Open content…<input type="file" id="openFile" accept=".zip,.json,.js,application/zip,application/json,text/javascript" hidden></label>
+      <button class="tbtn" type="button" data-act="saveProject">Save my content</button>
+      <button class="tbtn primary" type="button" data-act="exportSite">Export site ↓</button>
     </div>
   </header>
   <div class="statusbar" id="status" role="status"><span id="statusText">Ready. Changes show in the preview straight away. Save your project before closing this page.</span></div>
@@ -36,7 +35,6 @@
 <script type="text/plain" id="tpl">{{TEMPLATE}}</script>
 <script type="text/plain" id="fontsExport">{{FONTS_EXPORT}}</script>
 <script type="text/plain" id="contentDefault">{{CONTENT_DEFAULT}}</script>
-<script type="text/plain" id="edLoader">{{LOADER}}</script>
 <script type="text/plain" id="siteIndex">{{SITE_INDEX}}</script>
 <script type="text/plain" id="logoPlaceholder">{{LOGO_PLACEHOLDER}}</script>
 <script id="pdflib">{{PDFLIB}}</script>

@@ -400,103 +400,103 @@ addEventListener("resize", onScroll);
 
 /* ---------- Render ---------- */
 function renderAll() { renderChoices(); renderChapters(); renderPack(); syncPrompts(); }
-function boot() { sanitizeState(); applyBrand(); bindStatic(); renderStats(); renderAll(); onScroll(); if (window.hubConsentLink) window.hubConsentLink(); if (window.hubSigninLink) window.hubSigninLink(); }
+function applySections() { const v = HUB.sections || {}; [["stats", "stats"], ["story", "story"], ["tl", "timeline"]].forEach(([id, k]) => { const el = document.getElementById(id); if (el) el.hidden = v[k] === false; }); }
+function boot() { applySections(); sanitizeState(); applyBrand(); bindStatic(); renderStats(); renderAll(); onScroll(); if (window.hubConsentLink) window.hubConsentLink(); }
 
 // Live updates from the editor's preview. Only attached in the editor's preview, never in a file that is shared.
-/*CONSENT_START*/
-/* ---------- Consent step and optional usage statistics ----------
-   Off unless HUB.consent.enabled. Removed from exported files when switched off.
-   This is a notice and a record, not security: the server must also refuse pages and PDFs to anyone without a recorded consent.
-   With consent.endpoint set, the record is sent to that address (the reader's login identifies them there, the page sends no name).
-   Without it, the choice is only remembered in this browser, which is fine for testing but is not evidence. */
+
+
+
+
+/*FLOW_START*/
+/* ---------- Mock sign-in screen, consent screen, and optional usage statistics ----------
+   Both screens are off unless switched on in the editor, and are removed from the file when both are off.
+   The sign-in screen is a MOCK: its button just continues. Real sign-in is done by the host (server) later.
+   The consent screen is a notice and a record, not security: the server must also refuse pages and PDFs to anyone with no recorded consent.
+   With consent.endpoint set, the record is sent to that address (the login identifies the reader there; the page sends no name).
+   Without it, the choice is only remembered for this browser tab, which is fine for a mock-up but is not a record. */
 (() => {
-  const cfg = () => HUB.consent || {};
+  const cons = () => HUB.consent || {}, sign = () => HUB.signin || {};
   const sid = Math.random().toString(36).slice(2, 10);   // per page load, not stored, not linked to a person
   let analyticsOn = false;
-  const LS = "hubConsent:";
-  const lsGet = v => { try { return JSON.parse(localStorage.getItem(LS + v) || "null"); } catch (e) { return null; } };
-  const lsSet = (v, o) => { try { localStorage.setItem(LS + v, JSON.stringify(o)); } catch (e) {} };
+  const ss = { get: k => { try { return JSON.parse(sessionStorage.getItem(k) || "null"); } catch (e) { return null; } }, set: (k, v) => { try { sessionStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }, del: k => { try { sessionStorage.removeItem(k); } catch (e) {} } };
   const post = (url, body) => fetch(url, { method: "POST", credentials: "include", headers: { "content-type": "application/json" }, body: JSON.stringify(body), keepalive: true }).then(r => { if (!r.ok) throw new Error("status " + r.status); });
 
   window.hubTrack = (name, id, desc) => {
-    const c = cfg(); if (!c.enabled || !c.analytics || !analyticsOn || !c.eventsEndpoint || window.HUB_PREVIEW) return;
+    const c = cons(); if (!c.enabled || !c.analytics || !analyticsOn || !c.eventsEndpoint || window.HUB_PREVIEW) return;
     const body = JSON.stringify({ event: name, id: String(id || ""), desc: String(desc || "").slice(0, 120), session: sid, consentVersion: c.version || "1", t: new Date().toISOString() });
     try { if (!(navigator.sendBeacon && navigator.sendBeacon(c.eventsEndpoint, new Blob([body], { type: "application/json" })))) fetch(c.eventsEndpoint, { method: "POST", credentials: "include", headers: { "content-type": "application/json" }, body, keepalive: true }).catch(() => {}); } catch (e) {}
   };
 
-  function gate(existing, demo) {
-    const c = cfg(), root = document.documentElement;
-    root.classList.add("consent-wait");
-    const el = document.createElement("div"); el.id = "consentGate"; el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true"); el.setAttribute("aria-labelledby", "cgTitle");
-    const link = c.privacyUrl ? ` <a href="${esc(c.privacyUrl)}" target="_blank" rel="noopener">Privacy notice</a>` : "";
-    el.innerHTML = `<div class="cg-card"><div class="label">${esc((HUB.brand || {}).productName || "")}</div><h2 id="cgTitle">${esc(c.title || "Before you continue")}</h2>
-      <p>${esc(c.intro || "")}</p>
+  const root = document.documentElement;
+  function overlay(inner) {
+    const old = document.getElementById("consentGate"); if (old) old.remove();
+    const el = document.createElement("div"); el.id = "consentGate"; el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true");
+    el.innerHTML = `<div class="cg-card"><div class="cg-brand">${mark()}</div><div class="cg-bar"></div>${inner}</div>`;
+    root.classList.add("consent-wait"); document.body.append(el); return el;
+  }
+  const close = () => { const el = document.getElementById("consentGate"); if (el) el.remove(); root.classList.remove("consent-wait"); };
+
+  function signinGate(next) {
+    const s = sign(), el = overlay(`<h2>${esc(s.title || "Sign in")}</h2>${s.intro ? `<p>${esc(s.intro)}</p>` : ""}
+      <div class="cg-row"><button type="button" class="cg-go" id="sgGo">${esc(s.button || "Sign in")}</button></div>
+      ${s.help ? `<div class="cg-help"><b>${esc(s.helpTitle || "Need access?")}</b><p>${esc(s.help)}</p></div>` : ""}<p class="cg-note">Mock-up: this button just continues. Real sign-in is added on the server later.</p>`);
+    const go = el.querySelector("#sgGo"); go.addEventListener("click", () => { ss.set("hubMockSignin", 1); close(); next(); }); go.focus();
+  }
+
+  function consentGate(existing, demo, done) {
+    const c = cons(), link = c.privacyUrl ? ` <a href="${esc(c.privacyUrl)}" target="_blank" rel="noopener">Privacy notice</a>` : "";
+    const el = overlay(`<h2 id="cgTitle">${esc(c.title || "Before you continue")}</h2><p>${esc(c.intro || "")}</p>
       <label class="cg-tick"><input type="checkbox" id="cgReq"> <span>${esc(c.requiredLabel || "I confirm I am a healthcare professional.")}</span></label>
       ${c.analytics ? `<label class="cg-tick"><input type="checkbox" id="cgAn"> <span>${esc(c.analyticsLabel || "Allow anonymous usage statistics.")}</span></label>` : ""}
-      <p class="cg-note">${esc(c.notice || "")}${link}</p>
-      <p class="cg-err" id="cgErr" role="alert" hidden></p>
-      <div class="cg-row"><button type="button" class="cg-go" id="cgGo" disabled>${esc(c.button || "Continue")}</button>${demo || existing ? `<button type="button" class="cg-cancel" id="cgCancel">Close</button>` : ""}</div></div>`;
-    document.body.append(el);
+      <p class="cg-note">${esc(c.notice || "")}${link}</p><p class="cg-err" id="cgErr" role="alert" hidden></p>
+      <div class="cg-row"><button type="button" class="cg-go" id="cgGo" disabled>${esc(c.button || "Continue")}</button>${demo || existing ? `<button type="button" class="cg-cancel" id="cgCancel">Close</button>` : ""}</div>`);
     const req = el.querySelector("#cgReq"), an = el.querySelector("#cgAn"), go = el.querySelector("#cgGo"), err = el.querySelector("#cgErr");
     if (existing) { req.checked = true; if (an) an.checked = !!existing.analytics; go.disabled = false; go.textContent = "Save my choice"; }
     req.addEventListener("change", () => { go.disabled = !req.checked; });
-    const close = () => { el.remove(); root.classList.remove("consent-wait"); };
     const cancel = el.querySelector("#cgCancel"); if (cancel) cancel.addEventListener("click", close);
     go.addEventListener("click", async () => {
       const rec = { version: c.version || "1", required: true, analytics: !!(an && an.checked), t: new Date().toISOString() };
       go.disabled = true; err.hidden = true;
       try {
-        if (demo) { /* preview only: nothing is recorded */ }
-        else if (c.endpoint) await post(c.endpoint, rec);
-        else lsSet(rec.version, rec);
-        analyticsOn = rec.analytics; close();
-        if (!demo) { window.hubTrack && window.hubTrack("page_view", location.pathname, document.title); }
+        if (c.endpoint && !demo) await post(c.endpoint, rec); else if (!demo) ss.set("hubConsent:" + rec.version, rec);
+        analyticsOn = rec.analytics; close(); if (done) done();
+        if (!demo) window.hubTrack("page_view", location.pathname, document.title);
       } catch (e) { err.textContent = "Your choice couldn't be recorded. Check your connection and try again."; err.hidden = false; go.disabled = false; }
     });
     req.focus();
   }
 
   async function start() {
-    const c = cfg(); if (!c.enabled || window.HUB_PREVIEW) return;
-    let existing = null;
-    try {
-      if (c.endpoint) { const r = await fetch(c.endpoint, { credentials: "include" }); if (r.ok && r.status !== 204) { const j = await r.json(); if (j && j.version === (c.version || "1")) existing = j; } }
-      else { const j = lsGet(c.version || "1"); if (j) existing = j; }
-    } catch (e) { /* the server could not be reached: ask again rather than let the reader through unrecorded */ }
-    if (existing) { analyticsOn = !!existing.analytics; window.hubTrack && window.hubTrack("page_view", location.pathname, document.title); }
-    else gate(null, false);
+    if (window.HUB_PREVIEW) return;
+    const s = sign(), c = cons();
+    const afterSignin = async () => {
+      if (!c.enabled) return;
+      let existing = null;
+      try {
+        if (c.endpoint) { const r = await fetch(c.endpoint, { credentials: "include" }); if (r.ok && r.status !== 204) { const j = await r.json(); if (j && j.version === (c.version || "1")) existing = j; } }
+        else existing = ss.get("hubConsent:" + (c.version || "1"));
+      } catch (e) { /* server unreachable: ask again rather than let the reader through unrecorded */ }
+      if (existing) { analyticsOn = !!existing.analytics; window.hubTrack("page_view", location.pathname, document.title); } else consentGate(null, false);
+    };
+    if (s.enabled && !ss.get("hubMockSignin")) signinGate(afterSignin); else afterSignin();
   }
   window.hubConsentLink = () => {
-    const c = cfg(); const f = document.getElementById("footerInner"); if (!f || !c.enabled || f.querySelector("[data-consent-link]")) return;
+    const c = cons(), f = document.getElementById("footerInner"); if (!f || !c.enabled || f.querySelector("[data-consent-link]")) return;
     const b = document.createElement("button"); b.type = "button"; b.className = "cg-link"; b.dataset.consentLink = "1"; b.textContent = c.analytics ? "Privacy and usage choices" : "Privacy";
-    b.addEventListener("click", () => { if (!document.getElementById("consentGate")) gate({ analytics: analyticsOn }, false); });
+    b.addEventListener("click", () => { if (!document.getElementById("consentGate")) consentGate({ analytics: analyticsOn }, false); });
     f.append(b);
   };
-  window.hubConsentDemo = () => { if (!document.getElementById("consentGate")) gate(null, true); };
+  window.hubFlowRestart = () => { ss.del("hubMockSignin"); ss.del("hubConsent:" + (cons().version || "1")); start(); };
+  window.hubConsentDemo = () => { if (!document.getElementById("consentGate")) consentGate(null, true); };
   start();
 })();
-/*CONSENT_END*/
+/*FLOW_END*/
 
-/*SIGNIN_START*/
-/* ---------- Signed-in name and sign-out link (only when the sign-in page option is on) ----------
-   The login itself is done by the hosting layer (Azure or the client's SSO), never by this page. This only shows who the
-   login says is signed in, using the address the host provides (for Azure: /.auth/me). */
-(() => {
-  const cfg = () => HUB.signin || {};
-  window.hubSigninLink = async () => {
-    const c = cfg(), f = document.getElementById("footerInner");
-    if (!f || !c.enabled || c.showUser === false || window.HUB_PREVIEW || f.querySelector("[data-who]")) return;
-    try {
-      const r = await fetch(c.whoUrl || "/.auth/me", { credentials: "include" }); if (!r.ok) return;
-      const j = await r.json(), p = j && j.clientPrincipal ? j.clientPrincipal : Array.isArray(j) ? j[0] : j;
-      const name = p && (p.userDetails || p.user_id || p.name || p.email); if (!name) return;
-      const el = document.createElement("p"); el.dataset.who = "1";
-      el.innerHTML = `Signed in as <b>${esc(String(name).slice(0, 80))}</b>${c.signoutUrl ? ` · <a href="${esc(c.signoutUrl)}">Sign out</a>` : ""}`;
-      f.append(el);
-    } catch (e) { /* no login service here (for example a local test): show nothing */ }
-  };
-})();
-/*SIGNIN_END*/
+/*EDIT_START*/
+// The hidden editor (working copy only) pushes edits into the page behind it with this
+window.__applyContent = c => { HUB = c; window.HUB = c; boot(); };
+/*EDIT_END*/
 
 /*PREVIEW_START*/
 // The editor pushes new content into its preview with postMessage({ type: "hub-content", content })

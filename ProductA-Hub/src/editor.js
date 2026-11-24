@@ -26,7 +26,7 @@ const DEFAULT_FONTS = ["gsk-light.woff", "gsk-regular.woff", "gsk-regularitalic.
 const SCRIPT_OPEN = "<" + "script", SCRIPT_CLOSE = "<" + "/script>";
 const T = id => document.getElementById(id).textContent.split("<\\" + "/script").join("<" + "/script");
 const TPL = T("tpl"), FONTS_EXPORT = T("fontsExport"), CONTENT_DEFAULT = T("contentDefault"), LOGO_SVG = T("logoPlaceholder");
-const SITE_INDEX = T("siteIndex"), LOADER = T("edLoader");
+const SITE_INDEX = T("siteIndex");
 const PDFLIB_SRC = document.getElementById("pdflib").textContent;
 const svgUri = svg => "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svg)));
 function parseJs(text) { const w = {}; new Function("window", text)(w); if (!w.HUB) throw new Error("No window.HUB found in that file."); return w.HUB; }
@@ -40,7 +40,8 @@ const DEFAULT = (() => {
 })();
 
 /* ---------- State ---------- */
-let C = window.__HANDOFF ? clone(window.__HANDOFF) : clone(DEFAULT);
+const HANDOFF = window.__HANDOFF || (window.parent !== window ? (() => { try { return window.parent.__HANDOFF; } catch (e) { return null; } })() : null);
+let C = HANDOFF ? normalize(clone(HANDOFF)) : clone(DEFAULT);
 let dirty = false;
 let section = "brand";
 const getP = (path, root = C) => path.split(".").reduce((a, k) => (a == null ? a : a[k]), root);
@@ -72,7 +73,7 @@ const docs = () => [{ id: "core", name: C.core.name, path: "core" }, ...modules(
 let statusTimer;
 function status(msg, kind = "", ms = 0) {
   const el = $("#status"); el.className = "statusbar " + kind; $("#statusText").textContent = msg;
-  clearTimeout(statusTimer); if (ms) statusTimer = setTimeout(() => status("Ready. Changes show in the preview straight away. Save your project before closing this page."), ms);
+  clearTimeout(statusTimer); if (ms) statusTimer = setTimeout(() => status("Ready. Changes show in the preview straight away. Save your content before closing this page."), ms);
 }
 
 /* ---------- Preview ---------- */
@@ -81,20 +82,19 @@ let frameReady = false, sendTimer;
 const ensureObj = k => { if (!C[k] || typeof C[k] !== "object") C[k] = {}; };
 const consentOn = c => !!(c.consent && c.consent.enabled);
 const stripMarked = (t, n) => { const a = t.indexOf(`/*${n}_START*/`), b = t.indexOf(`/*${n}_END*/`); return a > -1 && b > a ? t.slice(0, a) + t.slice(b + `/*${n}_END*/`.length) : t; };
-const stripConsent = t => stripMarked(t, "CONSENT"), signinOn = c => !!(c.signin && c.signin.enabled), stripSignin = t => stripMarked(t, "SIGNIN");
+const signinOn = c => !!(c.signin && c.signin.enabled), flowOn = c => consentOn(c) || signinOn(c), stripFlow = t => stripMarked(t, "FLOW");
 function fillTemplate(content, forExport) {
   const json = JSON.stringify(content).split("</").join("<\\/");
   const preview = forExport ? "" : "window.HUB_PREVIEW = true; ";
-  const libs = `${SCRIPT_OPEN}>${PDFLIB_SRC}${SCRIPT_CLOSE}` + (forExport && content.veeva && content.veeva.include ? `\n${SCRIPT_OPEN} src="veeva-library.js">${SCRIPT_CLOSE}` : "");
+  const libs = `${SCRIPT_OPEN}>${PDFLIB_SRC}${SCRIPT_CLOSE}`;
   // Shared files never carry the editor's live-preview code
   let tpl = TPL; if (forExport) { const a = tpl.indexOf("/*PREVIEW_START*/"), b = tpl.indexOf("/*PREVIEW_END*/"); if (a > -1 && b > a) tpl = tpl.slice(0, a) + tpl.slice(b + "/*PREVIEW_END*/".length); }
-  if (forExport && !consentOn(content)) tpl = stripConsent(tpl);
-  if (forExport && !signinOn(content)) tpl = stripSignin(tpl);
+  if (forExport && !flowOn(content)) tpl = stripFlow(tpl);
   const map = { TITLE: esc(content.brand.pageTitle || content.brand.productName + " launch story"), FONTS_CSS: FONTS_EXPORT, LIBS: libs, CONTENT: `${SCRIPT_OPEN}>${preview}window.HUB = ${json};${SCRIPT_CLOSE}` };
   return Object.entries(map).reduce((s, [k, v]) => s.split(`{{${k}}}`).join(v), tpl);
 }
 function reloadPreview() { frameReady = false; frame.onload = () => { frameReady = true; }; frame.srcdoc = fillTemplate(withPdfUrls(clone(C)), false); }
-function touch() { dirty = true; updateSide(); clearTimeout(sendTimer); sendTimer = setTimeout(() => { if (frameReady) frame.contentWindow.postMessage({ type: "hub-content", content: withPdfUrls(clone(C)) }, "*"); }, 350); }
+function touch() { dirty = true; updateSide(); clearTimeout(sendTimer); sendTimer = setTimeout(() => { try { if (window.parent !== window && window.parent.__applyContent) window.parent.__applyContent(withPdfUrls(clone(C))); } catch (e) {} if (frameReady) frame.contentWindow.postMessage({ type: "hub-content", content: withPdfUrls(clone(C)) }, "*"); }, 350); }
 function gotoPreview(id) { if (frameReady) frame.contentWindow.postMessage({ type: "hub-goto", id }, "*"); }
 
 /* ---------- Form building blocks ---------- */
@@ -214,36 +214,25 @@ const SECTIONS = [
     `${fText("Pack heading", "finale.title")}${fArea("Pack text", "finale.sub")}
      <h2>Approved email</h2>${fArea("Closing paragraph", "email.closing")}${fArea("Sign-off", "email.signoff", { rows: 4 })}
      <h2>Footer</h2>${fText("First line", "legal.title")}${strs("legal.paragraphs", "Legal text", 3)}`) },
-  { id: "signin", title: "Sign-in page (optional)", goto: "top", render: () => frameSection("Sign-in page", "A branded sign-in page for the website folder. It only carries your look: the real login is done by the host (Azure or the client's SSO), and each button goes to the host's login address.",
-    `${fCheck("Make a branded sign-in page (signin.html)", "signin.enabled", "Switch it off and export again and it is left out.")}
-     ${fText("Title", "signin.title")}${fArea("Introduction", "signin.intro", { rows: 2 })}
-     <h2>Sign-in buttons</h2><p class="small" style="margin:-4px 0 10px">One button per login option. The first is the main one. Each address is what the host gives you for signing in.</p>
-     ${cards("signin.providers", "provider", "sign-in button", (it, i) => it.label || "Sign-in button " + (i + 1), (it, i, p) => `<div class="cols">${fText("Button text", p + ".label")}${fText("Login address", p + ".url", { ph: "/.auth/login/aad" })}</div>`)}
-     <div class="cols"><button class="bigbtn line" type="button" data-act="signinAzure">Fill for Azure (Microsoft Entra ID)</button><button class="bigbtn line" type="button" data-act="signinSso">Fill for the client's SSO</button></div>
-     <h2>Help text</h2>${fText("Heading", "signin.helpTitle")}${fArea("Text", "signin.help", { rows: 2 })}${fText("Small line at the bottom", "signin.note")}
-     <h2>After sign-in</h2>${fCheck("Show “Signed in as … · Sign out” in the page footer", "signin.showUser")}
-     <div class="cols">${fText("Who-is-signed-in address", "signin.whoUrl", { hint: "Azure Static Web Apps: /.auth/me" })}${fText("Sign-out address", "signin.signoutUrl", { hint: "Azure Static Web Apps: /.auth/logout" })}</div>
-     ${fCheck("Also write a starting Azure config (staticwebapp.config.json)", "signin.azureConfig", "For Azure Static Web Apps: requires sign-in for every file except this page, the fonts and the logo, and sends signed-out visitors here. A starting point only: check it against Azure's current guidance and test that a PDF address is refused when signed out.")}
-     <button class="bigbtn line" type="button" data-act="signinPreview">Preview the sign-in page</button>`) },
-  { id: "consent", title: "Consent and tracking (optional)", goto: "top", render: () => frameSection("Consent and tracking", "An optional step before the page opens, and optional usage statistics. Switch it off and export again and the code is gone from the file.",
-    `${fCheck("Show a consent step before the page", "consent.enabled", "This is a notice and a record, not security. Your server must also refuse pages and PDFs to anyone with no recorded consent.")}
+  { id: "signin", title: "Sign-in and consent screens", goto: "top", render: () => frameSection("Sign-in and consent screens", "The first two screens: a mock sign-in, then a tick-box consent screen, then the page. Switch either off and export again and its code is gone from the file.",
+    `<h2>1. Sign-in screen (mock-up)</h2>${fCheck("Show the sign-in screen", "signin.enabled", "A mock-up: the button just continues. Real sign-in is added on the server later, and then this screen is switched off.")}
+     ${fText("Title", "signin.title")}${fArea("Introduction", "signin.intro", { rows: 2 })}${fText("Button", "signin.button")}${fText("Help heading", "signin.helpTitle")}${fArea("Help text", "signin.help", { rows: 2 })}
+     <h2>2. Consent screen</h2>${fCheck("Show the consent screen", "consent.enabled", "A notice and a record, not security. The server must also refuse pages and PDFs to anyone with no recorded consent.")}
      <div class="cols">${fText("Wording version", "consent.version", { hint: "Change it when the wording changes: everyone is asked again." })}${fText("Button", "consent.button")}</div>
      ${fText("Title", "consent.title")}${fArea("Introduction", "consent.intro", { rows: 2 })}${fText("Required tick", "consent.requiredLabel")}
      ${fCheck("Also ask for optional usage statistics", "consent.analytics")}${fText("Optional tick", "consent.analyticsLabel")}
      ${fArea("What is recorded (short notice)", "consent.notice", { rows: 2 })}${fText("Privacy notice link", "consent.privacyUrl", { ph: "https://…" })}
-     <h2>Where it is recorded</h2><p class="small" style="margin:-4px 0 10px">Leave both blank to test: the choice is remembered in this browser only, which is not a record. For real use, give the addresses your server provides (see the README).</p>
-     ${fText("Consent address", "consent.endpoint", { ph: "/api/consent", hint: "GET returns this reader's record; POST saves it." })}${fText("Usage events address", "consent.eventsEndpoint", { ph: "/api/events", hint: "Only used if the reader ticked the optional box." })}
-     <button class="bigbtn line" type="button" data-act="consentDemo">Try the consent screen in the preview</button>`) },
-  { id: "veeva", title: "Veeva (optional)", goto: "pack", render: () => frameSection("Veeva CLM", "Only needed if the page will run inside Veeva. Inside Veeva, download buttons become “Send by Approved Email” and choices are tracked.",
-    `${fCheck("Include the Veeva library in the exported file", "veeva.include", "Adds a reference to veeva-library.js. Put that file (from your Veeva CLM resources) next to the exported file before zipping.")}
-     ${fText("Approved Email template ID", "veeva.emailTemplate")}${fText("Presentation ID (only if the PDF slides are in another presentation)", "veeva.presentationId")}${fCheck("Record choices and chapters as Call Clickstream", "veeva.trackEvents")}
-     <h2>Per document</h2><p class="small" style="margin:-4px 0 10px">The fragment ID is the Approved Email content block for that PDF. The slide name is optional: it lets “Open PDF” jump to a PDF slide in the meeting.</p>
-     ${docs().map(d => `<div class="card"><div class="card-h"><b>${esc(d.name)}</b></div><div class="cols">${fText("Fragment ID", "veeva.fragments." + d.id)}${fText("PDF slide name", "veeva.pdfSlides." + d.id)}</div></div>`).join("")}`) },
+     <button class="bigbtn line" type="button" data-act="replayFlow">Show me the sign-in and consent screens</button>
+     <h2>Later: connect to a server</h2><p class="small" style="margin:-4px 0 10px">Leave these blank for the mock-up (the choice is only remembered in this browser tab). When the server is ready, give the addresses it provides.</p>
+     ${fText("Consent address", "consent.endpoint", { ph: "/api/consent", hint: "GET returns this reader's record; POST saves it." })}${fText("Usage events address", "consent.eventsEndpoint", { ph: "/api/events", hint: "Only used if the reader ticked the optional box." })}`) },
+  { id: "sections", title: "Show or hide sections", goto: "top", render: () => frameSection("Show or hide sections", "Hide any part of the page you don't need. Your text is kept, so you can bring it back.",
+    `${fCheck("Key figures (the large numbers)", "sections.stats")}${fCheck("Story chapters", "sections.story")}${fCheck("Timeline (“Where we are”)", "sections.timeline")}
+     <p class="small">The opening screen and the pack builder are always shown, because they are the heart of the page.</p>`) },
   { id: "export", title: "Check and export", goto: "top", render: () => {
     const is = issues(), counts = { err: is.filter(i => i.k === "err").length, warn: is.filter(i => i.k === "warn").length };
-    return frameSection("Check and export", "Review these points, then export the website folder or a single offline file.",
-      `<button class="bigbtn primary" type="button" data-act="exportSite">Export website folder (.zip) ↓</button><button class="bigbtn line" type="button" data-act="exportFinal">Export single file ↓</button><button class="bigbtn line" type="button" data-act="exportEditable">Editable working folder (.zip) ↓</button><button class="bigbtn line" type="button" data-act="exportSiteWorking">Website folder with concept label ↓</button><button class="bigbtn line" type="button" data-act="exportHtml">Single file, working copy ↓</button><button class="bigbtn line" type="button" data-act="saveProject">Save project</button>
-        <p class="small" style="margin:0 0 14px"><b>Website folder</b> is the version to host: index.html, content.js, the fonts and logo, and each approved PDF as its own file in <code>assets/pdfs</code>, so every download is logged per PDF and readers can download one PDF or build and download a merged pack. No editor, no editing marks, no concept label. <b>Single file</b> is one offline page with everything inside, for email or CLM. <b>Editable working folder</b> is the same site with this editor hidden inside it: open its <code>index.html</code>, click the header 5 times quickly to edit, then export again. It keeps the concept label. The clean website folder has no editor and no concept label. <b>Save project</b> keeps your work (with the PDFs) as a zip so you can reopen it here.</p>
+    return frameSection("Check and export", "Review these points, then export the site.",
+      `<button class="bigbtn primary" type="button" data-act="exportSite">Export site (.zip) ↓</button><button class="bigbtn line" type="button" data-act="saveProject">Save my content ↓</button>
+        <p class="small" style="margin:0 0 14px"><b>Export site</b> makes the finished folder, with no editor in it: <code>index.html</code> plus the PDFs, page pictures, fonts and logo. This is what you host. <b>Save my content</b> keeps your wording and PDFs in one file so you can load them back later with <b>Open content…</b> at the top. Do both before you close the page.</p>
         <h2>Checks · ${counts.err} to fix · ${counts.warn} to review</h2>${is.map(i => `<div class="issue ${i.k}"><i>${{ err: "✕", warn: "!", info: "i", ok: "✓" }[i.k]}</i><div><b>${esc(i.t)}</b>${i.d ? `<span>${esc(i.d)}</span>` : ""}</div></div>`).join("")}`);
   } }
 ];
@@ -274,11 +263,6 @@ function issues() {
   all.forEach((d, i) => { const n = d.name || "Unnamed document"; if (!d.pdf) add(i === 0 ? "warn" : "info", `${n}: no PDF yet`, "Draft pages are shown in the viewer, and downloads say the PDF is not available yet."); else if (!isStored(d.pdf)) add("warn", `${n}: PDF linked by path`, "A linked file is not inside the exported file or website folder. Add the PDF with Choose PDF to include it."); if (!d.code) add("warn", `${n}: no PDF code`, "The code is used for file names and the viewer."); });
   if (isData(C.brand.logo) === false && C.brand.logo) add("warn", "Logo linked by path", "A linked logo is not inside the exported file. Add it with Choose file to embed it.");
   mo.forEach(m => { if (ids.has(m.id)) add("err", `Duplicate module id: ${m.id}`); ids.add(m.id); });
-  if (signinOn(C)) {
-    const pv = (C.signin.providers || []).filter(x => x.url);
-    if (!pv.length) add("warn", "The sign-in page has no working button", "Add at least one button with a login address.");
-    add("info", "The sign-in page only looks like your brand", "The host (Azure or the client's SSO) does the real login. Test that a PDF address is refused when signed out.");
-  }
   if (consentOn(C)) {
     const k = C.consent;
     if (!k.endpoint) add("warn", "Consent is not recorded on a server", "With no consent address the choice is remembered in the reader's browser only. Fine for testing, not as a record.");
@@ -318,7 +302,7 @@ function go(id) { section = id; renderSide(); renderForm(false); const s = SECTI
 /* ---------- Structure changes ---------- */
 const uid = (prefix, taken) => { let n = taken.length + 1, id; do { id = prefix + n++; } while (taken.includes(id)); return id; };
 const KINDS = {
-  str: () => "", pair: () => ["", ""], provider: () => ({ label: "Sign in", url: "" }),
+  str: () => "", pair: () => ["", ""],
   stakeholder: () => { const id = uid("s", C.stakeholders.map(x => x.id)); return { id, label: "New stakeholder", plural: "new stakeholders", desc: "" }; },
   engagement: () => { const id = uid("e", C.engagements.map(x => x.id)); return { id, label: "New engagement type", desc: "", subject: "", intro: "" }; },
   module: () => { const id = uid("m", modules().map(x => x.id)); return { id, name: "New module", short: "New module", question: "", code: "PA-MOD-" + String(modules().length + 1).padStart(2, "0"), pages: 1, pdf: "", images: [], intro: "", facts: [], pointsTitle: "", points: [] }; },
@@ -337,7 +321,6 @@ function tidy() {
   C.chapters.forEach(c => { if (c.module && !mids.includes(c.module)) c.module = ""; });
   C.stats.items.forEach(s => { if (s.module && !mids.includes(s.module)) s.module = ""; });
   const docIds = ["core", ...mids];
-  for (const k of ["fragments", "pdfSlides"]) { C.veeva[k] = C.veeva[k] || {}; for (const id of Object.keys(C.veeva[k])) if (!docIds.includes(id)) delete C.veeva[k][id]; }
 }
 function structure(act, arr, i, kind) {
   const list = ensureArr(arr);
@@ -465,19 +448,6 @@ function preflight(final) {
   }
   return true;
 }
-async function exportHtml(final) {
-  if (!preflight(final)) return;
-  try {
-    status("Building the single file…", "busy");
-    const c = final ? finalCopy() : clone(C);
-    if (!consentOn(c)) delete c.consent;
-    if (!signinOn(c)) delete c.signin;
-    for (const d of [c.core, ...c.modules]) if (isStored(d.pdf)) d.pdf = await readUri(STORE.get(d.pdf));
-    const html = fillTemplate(c, true), name = base() + (final ? "-final.html" : "-offline.html");
-    download(name, html, "text/html");
-    status(`Exported ${name} (${fmtSize(html.length)}). ${final ? "This copy has no editor and no concept label." : "Open it with Wi-Fi off to check it."}`, "", 9000);
-  } catch (e) { status("Couldn't build the single file (it may be too large). Use the website folder instead. " + (e.message || ""), "err"); }
-}
 const EXT = { "image/svg+xml": "svg", "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "image/gif": "gif", "font/woff": "woff", "font/woff2": "woff2", "font/ttf": "ttf", "font/otf": "otf" };
 const dataMime = u => u.slice(5, u.indexOf(";"));
 const SITE_NOTES = `HOSTING NOTES
@@ -506,52 +476,12 @@ async function pullLinked() {
   if (n) { renderForm(true); renderSide(); status(`Loaded ${n} PDF${n > 1 ? "s" : ""} from the site.`, "", 5000); }
 }
 const siteContent = c => SCRIPT_OPEN + ">window.HUB = " + JSON.stringify(c).split("</").join("<\\/") + ";" + SCRIPT_CLOSE;
-/* ---------- Branded sign-in page (presentation only: the host does the login) ---------- */
-function signinPage(c, inline) {
-  const k = c.signin || {}, b = c.brand || {}, acc = /^#[0-9a-f]{6}$/i.test(b.accent) ? b.accent : "#f36633";
-  const lin = h => { const r = [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255).map(v => v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4)); return .2126 * r[0] + .7152 * r[1] + .0722 * r[2]; };
-  const on = lin(acc) > .4 ? "#0d0e0f" : "#ffffff";
-  const fonts = inline ? FONTS_EXPORT : DEFAULT_FONTS.map((f, i) => `@font-face{font-family:"GSK";src:url(assets/fonts/${f}) format("woff");font-weight:${[300, 400, 400, 700][i]};font-style:${i === 2 ? "italic" : "normal"};font-display:swap}`).join("\n");
-  const logo = b.logo ? `<img class="logo" src="${esc(b.logo)}" alt="${esc(b.productName)}">` : `<span class="mark"><i></i>${esc(b.productName)}</span>`;
-  const btns = (k.providers || []).filter(p => p.url).map((p, i) => `<a class="btn${i ? " alt" : ""}" href="${esc(p.url)}">${esc(p.label || "Sign in")}</a>`).join("");
-  return `<!doctype html>
-<html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex, nofollow">
-<title>${esc(k.title || "Sign in")} · ${esc(b.productName || "")}</title>
-<style>
-${fonts}
-:root{--a:${acc};--on:${on}}
-*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;grid-template-rows:auto 1fr auto;font-family:"GSK",system-ui,sans-serif;color:#0d0e0f;background:#fff}
-header{padding:24px clamp(20px,5vw,56px)}.logo{height:30px;width:auto;display:block}.mark{display:inline-flex;align-items:center;gap:10px;font-weight:700}.mark i{width:14px;height:14px;border-radius:50%;background:var(--a)}
-main{display:grid;place-items:center;padding:20px}.card{width:min(520px,100%);display:grid;gap:18px}
-.bar{width:56px;height:6px;background:var(--a);border-radius:3px}h1{margin:0;font-size:clamp(34px,6vw,56px);line-height:1.05;font-weight:700;letter-spacing:-.02em}
-p{margin:0;line-height:1.55;color:#3b3e41}.btns{display:grid;gap:10px;margin-top:6px}
-.btn{display:block;text-align:center;text-decoration:none;font:inherit;font-weight:700;padding:16px 24px;border-radius:999px;background:var(--a);color:var(--on);border:2px solid var(--a)}
-.btn.alt{background:#fff;color:#0d0e0f;border-color:#0d0e0f}.btn:hover,.btn:focus-visible{outline:3px solid #0d0e0f;outline-offset:2px}
-.help{border-top:1px solid #d5d7d9;padding-top:18px;display:grid;gap:4px}.help b{font-size:15px}.help p{font-size:14.5px}
-footer{padding:20px clamp(20px,5vw,56px);font-size:12.5px;color:#6b7075}
-</style></head>
-<body><header>${logo}</header>
-<main><div class="card"><div class="bar"></div><h1>${esc(k.title || "Sign in")}</h1>${k.intro ? `<p>${esc(k.intro)}</p>` : ""}
-${btns ? `<div class="btns">${btns}</div>` : `<p><b>No sign-in button is set up yet.</b></p>`}
-${k.help ? `<div class="help"><b>${esc(k.helpTitle || "Need access?")}</b><p>${esc(k.help)}</p></div>` : ""}</div></main>
-<footer>${esc(k.note || "")}${k.note && b.jobCode ? " · " : ""}${b.jobCode ? "Job code " + esc(b.jobCode) : ""}</footer></body></html>
-`;
-}
-const SWA_CONFIG = c => JSON.stringify({
-  routes: [
-    { route: "/signin.html", allowedRoles: ["anonymous"] },
-    { route: "/assets/fonts/*", allowedRoles: ["anonymous"] },
-    { route: "/assets/logo/*", allowedRoles: ["anonymous"] },
-    { route: "/*", allowedRoles: ["authenticated"] }
-  ],
-  responseOverrides: { "401": { redirect: "/signin.html", statusCode: 302 } },
-  globalHeaders: { "X-Robots-Tag": "noindex, nofollow" }
-}, null, 2) + "\n";
-async function exportSite(final, working) {
-  if (!preflight(final && !working)) return;
+async function exportSite() {
+  const final = true;
+  if (!preflight(true)) return;
   try {
     status("Building the website folder…", "busy");
-    const root = slug(C.brand.productName) + "-hub/", c = final ? finalCopy() : clone(C), entries = [], names = new Set(), missing = [];
+    const root = slug(C.brand.productName) + "-site/", c = final ? finalCopy() : clone(C), entries = [], names = new Set(), missing = [];
     const add = (name, data) => entries.push({ name: root + name, data });
     const uniq = (dir, stem, ext) => { let n = stem, i = 2; while (names.has(dir + n + ext)) n = stem + "-" + i++; names.add(dir + n + ext); return dir + n + ext; };
     const keep = async u => { if (!u || isData(u) || /^(https?:)?\/\//i.test(u)) return; if (names.has(u)) return; const b = await pull(u); if (b) { names.add(u); add(u, b); } else missing.push(u); };
@@ -567,25 +497,15 @@ async function exportSite(final, working) {
     fonts.forEach((m, i) => { if (DEFAULT_FONTS[i]) add("assets/fonts/" + DEFAULT_FONTS[i], new Blob([dataBytes("data:;base64," + m[1])])); });
     if (!consentOn(c)) delete c.consent;
     if (!signinOn(c)) delete c.signin;
-    const veeva = c.veeva && c.veeva.include;
-    let page = (signinOn(c) ? (consentOn(c) ? SITE_INDEX : stripConsent(SITE_INDEX)) : stripSignin(consentOn(c) ? SITE_INDEX : stripConsent(SITE_INDEX))).split("{{CONTENT}}").join((veeva ? SCRIPT_OPEN + ' src="veeva-library.js">' + SCRIPT_CLOSE + "\n" : "") + siteContent(c));
-    if (working) {
-      // The editable copy carries the hidden editor (5 clicks on the header); it is stripped from the clean export
-      const html = window.__EDITOR_HTML; if (!html) throw new Error("The editor source isn't available here. Open editor.html or a working copy.");
-      const tail = SCRIPT_OPEN + ">" + LOADER + SCRIPT_CLOSE + "\n" + SCRIPT_OPEN + ' type="text/plain" id="edHtml">' + html.split("</" + "script").join("</scr" + "@@ipt") + SCRIPT_CLOSE + "\n</body>";
-      const at = page.lastIndexOf("</body>"); page = page.slice(0, at) + tail + page.slice(at + 7);
-    }
+    delete c.veeva;
+    let page = (flowOn(c) ? SITE_INDEX : stripFlow(SITE_INDEX)).split("{{CONTENT}}").join(siteContent(c));
     add("index.html", page);
-    if (signinOn(c)) {
-      add("signin.html", signinPage(c, false));
-      if (c.signin.azureConfig) add("staticwebapp.config.json", SWA_CONFIG(c));
-    }
     add("lib/pdf-lib.min.js", PDFLIB_SRC);
-    if (!working) add("HOSTING-NOTES.txt", SITE_NOTES);
-    const zip = await makeZip(entries), name = slug(C.brand.productName) + "-hub" + (working ? "-editable" : final ? "" : "-working") + ".zip";
+    add("HOSTING-NOTES.txt", SITE_NOTES);
+    const zip = await makeZip(entries), name = slug(C.brand.productName) + "-site.zip";
     download(name, zip);
     const nPdf = entries.filter(e => e.name.includes("/assets/pdfs/")).length;
-    status(`Exported ${name} (${fmtSize(zip.size)}, ${nPdf} PDF${nPdf === 1 ? "" : "s"}). ${working ? "Unzip it and open index.html; click the header 5 times to edit." : "Unzip it and upload the folder to your host."}${missing.length ? " Not found, so not included: " + missing.slice(0, 3).join(", ") + (missing.length > 3 ? "…" : "") + "." : ""}`, missing.length ? "err" : "", 14000);
+    status(`Exported ${name} (${fmtSize(zip.size)}, ${nPdf} PDF${nPdf === 1 ? "" : "s"}). Unzip it: index.html opens the finished site.${missing.length ? " " + missing.length + " sample file" + (missing.length > 1 ? "s" : "") + " could not be included (the browser can't read files from your computer). Add your own PDF to each document to include it." : ""}`, missing.length ? "err" : "", 14000);
   } catch (e) { status("Couldn't build the website folder: " + (e.message || e), "err"); }
 }
 async function saveProject() {
@@ -593,8 +513,8 @@ async function saveProject() {
     const c = clone(C), entries = []; let n = 0;
     for (const d of [c.core, ...c.modules]) if (isStored(d.pdf)) { const f = `files/pdf-${++n}.pdf`; entries.push({ name: f, data: STORE.get(d.pdf) }); d.pdf = "@zip:" + f; }
     entries.unshift({ name: "project.json", data: JSON.stringify({ hubEditorProject: 2, content: c }) });
-    const zip = await makeZip(entries); download(base() + "-project.zip", zip);
-    dirty = false; status(`Project saved (${fmtSize(zip.size)}). Reopen it any time with Open.`, "", 6000);
+    const zip = await makeZip(entries); download(base().replace("-launch-story", "") + "-content.zip", zip);
+    dirty = false; status(`Content saved (${fmtSize(zip.size)}). Load it back any time with Open content.`, "", 6000);
   } catch (e) { status("Couldn't save the project: " + (e.message || e), "err"); }
 }
 async function openFile(file) {
@@ -648,17 +568,11 @@ document.addEventListener("click", e => {
   if (["add", "del", "up", "down"].includes(act)) return structure(act, a.dataset.arr, +a.dataset.i, a.dataset.kind);
   if (act === "clearPdf") { const d = getP(a.dataset.path); d.pdf = ""; d.images = []; delete d.pdfName; renderForm(true); renderSide(); touch(); }
   else if (act === "clearFile") { setP(a.dataset.path, ""); renderForm(true); renderSide(); touch(); }
-  else if (act === "exportHtml") exportHtml(false);
-  else if (act === "exportFinal") exportHtml(true);
   else if (act === "saveProject") saveProject();
-  else if (act === "exportSite") exportSite(true);
-  else if (act === "exportSiteWorking") exportSite(false);
-  else if (act === "exportEditable") exportSite(false, true);
+  else if (act === "exportSite") exportSite();
   else if (act === "reloadPreview") reloadPreview();
-  else if (act === "signinAzure") { ensureObj("signin"); C.signin.providers = [{ label: "Sign in with Microsoft", url: "/.auth/login/aad?post_login_redirect_uri=/" }]; C.signin.whoUrl = "/.auth/me"; C.signin.signoutUrl = "/.auth/logout"; renderForm(true); touch(); }
-  else if (act === "signinSso") { ensureObj("signin"); C.signin.providers = [{ label: "Sign in with your organisation account", url: "/.auth/login/<provider-name>?post_login_redirect_uri=/" }]; renderForm(true); touch(); }
-  else if (act === "signinPreview") { const w = window.open(URL.createObjectURL(new Blob([signinPage(C, true)], { type: "text/html" })), "_blank"); if (!w) status("Your browser blocked the preview window. Allow pop-ups for this page and try again.", "err", 6000); }
-  else if (act === "consentDemo") { if (frameReady) frame.contentWindow.postMessage({ type: "hub-consent-demo" }, "*"); }
+  else if (act === "replayFlow") { try { if (window.parent !== window && window.parent.hubFlowRestart) { window.parent.hubFlowRestart(); window.parent.__hideEditor(); } else if (frameReady) frame.contentWindow.postMessage({ type: "hub-consent-demo" }, "*"); } catch (err) {} }
+  else if (act === "backToSite") { try { window.parent.__hideEditor(); } catch (err) {} }
 });
 // Drag and drop onto file slots and the bulk drop zone
 ["dragenter", "dragover"].forEach(t => document.addEventListener(t, e => { const z = e.target.closest && e.target.closest(".slot, [data-bulk]"); if (z) { e.preventDefault(); z.classList.add("over"); } }));
@@ -673,6 +587,7 @@ document.addEventListener("dragover", e => e.preventDefault()); document.addEven
 addEventListener("beforeunload", e => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
 
 /* ---------- Test hooks and start ---------- */
-window.__editor = { get content() { return C; }, set content(v) { C = normalize(v); tidy(); renderSide(); renderForm(false); reloadPreview(); }, buildExport: () => fillTemplate(C, true), exportSite, exportHtml, pullLinked, saveProject, openFile, makeZip, readZip, STORE, issues, go };
+window.__editor = { get content() { return C; }, set content(v) { C = normalize(v); tidy(); renderSide(); renderForm(false); reloadPreview(); }, buildExport: () => fillTemplate(C, true), exportSite, pullLinked, saveProject, openFile, makeZip, readZip, STORE, issues, go };
 tidy(); renderSide(); renderForm(false); reloadPreview(); pullLinked();
+if (window.parent !== window) { const bb = document.getElementById("backBtn"); if (bb) bb.hidden = false; }
 })();

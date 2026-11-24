@@ -202,51 +202,5 @@ window.HUB = {
       "This information is provided to NHS budget holders and formulary decision-makers to support financial and service planning, in line with the ABPI Code of Practice provisions on advance notification of new medicines. It is not intended for prescribers or patients.",
       "Product A is not licensed in the UK. Its safety and efficacy have not been established by the MHRA. All figures shown are placeholders for this mock-up."
     ]
-  },
-
-  /* ---- Veeva CLM (only used when the page runs inside Veeva) -------------- */
-  /* ---- Consent step and optional usage statistics (off by default) ---------
-     Shows a gate before the page. See README: "Consent and tracking". Switch "enabled" off and export again to remove it completely. */
-  consent: {
-    enabled: false,
-    version: "1.0",                // change it when the wording changes: everyone is asked again
-    title: "Before you continue",
-    intro: "This site contains promotional material intended for UK healthcare professionals.",
-    requiredLabel: "I confirm I am a UK healthcare professional.",
-    analytics: false,              // also ask the optional usage-statistics tick
-    analyticsLabel: "Allow anonymous usage statistics (which sections are used and which PDFs are downloaded).",
-    notice: "Your choice is recorded with the time and the notice version. Downloads of documents are logged.",
-    privacyUrl: "",
-    button: "Continue",
-    endpoint: "",                  // your server records the consent here (GET returns it, POST saves it). Blank = remembered in this browser only, for testing
-    eventsEndpoint: ""             // your server receives usage events here (POST), only if the reader ticked the optional box
-  },
-
-  /* ---- Branded sign-in page (off by default) -------------------------------
-     Makes signin.html in the website folder. It only looks like your brand: the real login is done by the host
-     (Azure or the client's SSO), and each button just goes to the host's login address. */
-  signin: {
-    enabled: false,
-    title: "Sign in",
-    intro: "This site is for UK healthcare professionals. Sign in to continue.",
-    providers: [
-      { label: "Sign in", url: "/.auth/login/aad?post_login_redirect_uri=/" }   // Azure Static Web Apps with Microsoft Entra ID; change for the client's SSO
-    ],
-    helpTitle: "Need access?",
-    help: "Contact your representative to be invited.",
-    note: "",
-    showUser: true,                // show "Signed in as … · Sign out" in the page footer
-    whoUrl: "/.auth/me",           // where the host says who is signed in
-    signoutUrl: "/.auth/logout",
-    azureConfig: false             // also write a starting staticwebapp.config.json for Azure Static Web Apps
-  },
-
-  veeva: {
-    include: false,                // adds a reference to veeva-library.js in exported files
-    emailTemplate: "",             // Approved Email template ID
-    fragments: {},                 // Approved Email fragment ID for each document id, e.g. { core: "…", value: "…" }
-    pdfSlides: {},                 // optional: key message name of each PDF slide, e.g. { core: "…" }
-    presentationId: "",
-    trackEvents: true
   }
 };

@@ -352,11 +352,15 @@ body.no-mock .concept, body.no-mock .concept-strip { display: none !important; }
 
 .pm-more { margin: 6px 0 0; font-size: 13px; color: #8a8f94; text-align: center; }
 
-/* Consent step */
+/* Sign-in and consent screens */
 .consent-wait body > *:not(#consentGate) { visibility: hidden; }
 #consentGate { position: fixed; inset: 0; z-index: 1000; background: var(--white, #fff); display: grid; place-items: center; padding: 20px; overflow: auto; }
 .cg-card { width: min(560px, 100%); display: grid; gap: 16px; }
-.cg-card h2 { margin: 0; font-size: clamp(28px, 5vw, 40px); line-height: 1.1; font-weight: 700; }
+.cg-brand .logo { height: 30px; width: auto; display: block; }
+.cg-brand { font-weight: 700; display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+.cg-brand i { width: 14px; height: 14px; border-radius: 50%; background: var(--orange, #f36633); display: inline-block; }
+.cg-bar { width: 56px; height: 6px; background: var(--orange, #f36633); border-radius: 3px; }
+.cg-card h2 { margin: 0; font-size: clamp(30px, 5.5vw, 48px); line-height: 1.08; font-weight: 700; letter-spacing: -.02em; }
 .cg-card p { margin: 0; color: #3b3e41; line-height: 1.5; }
 .cg-tick { display: grid; grid-template-columns: 22px 1fr; gap: 12px; align-items: start; padding: 14px; border: 1px solid #d5d7d9; border-radius: 12px; cursor: pointer; }
 .cg-tick input { width: 20px; height: 20px; accent-color: var(--orange, #f36633); margin: 0; }
@@ -364,7 +368,9 @@ body.no-mock .concept, body.no-mock .concept-strip { display: none !important; }
 .cg-note a { color: inherit; }
 .cg-err { color: #b3261e !important; font-size: 14px; }
 .cg-row { display: flex; gap: 10px; flex-wrap: wrap; }
-.cg-go { border: 0; border-radius: 999px; padding: 14px 28px; font: inherit; font-weight: 700; background: var(--orange, #f36633); color: var(--on-accent, #fff); cursor: pointer; }
+.cg-go { border: 0; border-radius: 999px; padding: 15px 30px; font: inherit; font-weight: 700; background: var(--orange, #f36633); color: var(--on-accent, #fff); cursor: pointer; }
 .cg-go:disabled { opacity: .35; cursor: not-allowed; }
 .cg-cancel, .cg-link { border: 1px solid #3b3e41; background: none; color: inherit; border-radius: 999px; padding: 12px 22px; font: inherit; cursor: pointer; }
 .cg-link { padding: 6px 14px; font-size: 13px; margin-top: 8px; }
+.cg-help { border-top: 1px solid #d5d7d9; padding-top: 16px; display: grid; gap: 4px; }
+.cg-help p { font-size: 14.5px; }
