@@ -202,5 +202,38 @@ window.HUB = {
       "This information is provided to NHS budget holders and formulary decision-makers to support financial and service planning, in line with the ABPI Code of Practice provisions on advance notification of new medicines. It is not intended for prescribers or patients.",
       "Product A is not licensed in the UK. Its safety and efficacy have not been established by the MHRA. All figures shown are placeholders for this mock-up."
     ]
-  }
+  },
+
+  /* ---- Veeva CLM (only used when the page runs inside Veeva) -------------- */
+  /* ---- Consent step and optional usage statistics (off by default) ---------
+     Shows a gate before the page. See README: "Consent and tracking". Switch "enabled" off and export again to remove it completely. */
+  consent: {
+    enabled: true,
+    version: "1.0",                // change it when the wording changes: everyone is asked again
+    title: "Before you continue",
+    intro: "This site contains promotional material intended for UK healthcare professionals.",
+    requiredLabel: "I confirm I am a UK healthcare professional.",
+    analytics: false,              // also ask the optional usage-statistics tick
+    analyticsLabel: "Allow anonymous usage statistics (which sections are used and which PDFs are downloaded).",
+    notice: "Your choice is recorded with the time and the notice version. Downloads of documents are logged.",
+    privacyUrl: "",
+    button: "Continue",
+    endpoint: "",                  // your server records the consent here (GET returns it, POST saves it). Blank = remembered in this browser only, for testing
+    eventsEndpoint: ""             // your server receives usage events here (POST), only if the reader ticked the optional box
+  },
+
+  /* ---- Which sections of the page to show -------------------------------- */
+  sections: { stats: true, story: true, timeline: true },
+
+  /* ---- Mock sign-in screen: the first screen. The button just continues (real sign-in is added on the server later) */
+  signin: {
+    enabled: true,
+    title: "Sign in",
+    intro: "This site is for UK healthcare professionals. Sign in to continue.",
+    button: "Sign in",
+    helpTitle: "Need access?",
+    help: "Contact your representative to be invited."
+  },
+
+
 };
