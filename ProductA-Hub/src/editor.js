@@ -167,9 +167,12 @@ const SECTIONS = [
   { id: "sections", title: "Show or hide sections", goto: "top", render: () => frameSection("Show or hide sections", "Hide any part of the page you don't need. Your text is kept, so you can bring it back.",
     `${fCheck("Key figures (the large numbers)", "sections.stats")}${fCheck("Story chapters", "sections.story")}${fCheck("Timeline (“Where we are”)", "sections.timeline")}${fCheck("Prescribing Information", "sections.prescribing")}
      <p class="small">The opening screen and the pack builder are always shown, because they are the heart of the page.</p>`) },
+  { id: "topline", title: "Line under the top bar", goto: "top", render: () => frameSection("Line under the top bar", "Up to two lines of small text, centred just under the top bar. Leave both blank to hide it.",
+    `${fArea("First line", "hero.disclaimer", { rows: 2, hint: "To make words a link to the Prescribing Information section, write them like this: [at the bottom of this page](#pi). You can also link to a web address: [words](https://…)." })}
+     ${fArea("Second line (optional)", "hero.disclaimer2", { rows: 2, hint: "Same rules. Add a line above or below by moving text between the two boxes." })}`) },
   { id: "hero", title: "Opening screen", goto: "top", render: () => frameSection("Opening screen", "The headline, the intro text and the stakeholder chooser.",
     `${fText("Small heading above the title", "hero.eyebrow")}<h2>Title lines</h2>${strs("hero.titleLines", "Title line", 1)}<p class="small" style="margin:-4px 0 12px">The last line is shown in the brand colour.</p>
-     ${fArea("Intro", "hero.lede")}${fArea("Small print", "hero.note")}${fArea("Line under the top bar", "hero.disclaimer", { rows: 2, hint: "Shown centred just under the top bar. Leave blank to hide it." })}
+     ${fArea("Intro", "hero.lede")}${fArea("Small print", "hero.note")}
      <h2>Stakeholder chooser</h2>${fText("Heading", "builder.title")}${fArea("Text", "builder.intro")}
      <div class="cols">${fText("First row label", "builder.whoLabel")}${fText("Second row label", "builder.engLabel")}</div>
      <div class="cols">${fText("Top bar label (who)", "builder.whoPick")}${fText("Top bar label (type)", "builder.engPick")}</div>

@@ -107,6 +107,12 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .pi-box p { margin: 0 auto; max-width: 80ch; font-size: clamp(15px, 1.5vw, 18px); line-height: 1.6; }
 .topnote { text-align: center; font-size: 13.5px; color: var(--muted); max-width: 90ch; margin: 0 auto; padding: 16px 20px 0; }
 .topnote:empty { display: none; }
+.topnote p { margin: 0; }
+.topnote p + p { margin-top: 4px; }
+.topnote a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.topnote a:hover { color: var(--orange-ink, #c44a1a); }
+#pi { scroll-margin-top: calc(var(--bar-h) + 8px); }
+html { scroll-behavior: smooth; }
 .hero-note { font-size: 13.5px; color: var(--muted); max-width: 52ch; margin-top: 14px; }
 .core-feature { display: grid; justify-items: center; gap: 26px; }
 .cover-lg { width: min(300px, 70vw); aspect-ratio: 1 / 1.414; border-radius: 10px; background: var(--orange); color: var(--on-accent); padding: 28px 24px; display: grid; grid-template-rows: auto 1fr auto; box-shadow: 0 2px 4px rgba(13, 14, 15, .08), 0 40px 70px -20px rgba(13, 14, 15, .45); transform: perspective(1200px) rotateY(-14deg) rotateX(4deg) rotate(2deg); transition: transform .6s var(--ease); position: relative; overflow: hidden; }
