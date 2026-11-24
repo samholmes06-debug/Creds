@@ -267,9 +267,16 @@ function mockPages(id, d) {
   }
   return out.join("");
 }
+function updateJump() {
+  const n = document.getElementById("pmJump"); if (!n) return;
+  const l = n.scrollLeft > 2, r = n.scrollLeft + n.clientWidth < n.scrollWidth - 2;
+  n.classList.toggle("fade-l", l); n.classList.toggle("fade-r", r);
+  document.querySelectorAll("#pmJumpWrap .pm-arrow").forEach(b => { b.hidden = b.dataset.jumpDir === "-1" ? !l : !r; });
+}
 function renderViewer(all, pp) {
   $("#pmCount").textContent = `${all.length} documents - ${pp} pages`;
   $("#pmTitle").textContent = who() ? `Pack for ${who().label.toLowerCase()}` : "Your pack";
+  setTimeout(updateJump, 0);
   $("#pmJump").innerHTML = all.map((id, i) => `<button type="button" data-jump="${esc(id)}">${pad(i)} - ${esc(shortName(info(id)))}</button>`).join("");
   const draft = all.filter(id => !(info(id).images && info(id).images.length));
   const note = $("#pmNote"); note.hidden = !draft.length;
@@ -370,7 +377,7 @@ function piFile(kind) {
 }
 function openPack(target) {
   veevaTrack("pack_viewed", ["core", ...picked()].join(","), "Pack viewer opened");
-  packModal.hidden = false; document.body.classList.add("modal-open"); $("#dock").classList.add("away"); $("#pmScroll").scrollTop = 0;
+  packModal.hidden = false; document.body.classList.add("modal-open"); $("#dock").classList.add("away"); $("#pmScroll").scrollTop = 0; setTimeout(updateJump, 60);
   const d = target && document.getElementById("doc-" + target); if (d) d.scrollIntoView({ block: "start" });
   $("#pmClose").focus();
 }
@@ -406,6 +413,9 @@ addEventListener("resize", onScroll);
 /* ---------- Render ---------- */
 function renderAll() { renderChoices(); renderChapters(); renderPack(); syncPrompts(); }
 function applySections() { const v = HUB.sections || {}; [["stats", "stats"], ["story", "story"], ["tl", "timeline"], ["pi", "prescribing"]].forEach(([id, k]) => { const el = document.getElementById(id); if (el) el.hidden = v[k] === false; }); const pp = document.getElementById("pmPi"); if (pp) pp.hidden = v.prescribing === false; }
+document.getElementById("pmJump").addEventListener("scroll", updateJump, { passive: true });
+addEventListener("resize", updateJump);
+document.getElementById("pmJumpWrap").addEventListener("click", e => { const a = e.target.closest(".pm-arrow"); if (a) { const n = document.getElementById("pmJump"); n.scrollBy({ left: +a.dataset.jumpDir * Math.max(160, n.clientWidth * 0.7), behavior: "smooth" }); } });
 document.addEventListener("click", e => { const pa = e.target.closest && e.target.closest("a[data-pi]"); if (pa) { e.preventDefault(); piFile(pa.dataset.pi); return; } const a = e.target.closest && e.target.closest("a[data-nolink]"); if (a) { e.preventDefault(); if (a.id === "piView") piFile("view"); else if (a.id === "piDownload") piFile("download"); } });
 function boot() { applyButtonText(); applySections(); sanitizeState(); applyBrand(); bindStatic(); renderStats(); renderAll(); onScroll(); if (window.hubConsentLink) window.hubConsentLink(); }
 

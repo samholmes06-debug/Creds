@@ -141,7 +141,7 @@
   <div class="pm-shell" role="dialog" aria-modal="true" aria-labelledby="pmTitle">
     <header class="pm-bar">
       <div><div class="label" id="pmCount"></div><h2 id="pmTitle">Your pack</h2></div>
-      <nav class="pm-jump" id="pmJump" aria-label="Documents in this pack"></nav>
+      <div class="pm-jumpwrap" id="pmJumpWrap"><button type="button" class="pm-arrow" data-jump-dir="-1" aria-label="Show earlier documents" hidden>&#8249;</button><nav class="pm-jump" id="pmJump" aria-label="Documents in this pack"></nav><button type="button" class="pm-arrow" data-jump-dir="1" aria-label="Show more documents" hidden>&#8250;</button></div>
       <div class="pm-actions"><a href="#pi-view" class="pm-pi" id="pmPi" data-pi="view" data-t="prescribing.title"></a><button class="btn btn-orange" type="button" id="pmDownload"></button><button class="pm-close" type="button" id="pmClose" aria-label="Close pack viewer">✕</button></div>
     </header>
     <div class="pm-scroll" id="pmScroll">

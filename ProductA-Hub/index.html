@@ -34,7 +34,7 @@
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
-body { background: var(--white); color: var(--black); font-family: var(--font); font-size: 16px; line-height: 1.55; }
+body { margin: 0; background: var(--white); color: var(--black); font-family: var(--font); font-size: 16px; line-height: 1.55; }
 h1, h2, h3, h4 { margin: 0; text-wrap: balance; font-weight: 700; }
 p { margin: 0; }
 button { font: inherit; color: inherit; }
@@ -144,7 +144,7 @@ html { scroll-behavior: smooth; }
 .cover-lg h2 { align-self: end; font-size: 30px; line-height: 1.02; letter-spacing: -.02em; }
 .cover-lg .meta { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; margin-top: 14px; border-top: 1.5px solid rgba(13, 14, 15, .3); padding-top: 10px; }
 .core-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
-.core-actions small { width: 100%; text-align: center; color: var(--muted); font-size: 13px; }
+.core-actions small { width: 100%; text-align: center; color: var(--muted); font-size: 13px; margin-top: 14px; }
 
 /* Builder (first step) */
 .builder { background: var(--grey); border-radius: 28px; padding: clamp(22px, 3.4vw, 44px); display: grid; gap: 28px; }
@@ -306,8 +306,6 @@ footer b { color: var(--black); }
 .dock-stack { display: flex; align-items: center; height: 46px; }
 .dock-stack .cv { width: 32px; margin-left: -14px; transition: transform .3s var(--ease); }
 .dock-stack .cv:first-child { margin-left: 0; }
-.dock:hover .dock-stack .cv { margin-left: -6px; }
-.dock:hover .dock-stack .cv:first-child { margin-left: 0; }
 .dock-stack .cv .cv-t { display: none; }
 .dock-txt { display: grid; line-height: 1.2; }
 .dock-txt b { font-size: 15px; white-space: nowrap; }
@@ -322,14 +320,21 @@ footer b { color: var(--black); }
 .pm-bar { background: var(--black); color: var(--white); padding: 16px 20px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px 24px; align-items: center; }
 .pm-bar .label { color: #9a9fa4; }
 .pm-bar h2 { font-size: 22px; white-space: nowrap; }
-.pm-jump { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+.pm-jumpwrap { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.pm-jump { display: flex; gap: 6px; overflow-x: auto; scroll-behavior: smooth; scrollbar-width: none; -ms-overflow-style: none; min-width: 0; flex: 1; }
+.pm-jump::-webkit-scrollbar { display: none; }
+.pm-jump.fade-r { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent); }
+.pm-jump.fade-l { -webkit-mask-image: linear-gradient(90deg, transparent, #000 36px); mask-image: linear-gradient(90deg, transparent, #000 36px); }
+.pm-jump.fade-l.fade-r { -webkit-mask-image: linear-gradient(90deg, transparent, #000 36px, #000 calc(100% - 36px), transparent); mask-image: linear-gradient(90deg, transparent, #000 36px, #000 calc(100% - 36px), transparent); }
+.pm-arrow { flex: none; width: 32px; height: 32px; border-radius: 50%; border: 1px solid #3b3e41; background: transparent; color: var(--white); font-size: 20px; line-height: 1; cursor: pointer; display: grid; place-items: center; padding: 0 0 2px; }
+.pm-arrow:hover { background: var(--white); color: var(--black); }
 .pm-jump button { flex: none; border: 1px solid #3b3e41; background: transparent; color: var(--white); border-radius: 999px; padding: 7px 12px; font-size: 13px; cursor: pointer; white-space: nowrap; }
 .pm-jump button:hover { background: var(--white); color: var(--black); }
 .pm-actions { display: flex; gap: 8px; align-items: center; }
 .pm-actions .btn { padding: 10px 16px; font-size: 14px; }
 .pm-close { width: 42px; height: 42px; border-radius: 50%; border: 1px solid #3b3e41; background: transparent; color: var(--white); font-size: 18px; cursor: pointer; }
 .pm-close:hover { border-color: var(--white); }
-@media (max-width: 860px) { .pm-bar { grid-template-columns: minmax(0, 1fr) auto; } .pm-jump { grid-column: 1 / -1; grid-row: 2; } .pm-actions .btn { display: none; } }
+@media (max-width: 860px) { .pm-bar { grid-template-columns: minmax(0, 1fr) auto; } .pm-jumpwrap { grid-column: 1 / -1; grid-row: 2; } .pm-actions .btn { display: none; } }
 .pm-scroll { overflow-y: auto; padding: 28px max(16px, 4vw) 60px; display: grid; gap: 28px; justify-items: center; scroll-behavior: smooth; }
 .pm-note { width: min(760px, 100%); font-size: 13.5px; color: var(--muted); }
 .pm-doc { width: min(760px, 100%); display: grid; gap: 14px; scroll-margin-top: 16px; }
@@ -557,7 +562,7 @@ body.inline-edit [contenteditable] { outline: 2px solid var(--orange, #f36633) !
   <div class="pm-shell" role="dialog" aria-modal="true" aria-labelledby="pmTitle">
     <header class="pm-bar">
       <div><div class="label" id="pmCount"></div><h2 id="pmTitle">Your pack</h2></div>
-      <nav class="pm-jump" id="pmJump" aria-label="Documents in this pack"></nav>
+      <div class="pm-jumpwrap" id="pmJumpWrap"><button type="button" class="pm-arrow" data-jump-dir="-1" aria-label="Show earlier documents" hidden>&#8249;</button><nav class="pm-jump" id="pmJump" aria-label="Documents in this pack"></nav><button type="button" class="pm-arrow" data-jump-dir="1" aria-label="Show more documents" hidden>&#8250;</button></div>
       <div class="pm-actions"><a href="#pi-view" class="pm-pi" id="pmPi" data-pi="view" data-t="prescribing.title"></a><button class="btn btn-orange" type="button" id="pmDownload"></button><button class="pm-close" type="button" id="pmClose" aria-label="Close pack viewer">✕</button></div>
     </header>
     <div class="pm-scroll" id="pmScroll">
@@ -841,9 +846,16 @@ function mockPages(id, d) {
   }
   return out.join("");
 }
+function updateJump() {
+  const n = document.getElementById("pmJump"); if (!n) return;
+  const l = n.scrollLeft > 2, r = n.scrollLeft + n.clientWidth < n.scrollWidth - 2;
+  n.classList.toggle("fade-l", l); n.classList.toggle("fade-r", r);
+  document.querySelectorAll("#pmJumpWrap .pm-arrow").forEach(b => { b.hidden = b.dataset.jumpDir === "-1" ? !l : !r; });
+}
 function renderViewer(all, pp) {
   $("#pmCount").textContent = `${all.length} documents - ${pp} pages`;
   $("#pmTitle").textContent = who() ? `Pack for ${who().label.toLowerCase()}` : "Your pack";
+  setTimeout(updateJump, 0);
   $("#pmJump").innerHTML = all.map((id, i) => `<button type="button" data-jump="${esc(id)}">${pad(i)} - ${esc(shortName(info(id)))}</button>`).join("");
   const draft = all.filter(id => !(info(id).images && info(id).images.length));
   const note = $("#pmNote"); note.hidden = !draft.length;
@@ -944,7 +956,7 @@ function piFile(kind) {
 }
 function openPack(target) {
   veevaTrack("pack_viewed", ["core", ...picked()].join(","), "Pack viewer opened");
-  packModal.hidden = false; document.body.classList.add("modal-open"); $("#dock").classList.add("away"); $("#pmScroll").scrollTop = 0;
+  packModal.hidden = false; document.body.classList.add("modal-open"); $("#dock").classList.add("away"); $("#pmScroll").scrollTop = 0; setTimeout(updateJump, 60);
   const d = target && document.getElementById("doc-" + target); if (d) d.scrollIntoView({ block: "start" });
   $("#pmClose").focus();
 }
@@ -980,6 +992,9 @@ addEventListener("resize", onScroll);
 /* ---------- Render ---------- */
 function renderAll() { renderChoices(); renderChapters(); renderPack(); syncPrompts(); }
 function applySections() { const v = HUB.sections || {}; [["stats", "stats"], ["story", "story"], ["tl", "timeline"], ["pi", "prescribing"]].forEach(([id, k]) => { const el = document.getElementById(id); if (el) el.hidden = v[k] === false; }); const pp = document.getElementById("pmPi"); if (pp) pp.hidden = v.prescribing === false; }
+document.getElementById("pmJump").addEventListener("scroll", updateJump, { passive: true });
+addEventListener("resize", updateJump);
+document.getElementById("pmJumpWrap").addEventListener("click", e => { const a = e.target.closest(".pm-arrow"); if (a) { const n = document.getElementById("pmJump"); n.scrollBy({ left: +a.dataset.jumpDir * Math.max(160, n.clientWidth * 0.7), behavior: "smooth" }); } });
 document.addEventListener("click", e => { const pa = e.target.closest && e.target.closest("a[data-pi]"); if (pa) { e.preventDefault(); piFile(pa.dataset.pi); return; } const a = e.target.closest && e.target.closest("a[data-nolink]"); if (a) { e.preventDefault(); if (a.id === "piView") piFile("view"); else if (a.id === "piDownload") piFile("download"); } });
 function boot() { applyButtonText(); applySections(); sanitizeState(); applyBrand(); bindStatic(); renderStats(); renderAll(); onScroll(); if (window.hubConsentLink) window.hubConsentLink(); }
 
@@ -1346,7 +1361,7 @@ summary:hover { color: var(--black); }
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
-body { background: var(--white); color: var(--black); font-family: var(--font); font-size: 16px; line-height: 1.55; }
+body { margin: 0; background: var(--white); color: var(--black); font-family: var(--font); font-size: 16px; line-height: 1.55; }
 h1, h2, h3, h4 { margin: 0; text-wrap: balance; font-weight: 700; }
 p { margin: 0; }
 button { font: inherit; color: inherit; }
@@ -1456,7 +1471,7 @@ html { scroll-behavior: smooth; }
 .cover-lg h2 { align-self: end; font-size: 30px; line-height: 1.02; letter-spacing: -.02em; }
 .cover-lg .meta { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; margin-top: 14px; border-top: 1.5px solid rgba(13, 14, 15, .3); padding-top: 10px; }
 .core-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
-.core-actions small { width: 100%; text-align: center; color: var(--muted); font-size: 13px; }
+.core-actions small { width: 100%; text-align: center; color: var(--muted); font-size: 13px; margin-top: 14px; }
 
 /* Builder (first step) */
 .builder { background: var(--grey); border-radius: 28px; padding: clamp(22px, 3.4vw, 44px); display: grid; gap: 28px; }
@@ -1618,8 +1633,6 @@ footer b { color: var(--black); }
 .dock-stack { display: flex; align-items: center; height: 46px; }
 .dock-stack .cv { width: 32px; margin-left: -14px; transition: transform .3s var(--ease); }
 .dock-stack .cv:first-child { margin-left: 0; }
-.dock:hover .dock-stack .cv { margin-left: -6px; }
-.dock:hover .dock-stack .cv:first-child { margin-left: 0; }
 .dock-stack .cv .cv-t { display: none; }
 .dock-txt { display: grid; line-height: 1.2; }
 .dock-txt b { font-size: 15px; white-space: nowrap; }
@@ -1634,14 +1647,21 @@ footer b { color: var(--black); }
 .pm-bar { background: var(--black); color: var(--white); padding: 16px 20px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px 24px; align-items: center; }
 .pm-bar .label { color: #9a9fa4; }
 .pm-bar h2 { font-size: 22px; white-space: nowrap; }
-.pm-jump { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+.pm-jumpwrap { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.pm-jump { display: flex; gap: 6px; overflow-x: auto; scroll-behavior: smooth; scrollbar-width: none; -ms-overflow-style: none; min-width: 0; flex: 1; }
+.pm-jump::-webkit-scrollbar { display: none; }
+.pm-jump.fade-r { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent); }
+.pm-jump.fade-l { -webkit-mask-image: linear-gradient(90deg, transparent, #000 36px); mask-image: linear-gradient(90deg, transparent, #000 36px); }
+.pm-jump.fade-l.fade-r { -webkit-mask-image: linear-gradient(90deg, transparent, #000 36px, #000 calc(100% - 36px), transparent); mask-image: linear-gradient(90deg, transparent, #000 36px, #000 calc(100% - 36px), transparent); }
+.pm-arrow { flex: none; width: 32px; height: 32px; border-radius: 50%; border: 1px solid #3b3e41; background: transparent; color: var(--white); font-size: 20px; line-height: 1; cursor: pointer; display: grid; place-items: center; padding: 0 0 2px; }
+.pm-arrow:hover { background: var(--white); color: var(--black); }
 .pm-jump button { flex: none; border: 1px solid #3b3e41; background: transparent; color: var(--white); border-radius: 999px; padding: 7px 12px; font-size: 13px; cursor: pointer; white-space: nowrap; }
 .pm-jump button:hover { background: var(--white); color: var(--black); }
 .pm-actions { display: flex; gap: 8px; align-items: center; }
 .pm-actions .btn { padding: 10px 16px; font-size: 14px; }
 .pm-close { width: 42px; height: 42px; border-radius: 50%; border: 1px solid #3b3e41; background: transparent; color: var(--white); font-size: 18px; cursor: pointer; }
 .pm-close:hover { border-color: var(--white); }
-@media (max-width: 860px) { .pm-bar { grid-template-columns: minmax(0, 1fr) auto; } .pm-jump { grid-column: 1 / -1; grid-row: 2; } .pm-actions .btn { display: none; } }
+@media (max-width: 860px) { .pm-bar { grid-template-columns: minmax(0, 1fr) auto; } .pm-jumpwrap { grid-column: 1 / -1; grid-row: 2; } .pm-actions .btn { display: none; } }
 .pm-scroll { overflow-y: auto; padding: 28px max(16px, 4vw) 60px; display: grid; gap: 28px; justify-items: center; scroll-behavior: smooth; }
 .pm-note { width: min(760px, 100%); font-size: 13.5px; color: var(--muted); }
 .pm-doc { width: min(760px, 100%); display: grid; gap: 14px; scroll-margin-top: 16px; }
@@ -1869,7 +1889,7 @@ body.inline-edit [contenteditable] { outline: 2px solid var(--orange, #f36633) !
   <div class="pm-shell" role="dialog" aria-modal="true" aria-labelledby="pmTitle">
     <header class="pm-bar">
       <div><div class="label" id="pmCount"></div><h2 id="pmTitle">Your pack</h2></div>
-      <nav class="pm-jump" id="pmJump" aria-label="Documents in this pack"></nav>
+      <div class="pm-jumpwrap" id="pmJumpWrap"><button type="button" class="pm-arrow" data-jump-dir="-1" aria-label="Show earlier documents" hidden>&#8249;</button><nav class="pm-jump" id="pmJump" aria-label="Documents in this pack"></nav><button type="button" class="pm-arrow" data-jump-dir="1" aria-label="Show more documents" hidden>&#8250;</button></div>
       <div class="pm-actions"><a href="#pi-view" class="pm-pi" id="pmPi" data-pi="view" data-t="prescribing.title"></a><button class="btn btn-orange" type="button" id="pmDownload"></button><button class="pm-close" type="button" id="pmClose" aria-label="Close pack viewer">✕</button></div>
     </header>
     <div class="pm-scroll" id="pmScroll">
@@ -2153,9 +2173,16 @@ function mockPages(id, d) {
   }
   return out.join("");
 }
+function updateJump() {
+  const n = document.getElementById("pmJump"); if (!n) return;
+  const l = n.scrollLeft > 2, r = n.scrollLeft + n.clientWidth < n.scrollWidth - 2;
+  n.classList.toggle("fade-l", l); n.classList.toggle("fade-r", r);
+  document.querySelectorAll("#pmJumpWrap .pm-arrow").forEach(b => { b.hidden = b.dataset.jumpDir === "-1" ? !l : !r; });
+}
 function renderViewer(all, pp) {
   $("#pmCount").textContent = `${all.length} documents - ${pp} pages`;
   $("#pmTitle").textContent = who() ? `Pack for ${who().label.toLowerCase()}` : "Your pack";
+  setTimeout(updateJump, 0);
   $("#pmJump").innerHTML = all.map((id, i) => `<button type="button" data-jump="${esc(id)}">${pad(i)} - ${esc(shortName(info(id)))}</button>`).join("");
   const draft = all.filter(id => !(info(id).images && info(id).images.length));
   const note = $("#pmNote"); note.hidden = !draft.length;
@@ -2256,7 +2283,7 @@ function piFile(kind) {
 }
 function openPack(target) {
   veevaTrack("pack_viewed", ["core", ...picked()].join(","), "Pack viewer opened");
-  packModal.hidden = false; document.body.classList.add("modal-open"); $("#dock").classList.add("away"); $("#pmScroll").scrollTop = 0;
+  packModal.hidden = false; document.body.classList.add("modal-open"); $("#dock").classList.add("away"); $("#pmScroll").scrollTop = 0; setTimeout(updateJump, 60);
   const d = target && document.getElementById("doc-" + target); if (d) d.scrollIntoView({ block: "start" });
   $("#pmClose").focus();
 }
@@ -2292,6 +2319,9 @@ addEventListener("resize", onScroll);
 /* ---------- Render ---------- */
 function renderAll() { renderChoices(); renderChapters(); renderPack(); syncPrompts(); }
 function applySections() { const v = HUB.sections || {}; [["stats", "stats"], ["story", "story"], ["tl", "timeline"], ["pi", "prescribing"]].forEach(([id, k]) => { const el = document.getElementById(id); if (el) el.hidden = v[k] === false; }); const pp = document.getElementById("pmPi"); if (pp) pp.hidden = v.prescribing === false; }
+document.getElementById("pmJump").addEventListener("scroll", updateJump, { passive: true });
+addEventListener("resize", updateJump);
+document.getElementById("pmJumpWrap").addEventListener("click", e => { const a = e.target.closest(".pm-arrow"); if (a) { const n = document.getElementById("pmJump"); n.scrollBy({ left: +a.dataset.jumpDir * Math.max(160, n.clientWidth * 0.7), behavior: "smooth" }); } });
 document.addEventListener("click", e => { const pa = e.target.closest && e.target.closest("a[data-pi]"); if (pa) { e.preventDefault(); piFile(pa.dataset.pi); return; } const a = e.target.closest && e.target.closest("a[data-nolink]"); if (a) { e.preventDefault(); if (a.id === "piView") piFile("view"); else if (a.id === "piDownload") piFile("download"); } });
 function boot() { applyButtonText(); applySections(); sanitizeState(); applyBrand(); bindStatic(); renderStats(); renderAll(); onScroll(); if (window.hubConsentLink) window.hubConsentLink(); }
 
@@ -2756,7 +2786,7 @@ window.HUB = {
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
-body { background: var(--white); color: var(--black); font-family: var(--font); font-size: 16px; line-height: 1.55; }
+body { margin: 0; background: var(--white); color: var(--black); font-family: var(--font); font-size: 16px; line-height: 1.55; }
 h1, h2, h3, h4 { margin: 0; text-wrap: balance; font-weight: 700; }
 p { margin: 0; }
 button { font: inherit; color: inherit; }
@@ -2866,7 +2896,7 @@ html { scroll-behavior: smooth; }
 .cover-lg h2 { align-self: end; font-size: 30px; line-height: 1.02; letter-spacing: -.02em; }
 .cover-lg .meta { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; margin-top: 14px; border-top: 1.5px solid rgba(13, 14, 15, .3); padding-top: 10px; }
 .core-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
-.core-actions small { width: 100%; text-align: center; color: var(--muted); font-size: 13px; }
+.core-actions small { width: 100%; text-align: center; color: var(--muted); font-size: 13px; margin-top: 14px; }
 
 /* Builder (first step) */
 .builder { background: var(--grey); border-radius: 28px; padding: clamp(22px, 3.4vw, 44px); display: grid; gap: 28px; }
@@ -3028,8 +3058,6 @@ footer b { color: var(--black); }
 .dock-stack { display: flex; align-items: center; height: 46px; }
 .dock-stack .cv { width: 32px; margin-left: -14px; transition: transform .3s var(--ease); }
 .dock-stack .cv:first-child { margin-left: 0; }
-.dock:hover .dock-stack .cv { margin-left: -6px; }
-.dock:hover .dock-stack .cv:first-child { margin-left: 0; }
 .dock-stack .cv .cv-t { display: none; }
 .dock-txt { display: grid; line-height: 1.2; }
 .dock-txt b { font-size: 15px; white-space: nowrap; }
@@ -3044,14 +3072,21 @@ footer b { color: var(--black); }
 .pm-bar { background: var(--black); color: var(--white); padding: 16px 20px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px 24px; align-items: center; }
 .pm-bar .label { color: #9a9fa4; }
 .pm-bar h2 { font-size: 22px; white-space: nowrap; }
-.pm-jump { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+.pm-jumpwrap { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.pm-jump { display: flex; gap: 6px; overflow-x: auto; scroll-behavior: smooth; scrollbar-width: none; -ms-overflow-style: none; min-width: 0; flex: 1; }
+.pm-jump::-webkit-scrollbar { display: none; }
+.pm-jump.fade-r { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent); }
+.pm-jump.fade-l { -webkit-mask-image: linear-gradient(90deg, transparent, #000 36px); mask-image: linear-gradient(90deg, transparent, #000 36px); }
+.pm-jump.fade-l.fade-r { -webkit-mask-image: linear-gradient(90deg, transparent, #000 36px, #000 calc(100% - 36px), transparent); mask-image: linear-gradient(90deg, transparent, #000 36px, #000 calc(100% - 36px), transparent); }
+.pm-arrow { flex: none; width: 32px; height: 32px; border-radius: 50%; border: 1px solid #3b3e41; background: transparent; color: var(--white); font-size: 20px; line-height: 1; cursor: pointer; display: grid; place-items: center; padding: 0 0 2px; }
+.pm-arrow:hover { background: var(--white); color: var(--black); }
 .pm-jump button { flex: none; border: 1px solid #3b3e41; background: transparent; color: var(--white); border-radius: 999px; padding: 7px 12px; font-size: 13px; cursor: pointer; white-space: nowrap; }
 .pm-jump button:hover { background: var(--white); color: var(--black); }
 .pm-actions { display: flex; gap: 8px; align-items: center; }
 .pm-actions .btn { padding: 10px 16px; font-size: 14px; }
 .pm-close { width: 42px; height: 42px; border-radius: 50%; border: 1px solid #3b3e41; background: transparent; color: var(--white); font-size: 18px; cursor: pointer; }
 .pm-close:hover { border-color: var(--white); }
-@media (max-width: 860px) { .pm-bar { grid-template-columns: minmax(0, 1fr) auto; } .pm-jump { grid-column: 1 / -1; grid-row: 2; } .pm-actions .btn { display: none; } }
+@media (max-width: 860px) { .pm-bar { grid-template-columns: minmax(0, 1fr) auto; } .pm-jumpwrap { grid-column: 1 / -1; grid-row: 2; } .pm-actions .btn { display: none; } }
 .pm-scroll { overflow-y: auto; padding: 28px max(16px, 4vw) 60px; display: grid; gap: 28px; justify-items: center; scroll-behavior: smooth; }
 .pm-note { width: min(760px, 100%); font-size: 13.5px; color: var(--muted); }
 .pm-doc { width: min(760px, 100%); display: grid; gap: 14px; scroll-margin-top: 16px; }
@@ -3279,7 +3314,7 @@ body.inline-edit [contenteditable] { outline: 2px solid var(--orange, #f36633) !
   <div class="pm-shell" role="dialog" aria-modal="true" aria-labelledby="pmTitle">
     <header class="pm-bar">
       <div><div class="label" id="pmCount"></div><h2 id="pmTitle">Your pack</h2></div>
-      <nav class="pm-jump" id="pmJump" aria-label="Documents in this pack"></nav>
+      <div class="pm-jumpwrap" id="pmJumpWrap"><button type="button" class="pm-arrow" data-jump-dir="-1" aria-label="Show earlier documents" hidden>&#8249;</button><nav class="pm-jump" id="pmJump" aria-label="Documents in this pack"></nav><button type="button" class="pm-arrow" data-jump-dir="1" aria-label="Show more documents" hidden>&#8250;</button></div>
       <div class="pm-actions"><a href="#pi-view" class="pm-pi" id="pmPi" data-pi="view" data-t="prescribing.title"></a><button class="btn btn-orange" type="button" id="pmDownload"></button><button class="pm-close" type="button" id="pmClose" aria-label="Close pack viewer">✕</button></div>
     </header>
     <div class="pm-scroll" id="pmScroll">
@@ -3563,9 +3598,16 @@ function mockPages(id, d) {
   }
   return out.join("");
 }
+function updateJump() {
+  const n = document.getElementById("pmJump"); if (!n) return;
+  const l = n.scrollLeft > 2, r = n.scrollLeft + n.clientWidth < n.scrollWidth - 2;
+  n.classList.toggle("fade-l", l); n.classList.toggle("fade-r", r);
+  document.querySelectorAll("#pmJumpWrap .pm-arrow").forEach(b => { b.hidden = b.dataset.jumpDir === "-1" ? !l : !r; });
+}
 function renderViewer(all, pp) {
   $("#pmCount").textContent = `${all.length} documents - ${pp} pages`;
   $("#pmTitle").textContent = who() ? `Pack for ${who().label.toLowerCase()}` : "Your pack";
+  setTimeout(updateJump, 0);
   $("#pmJump").innerHTML = all.map((id, i) => `<button type="button" data-jump="${esc(id)}">${pad(i)} - ${esc(shortName(info(id)))}</button>`).join("");
   const draft = all.filter(id => !(info(id).images && info(id).images.length));
   const note = $("#pmNote"); note.hidden = !draft.length;
@@ -3666,7 +3708,7 @@ function piFile(kind) {
 }
 function openPack(target) {
   veevaTrack("pack_viewed", ["core", ...picked()].join(","), "Pack viewer opened");
-  packModal.hidden = false; document.body.classList.add("modal-open"); $("#dock").classList.add("away"); $("#pmScroll").scrollTop = 0;
+  packModal.hidden = false; document.body.classList.add("modal-open"); $("#dock").classList.add("away"); $("#pmScroll").scrollTop = 0; setTimeout(updateJump, 60);
   const d = target && document.getElementById("doc-" + target); if (d) d.scrollIntoView({ block: "start" });
   $("#pmClose").focus();
 }
@@ -3702,6 +3744,9 @@ addEventListener("resize", onScroll);
 /* ---------- Render ---------- */
 function renderAll() { renderChoices(); renderChapters(); renderPack(); syncPrompts(); }
 function applySections() { const v = HUB.sections || {}; [["stats", "stats"], ["story", "story"], ["tl", "timeline"], ["pi", "prescribing"]].forEach(([id, k]) => { const el = document.getElementById(id); if (el) el.hidden = v[k] === false; }); const pp = document.getElementById("pmPi"); if (pp) pp.hidden = v.prescribing === false; }
+document.getElementById("pmJump").addEventListener("scroll", updateJump, { passive: true });
+addEventListener("resize", updateJump);
+document.getElementById("pmJumpWrap").addEventListener("click", e => { const a = e.target.closest(".pm-arrow"); if (a) { const n = document.getElementById("pmJump"); n.scrollBy({ left: +a.dataset.jumpDir * Math.max(160, n.clientWidth * 0.7), behavior: "smooth" }); } });
 document.addEventListener("click", e => { const pa = e.target.closest && e.target.closest("a[data-pi]"); if (pa) { e.preventDefault(); piFile(pa.dataset.pi); return; } const a = e.target.closest && e.target.closest("a[data-nolink]"); if (a) { e.preventDefault(); if (a.id === "piView") piFile("view"); else if (a.id === "piDownload") piFile("download"); } });
 function boot() { applyButtonText(); applySections(); sanitizeState(); applyBrand(); bindStatic(); renderStats(); renderAll(); onScroll(); if (window.hubConsentLink) window.hubConsentLink(); }
 
