@@ -98,15 +98,15 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 @keyframes rise { from { transform: translateY(60%); } to { transform: none; } }
 .hero-lede { font-size: clamp(18px, 1.6vw, 21px); max-width: 44ch; margin-top: 26px; }
 .pi { background: var(--white); color: var(--black); padding-block: clamp(64px, 9vw, 120px); }
-.pi h2 { font-size: clamp(40px, 6vw, 84px); line-height: .98; letter-spacing: -.025em; margin-bottom: clamp(28px, 4vw, 48px); }
-.pi-cta { display: flex; align-items: center; justify-content: space-between; gap: 20px 32px; flex-wrap: wrap; border: 1px solid #d5d7d9; border-radius: 14px; padding: clamp(28px, 4.5vw, 56px) clamp(24px, 4vw, 56px); }
-.pi-cta-t { font-size: clamp(22px, 3.2vw, 38px); line-height: 1.15; letter-spacing: -.01em; }
+.pi h2 { font-size: clamp(34px, 5vw, 68px); line-height: .98; letter-spacing: -.025em; margin-bottom: clamp(28px, 4vw, 48px); }
+.pi-cta { display: flex; align-items: center; justify-content: space-between; gap: 20px 32px; flex-wrap: wrap; border: 1px solid #d5d7d9; border-radius: 14px; padding: clamp(24px, 3.6vw, 44px) clamp(22px, 3.4vw, 46px); }
+.pi-cta-t { font-size: clamp(19px, 2.6vw, 31px); line-height: 1.15; letter-spacing: -.01em; }
 .pi-cta-acts { display: flex; gap: 28px; align-items: center; }
-.pi-act { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: clamp(16px, 1.6vw, 20px); color: var(--black); text-decoration: underline; text-underline-offset: 4px; }
-.pi-act svg { width: 22px; height: 22px; color: #6b7075; }
+.pi-act { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: clamp(14px, 1.3vw, 17px); color: var(--black); text-decoration: underline; text-underline-offset: 4px; }
+.pi-act svg { width: 19px; height: 19px; color: #6b7075; }
 .pi-act:hover svg { color: var(--orange); }
 .pi-box { margin-top: clamp(20px, 3vw, 36px); border: 1px solid #d5d7d9; border-radius: 28px; padding: clamp(18px, 2.4vw, 30px) clamp(24px, 6vw, 96px); text-align: center; }
-.pi-box p { margin: 0 auto; max-width: 80ch; font-size: clamp(15px, 1.5vw, 18px); line-height: 1.6; }
+.pi-box p { margin: 0 auto; max-width: 80ch; font-size: clamp(14px, 1.25vw, 16px); line-height: 1.6; }
 .topnote { text-align: center; font-size: 15.5px; color: var(--black); max-width: 1200px; margin: 0 auto; padding: 16px 20px 0; }
 .topnote:empty { display: none; }
 .topnote p { margin: 0; }

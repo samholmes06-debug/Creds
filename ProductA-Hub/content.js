@@ -55,8 +55,6 @@ window.HUB = {
     intro: "Choose a stakeholder and the type of engagement. We'll recommend modules, put the most relevant chapters first, and you can add more as you read.",
     whoLabel: "I'm engaging",
     engLabel: "For",
-    whoPick: "Engaging",
-    engPick: "Engagement",
     whoPlaceholder: "Choose stakeholder",
     engPlaceholder: "Choose type"
   },

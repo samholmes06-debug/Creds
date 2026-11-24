@@ -175,7 +175,6 @@ const SECTIONS = [
      ${fArea("Intro", "hero.lede")}${fArea("Small print", "hero.note")}
      <h2>Stakeholder chooser</h2>${fText("Heading", "builder.title")}${fArea("Text", "builder.intro")}
      <div class="cols">${fText("First row label", "builder.whoLabel")}${fText("Second row label", "builder.engLabel")}</div>
-     <div class="cols">${fText("Top bar label (who)", "builder.whoPick")}${fText("Top bar label (type)", "builder.engPick")}</div>
      <div class="cols">${fText("Placeholder (who)", "builder.whoPlaceholder")}${fText("Placeholder (type)", "builder.engPlaceholder")}</div>`) },
   { id: "core", title: "Core notification", goto: "top", render: () => frameSection("Core notification", "The core deliverable. It is included in every pack.",
     `${fText("Name", "core.name")}<div class="cols">${fText("Short name (for small covers)", "core.short")}${fText("PDF code", "core.code")}</div>${fText("Line under the cover", "core.blurb")}
