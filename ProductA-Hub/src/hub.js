@@ -132,12 +132,13 @@ function bindStatic() {
   // Only redraw the title when its text changes, so its rise-in animation doesn't replay on every edit
   const titleHtml = (h.titleLines || []).map((t, i) => `<span class="line"><span data-edit="hero.titleLines.${i}">${esc(t)}</span></span>`).join("");
   if ($("#heroTitle").dataset.h !== titleHtml) { $("#heroTitle").innerHTML = titleHtml; $("#heroTitle").dataset.h = titleHtml; }
-  $("#coverMeta").textContent = `PDF · ${pagesOf(c)} pages · ${b.jobCode || ""}`;
+  { const cl = document.querySelector(".cover-lg"); if (cl) { const old = cl.querySelector(".cover-img"); if (old) old.remove(); cl.classList.toggle("has-img", !!c.cover); if (c.cover) { const im = document.createElement("img"); im.className = "cover-img"; im.alt = ""; im.src = c.cover; cl.prepend(im); } } }
+  $("#coverMeta").textContent = `PDF - ${pagesOf(c)} pages - ${b.jobCode || ""}`;
   const inV = !!clm();
   $("#barCore").innerHTML = inV ? `<span class="long">Send core PDF</span><span class="short">Send PDF</span><span aria-hidden="true">✉</span>` : `<span class="long">${esc(bt("barCore"))}</span><span class="short">${esc(bt("barCoreShort"))}</span><span aria-hidden="true">↓</span>`;
   $("#heroDownload").innerHTML = inV ? `Send core PDF <span aria-hidden="true">✉</span>` : `${esc(bt("heroDownload"))} <span aria-hidden="true">↓</span>`;
   $("#storyDownload").innerHTML = (esc((HUB.story || {}).downloadLabel || "Download the core notification")) + (inV ? ` <span aria-hidden="true">✉</span>` : ` <span aria-hidden="true">↓</span>`);
-  $("#storyMeta").textContent = `PDF · ${pagesOf(c)} pages`;
+  $("#storyMeta").textContent = `PDF - ${pagesOf(c)} pages`;
   $("#dlPack").innerHTML = inV ? `Send pack by Approved Email <span aria-hidden="true">✉</span>` : `${esc(bt("packDownload"))} <span aria-hidden="true">↓</span>`;
   $("#pmDownload").innerHTML = inV ? `Send pack <span aria-hidden="true">✉</span>` : `${esc(bt("viewerDownload"))} <span aria-hidden="true">↓</span>`;
   const lg = HUB.legal || {};
@@ -204,7 +205,7 @@ function countUp(el) {
 /* ---------- Module prompts ---------- */
 function promptCard(id) {
   const m = info(id);
-  return `<div class="prompt" data-prompt="${esc(id)}">${cover(id)}<div><div class="label p-label">Related module · ${pagesOf(m)} pages</div><div class="p-title">${esc(m.name)}<span class="rec" hidden>Recommended</span></div><div class="p-q">${esc(m.question || "")}</div></div><button type="button" class="add-btn" data-toggle="${esc(id)}" aria-pressed="false">Add to pack</button></div>`;
+  return `<div class="prompt" data-prompt="${esc(id)}">${cover(id)}<div><div class="label p-label">Related module - ${pagesOf(m)} pages</div><div class="p-title">${esc(m.name)}<span class="rec" hidden>Recommended</span></div><div class="p-q">${esc(m.question || "")}</div></div><button type="button" class="add-btn" data-toggle="${esc(id)}" aria-pressed="false">Add to pack</button></div>`;
 }
 function syncPrompts() {
   const r = rec();
@@ -239,7 +240,7 @@ function renderPack() {
   $("#dockCount").textContent = docs; $("#dockPages").textContent = `${pp} pages`;
   $("#finDocs").textContent = all.length;
   $("#finPages").innerHTML = `document${all.length > 1 ? "s" : ""}<br>${pp} pages`;
-  $("#finFor").innerHTML = state.who && state.eng ? `Built for a <b>${esc(who().label.toLowerCase())}</b> · <b>${esc(eng().label.toLowerCase())}</b>` : "Choose a stakeholder and engagement in the bar above for recommended modules.";
+  $("#finFor").innerHTML = state.who && state.eng ? `Built for a <b>${esc(who().label.toLowerCase())}</b> - <b>${esc(eng().label.toLowerCase())}</b>` : "Choose a stakeholder and engagement in the bar above for recommended modules.";
   $("#finList").innerHTML = `<li class="core"><span class="n">00</span><span>${esc(HUB.core.name)}</span><span class="pp">${pagesOf(HUB.core)} pp</span>${dlBtn("core")}<span></span></li>` +
     ids.map((id, i) => `<li><span class="n">${pad(i + 1)}</span><span>${esc(info(id).name)}</span><span class="pp">${pagesOf(info(id))} pp</span>${dlBtn(id)}<button type="button" class="x-btn" data-toggle="${esc(id)}" aria-label="Remove ${esc(info(id).name)}">${esc(bt("remove"))}</button></li>`).join("");
   const rest = modules().filter(m => !ids.includes(m.id));
@@ -255,7 +256,7 @@ const html = s => { const t = document.createElement("template"); t.innerHTML = 
 function mockPages(id, d) {
   const out = [], b = HUB.brand || {};
   const head = n => `<div class="pg-top"><span class="pg-brand">${HUB.brand && HUB.brand.logo ? mark() : `<i></i>${esc(b.productName)}`}</span><span>${esc(d.name)}</span></div>`;
-  const foot = n => `<div class="pg-foot"><span>Job code ${esc(b.jobCode)} · ${esc(b.datePrepared)}</span><span>Page ${n} of ${pagesOf(d)}</span></div>`;
+  const foot = n => `<div class="pg-foot"><span>Job code ${esc(b.jobCode)} - ${esc(b.datePrepared)}</span><span>Page ${n} of ${pagesOf(d)}</span></div>`;
   for (let n = 1; n <= pagesOf(d); n++) {
     let body;
     if (isCore(id) && n === 1) body = `<div class="pg-cover"><div class="bar-o"></div><div class="label pg-kicker">${esc((HUB.hero || {}).eyebrow)}</div><h1>${esc(d.name)}</h1><p>${esc(d.draftIntro || "")}</p><p style="color: var(--muted); font-size: 12.5px">${esc(d.draftNote || "")}</p></div>`;
@@ -267,16 +268,16 @@ function mockPages(id, d) {
   return out.join("");
 }
 function renderViewer(all, pp) {
-  $("#pmCount").textContent = `${all.length} documents · ${pp} pages`;
+  $("#pmCount").textContent = `${all.length} documents - ${pp} pages`;
   $("#pmTitle").textContent = who() ? `Pack for ${who().label.toLowerCase()}` : "Your pack";
-  $("#pmJump").innerHTML = all.map((id, i) => `<button type="button" data-jump="${esc(id)}">${pad(i)} · ${esc(shortName(info(id)))}</button>`).join("");
+  $("#pmJump").innerHTML = all.map((id, i) => `<button type="button" data-jump="${esc(id)}">${pad(i)} - ${esc(shortName(info(id)))}</button>`).join("");
   const draft = all.filter(id => !(info(id).images && info(id).images.length));
   const note = $("#pmNote"); note.hidden = !draft.length;
   note.textContent = draft.length ? `Draft pages: ${draft.length === all.length ? "these pages stand in for the artworked PDFs." : draft.length + " of " + all.length + " documents still show draft pages in place of the artworked PDF."} Once the approved PDF is added, it appears here and downloads as the same file.` : "";
   $("#pmDocs").innerHTML = all.map((id, i) => {
     const d = info(id), real = d.images && d.images.length;
     const btns = `${clm() && (V().pdfSlides || {})[id] ? `<button class="chip-btn" type="button" data-open-slide="${esc(id)}">Open PDF</button>` : ""}<button class="chip-btn" type="button" data-pdf="${esc(id)}">${clm() ? "Send PDF ✉" : esc(bt("viewerDocDownload")) + " ↓"}</button>${isCore(id) ? "" : `<button class="chip-btn" type="button" data-toggle="${esc(id)}">${esc(bt("remove"))}</button>`}`;
-    return `<section class="pm-doc" id="doc-${esc(id)}" aria-label="${esc(d.name)}"><div class="pm-doc-head"><span class="n${isCore(id) ? " core" : ""}">${pad(i)}</span><div><div class="label">${esc(d.code || "")} · PDF · ${pagesOf(d)} pages</div><h3>${esc(d.name)}</h3></div><div class="btns">${btns}</div></div>${real ? d.images.map((src, n) => `<div class="pm-page img"><img src="${esc(src)}" alt="${esc(d.name)}, page ${n + 1}" loading="lazy"></div>`).join("") + (+d.pages > d.images.length ? `<p class="pm-more">Showing the first ${d.images.length} of ${+d.pages} pages here. Download the PDF to read all of it.</p>` : "") : mockPages(id, d)}</section>`;
+    return `<section class="pm-doc" id="doc-${esc(id)}" aria-label="${esc(d.name)}"><div class="pm-doc-head"><span class="n${isCore(id) ? " core" : ""}">${pad(i)}</span><div><div class="label">${esc(d.code || "")} - PDF - ${pagesOf(d)} pages</div><h3>${esc(d.name)}</h3></div><div class="btns">${btns}</div></div>${real ? d.images.map((src, n) => `<div class="pm-page img"><img src="${esc(src)}" alt="${esc(d.name)}, page ${n + 1}" loading="lazy"></div>`).join("") + (+d.pages > d.images.length ? `<p class="pm-more">Showing the first ${d.images.length} of ${+d.pages} pages here. Download the PDF to read all of it.</p>` : "") : mockPages(id, d)}</section>`;
   }).join("");
 }
 

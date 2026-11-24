@@ -144,7 +144,10 @@ function slot(kind, path, label, accept, o = {}) {
     return `<div class="slot" data-slot="pdf" data-path="${path}"><div class="slot-h"><b>${label}</b><span class="slot-b"><label class="sbtn">${has ? "Replace" : "Choose"} PDF<input type="file" accept="${accept}" data-file="pdf" data-path="${path}" hidden></label>${has ? `<button class="sbtn" type="button" data-act="clearPdf" data-path="${path}">Remove</button>` : ""}</span></div><div class="slot-s">${statusHtml}</div>${body}<div class="small">Or drag a PDF onto this box.</div></div>`;
   }
   const val = getP(path);
-  if (kind === "logo") {
+  if (kind === "cover") {
+    statusHtml = val ? `<span class="${isData(val) ? "ok" : "linked"}">${isData(val) ? "✓ Cover image added · " + fmtSize(uriBytes(val)) : "Linked by path: " + esc(val)}</span>` : `<span class="none">No cover image: the orange cover with the name is shown.</span>`;
+    body = val ? `<div class="logo-prev"><img src="${esc(val)}" alt="Cover preview" style="max-height:160px"></div>` : "";
+  } else if (kind === "logo") {
     statusHtml = val ? `<span class="${isData(val) ? "ok" : "linked"}">${isData(val) ? "✓ Logo added · " + fmtSize(uriBytes(val)) : "Linked by path: " + esc(val)}</span>` : `<span class="none">No logo: a dot and the product name are shown.</span>`;
     body = val ? `<div class="logo-prev"><img src="${esc(val)}" alt="Logo preview"></div>` : "";
   } else {
@@ -180,6 +183,7 @@ const SECTIONS = [
   { id: "core", title: "Core notification", goto: "top", render: () => frameSection("Core notification", "The core deliverable. It is included in every pack.",
     `${fText("Name", "core.name")}<div class="cols">${fText("Short name (for small covers)", "core.short")}${fText("PDF code", "core.code")}</div>${fText("Line under the cover", "core.blurb")}
      <h2>PDF</h2>${slot("pdf", "core", "Core notification PDF", "application/pdf")}
+     <h2>Cover picture (optional)</h2><p class="small" style="margin:-4px 0 10px">Replaces the orange cover on the opening screen with a picture of the real document. Keeps the rounded corners, tilt and shadow. A portrait A4 picture fits best.</p>${slot("cover", "core.cover", "Cover picture", "image/*")}${C.core.images && C.core.images.length ? `<button class="bigbtn line" type="button" data-act="coverFromPdf">Use page 1 of the PDF as the cover</button>` : ""}
      ${fNum("Page count", "core.pages", { dis: isStored(C.core.pdf), hint: isStored(C.core.pdf) ? "Counted from the PDF." : "Used until a PDF is added." })}
      <h2>Draft cover text</h2><p class="small">Only shown on the draft pages, until the approved PDF is added.</p>${fArea("Intro", "core.draftIntro")}${fArea("Note", "core.draftNote")}`) },
   { id: "people", title: "Stakeholders and engagements", goto: "builder", render: () => frameSection("Stakeholders and engagements", "Who is being engaged, and why. Each choice leads to recommended modules.",
@@ -378,6 +382,9 @@ function handleFile(kind, path, file) {
       if (kind === "pdf") {
         if (!/pdf$/i.test(file.type) && !/\.pdf$/i.test(file.name)) throw new Error(`${file.name} is not a PDF.`);
         await ingestPdf(path, file); { const dd = getP(path); status(`${file.name} added: ${dd.pages} pages${dd.images.length && dd.images.length < dd.pages ? " (the viewer shows the first " + dd.images.length + ")" : ""}, ${fmtSize(file.size)}.`, "", 5000); }
+      } else if (kind === "cover") {
+        const u = await readUri(file); if (!/^data:image\//.test(u)) throw new Error("That file isn't an image.");
+        setP(path, u); status("Cover image added.", "", 3000);
       } else if (kind === "logo") {
         let u = await readUri(file); if (!/^data:image\//.test(u)) throw new Error("That file isn't an image.");
         if (/\.svg$/i.test(file.name) && !u.startsWith("data:image/svg+xml")) u = "data:image/svg+xml;base64," + u.split(",")[1];
@@ -510,6 +517,7 @@ async function exportSite() {
       const imgs = []; for (let i = 0; i < (d.images || []).length; i++) { const u = d.images[i]; if (isData(u)) { const f = uniq("assets/pages/", `${stem}-${pad2(i + 1)}`, ".jpg"); add(f, new Blob([dataBytes(u)], { type: "image/jpeg" })); imgs.push(f); } else { await keep(u); imgs.push(u); } }
       d.images = imgs; delete d.pdfName;
     }
+    if (isData(c.core.cover)) { const f = uniq("assets/cover/", "core-cover", "." + (EXT[dataMime(c.core.cover)] || "jpg")); add(f, new Blob([dataBytes(c.core.cover)])); c.core.cover = f; } else await keep(c.core.cover);
     if (isData(c.brand.logo)) { const f = uniq("assets/logo/", "logo", "." + (EXT[dataMime(c.brand.logo)] || "png")); add(f, new Blob([dataBytes(c.brand.logo)])); c.brand.logo = f; } else await keep(c.brand.logo);
     for (const k of Object.keys(c.brand.fonts || {})) { const u = c.brand.fonts[k]; if (isData(u)) { const f = uniq("assets/fonts/", "custom-" + k, "." + (EXT[dataMime(u)] || "woff")); add(f, new Blob([dataBytes(u)])); c.brand.fonts[k] = f; } else await keep(u); }
     const fonts = [...FONTS_EXPORT.matchAll(/url\(data:font\/woff;base64,([^)]+)\)/g)];
@@ -592,6 +600,7 @@ document.addEventListener("click", e => {
   else if (act === "reloadPreview") reloadPreview();
   else if (act === "replayFlow") { try { if (window.parent !== window && window.parent.hubFlowRestart) { window.parent.hubFlowRestart(); window.parent.__hideEditor(); } else if (frameReady) frame.contentWindow.postMessage({ type: "hub-consent-demo" }, "*"); } catch (err) {} }
   else if (act === "editOnPage") { try { window.parent.__startInline(inlineSet); } catch (err) { status("This works from the page's hidden editor (click the logo 5 times).", "err", 5000); } }
+  else if (act === "coverFromPdf") { if (C.core.images && C.core.images[0]) { C.core.cover = C.core.images[0]; renderForm(true); touch(); } }
   else if (act === "backToSite") { pushToHost(); try { window.parent.__hideEditor(); } catch (err) {} }
 });
 // Drag and drop onto file slots and the bulk drop zone

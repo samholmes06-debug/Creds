@@ -39,6 +39,7 @@ window.HUB = {
      pdf / images: the approved PDF, and one picture per page for the in-page viewer. */
   core: {
     name: "Core launch notification",
+    cover: "",                     // optional picture of the PDF that replaces the orange cover (the rounded corners and shadow stay)
     short: "Core launch notification",
     code: "PA-CORE-00",
     pages: 4,                                  // used until a PDF is added; then counted automatically
@@ -85,9 +86,9 @@ window.HUB = {
     { id: "pathway", name: "Patient population and pathway", short: "Population & pathway", question: "Who is it for and where does it fit?", code: "PA-MOD-02", pages: 3,
       pdf: "assets/pdfs/PA-MOD-02.pdf", images: ["assets/pages/PA-MOD-02-1.jpg", "assets/pages/PA-MOD-02-2.jpg", "assets/pages/PA-MOD-02-3.jpg"],
       intro: "The expected position of Product A in the current care pathway, and the estimated eligible population.",
-      facts: [["England", "8,400 prevalent · 1,100 new a year"], ["Average ICB (1.5m)", "225 prevalent · 30 new a year"], ["Per 100,000", "15 prevalent · 2 new a year"]],
+      facts: [["England", "8,400 prevalent - 1,100 new a year"], ["Average ICB (1.5m)", "225 prevalent - 30 new a year"], ["Per 100,000", "15 prevalent - 2 new a year"]],
       pointsTitle: "Pathway steps",
-      points: ["Step 1 · Referral: primary care", "Step 2 · Diagnosis: specialist clinic", "Step 3 · First line: standard care", "Step 4 · **Product A: proposed second line**", "Step 5 · Follow-up: homecare and review"] },
+      points: ["Step 1 - Referral: primary care", "Step 2 - Diagnosis: specialist clinic", "Step 3 - First line: standard care", "Step 4 - **Product A: proposed second line**", "Step 5 - Follow-up: homecare and review"] },
     { id: "formulary", name: "Formulary and prescribing", short: "Formulary & prescribing", question: "What do formulary committees need to consider?", code: "PA-MOD-03", pages: 2,
       pdf: "assets/pdfs/PA-MOD-03.pdf", images: ["assets/pages/PA-MOD-03-1.jpg", "assets/pages/PA-MOD-03-2.jpg"],
       intro: "",
