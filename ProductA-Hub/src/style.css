@@ -70,8 +70,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .readbar { position: absolute; left: 0; right: 0; bottom: -1px; height: 3px; background: var(--orange); transform-origin: left; transform: scaleX(0); }
 .bar-core .short { display: none; }
 @media (max-width: 1080px) { .bar-core .long { display: none; } .bar-core .short { display: inline; } }
-@media (max-width: 1240px) { .brand .concept { font-size: 10px; } }
-@media (max-width: 900px) { .brand .concept { display: none; } .concept-strip { display: block; } }
+@media (max-width: 1300px) { .brand .concept { display: none; } .concept-strip { display: block; } }
 @media (max-width: 640px) {
   :root { --bar-h: 64px; }
   .pick-btn .chev { width: 8px; height: 8px; }
@@ -280,6 +279,7 @@ footer b { color: var(--black); }
 .foot-links a, .foot-links button { color: var(--black); font: inherit; font-size: 15px; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 7px; }
 .foot-links a:hover, .foot-links button:hover { text-decoration: underline; text-underline-offset: 3px; }
 .foot-ref { margin-top: 22px !important; }
+.foot-vr { display: inline-block; width: 1px; height: .95em; background: currentColor; opacity: .55; margin: 0 12px; vertical-align: -1px; }
 .foot-links svg { width: 12px; height: 12px; color: var(--orange); }
 
 /* Dock */

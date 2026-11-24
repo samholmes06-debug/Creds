@@ -138,8 +138,8 @@ function bindStatic() {
   $("#dlPack").innerHTML = inV ? `Send pack by Approved Email <span aria-hidden="true">✉</span>` : `Download as one PDF <span aria-hidden="true">↓</span>`;
   $("#pmDownload").innerHTML = inV ? `Send pack <span aria-hidden="true">✉</span>` : `Download pack <span aria-hidden="true">↓</span>`;
   const lg = HUB.legal || {};
-  const dflt = `Job code ${b.jobCode || ""} · Date of preparation ${b.datePrepared || ""}`;
-  $("#footerInner").innerHTML = (lg.paragraphs || []).map((p, i) => `<p data-edit="legal.paragraphs.${i}">${esc(p)}</p>`).join("") + footLinks(lg) + `<p class="foot-ref" data-edit="legal.line" data-fallback="${esc(dflt)}">${md(lg.line ? lg.line : dflt)}</p>`;
+  const dflt = `Job code ${b.jobCode || ""} | Date of preparation ${b.datePrepared || ""}`;
+  $("#footerInner").innerHTML = (lg.paragraphs || []).map((p, i) => `<p data-edit="legal.paragraphs.${i}">${esc(p)}</p>`).join("") + footLinks(lg) + `<p class="foot-ref" data-edit="legal.line" data-fallback="${esc(dflt)}">${md(lg.line ? lg.line : dflt).replace(/ \| /g, `<span class="foot-vr" aria-hidden="true"></span>`)}</p>`;
   $("#pickWho b").textContent = who() ? who().label : (HUB.builder || {}).whoPlaceholder || "Choose";
   $("#pickEng b").textContent = eng() ? eng().label : (HUB.builder || {}).engPlaceholder || "Choose";
   $("#pickWho b").classList.toggle("empty", !who());

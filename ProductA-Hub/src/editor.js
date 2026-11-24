@@ -225,7 +225,7 @@ const SECTIONS = [
      <h2>Adverse event statement</h2>${fArea("Text in the outlined box", "prescribing.aeText", { rows: 4 })}`) },
   { id: "finish", title: "Pack and footer", goto: "pack", render: () => frameSection("Pack and footer", "The pack section and the legal footer.",
     `${fText("Pack heading", "finale.title")}${fArea("Pack text", "finale.sub")}
-     <h2>Footer</h2>${fText("Reference line (very bottom)", "legal.line", { hint: "Leave blank to show the job code and date of preparation. Type your own to change the wording or the dots; ** around words makes them bold." })}${strs("legal.paragraphs", "Legal text", 3)}
+     <h2>Footer</h2>${fText("Reference line (very bottom)", "legal.line", { hint: "Leave blank to show the job code and date of preparation. Type your own to change the wording. A space, a | and a space makes a small divider line; ** around words makes them bold." })}${strs("legal.paragraphs", "Legal text", 3)}
      <h2>Footer links</h2><p class="small" style="margin:-4px 0 10px">The links under the footer text. Leave the address blank until you have it: the link then does nothing.</p>
      ${cards("legal.links", "footlink", "footer link", l => l.label || "Link", (l, i, p) => `<div class="cols">${fText("Text", p + ".label")}${fText("Address", p + ".url", { ph: "https://…" })}</div>${fCheck("Show the external-link icon", p + ".external")}`)}`) },
   { id: "signin", title: "Sign-in and consent screens", goto: "top", render: () => frameSection("Sign-in and consent screens", "The first two screens: a mock sign-in, then a tick-box consent screen, then the page. Switch either off and export again and its code is gone from the file.",
