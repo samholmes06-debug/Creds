@@ -193,6 +193,16 @@ window.HUB = {
     title: "Your pack",
     sub: "Everything you've added, in recommended order. Preview it or download it as one PDF."
   },
+  prescribing: {
+    title: "Prescribing Information",
+    ctaText: "Product A prescribing information",
+    viewLabel: "View",
+    ctaLabel: "Download",
+    code: "PA-PI",
+    pdf: "",                       // the approved prescribing information PDF
+    pages: 1,
+    aeText: "Adverse events should be reported. Reporting forms and information can be found at www.mhra.gov.uk/yellowcard or search for MHRA Yellow Card in the Google Play or Apple App Store. Adverse events should also be reported to [Company name] on [telephone number / email address]."
+  },
   legal: {
     title: "Product A advance notification",
     line: "",                      // optional: the whole first footer line (blank = title, job code and date)
@@ -226,7 +236,7 @@ window.HUB = {
   },
 
   /* ---- Which sections of the page to show -------------------------------- */
-  sections: { stats: true, story: true, timeline: true },
+  sections: { stats: true, story: true, timeline: true, prescribing: true },
 
   /* ---- Mock sign-in screen: the first screen. The button just continues (real sign-in is added on the server later) */
   signin: {

@@ -95,6 +95,16 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .hero h1 .line:nth-child(3) span { color: var(--orange); }
 @keyframes rise { from { transform: translateY(60%); } to { transform: none; } }
 .hero-lede { font-size: clamp(18px, 1.6vw, 21px); max-width: 44ch; margin-top: 26px; }
+.pi { background: var(--white); color: var(--black); padding-block: clamp(64px, 9vw, 120px); }
+.pi h2 { font-size: clamp(40px, 6vw, 84px); line-height: .98; letter-spacing: -.025em; margin-bottom: clamp(28px, 4vw, 48px); }
+.pi-cta { display: flex; align-items: center; justify-content: space-between; gap: 20px 32px; flex-wrap: wrap; border: 1px solid #d5d7d9; border-radius: 14px; padding: clamp(28px, 4.5vw, 56px) clamp(24px, 4vw, 56px); }
+.pi-cta-t { font-size: clamp(22px, 3.2vw, 38px); line-height: 1.15; letter-spacing: -.01em; }
+.pi-cta-acts { display: flex; gap: 28px; align-items: center; }
+.pi-act { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: clamp(16px, 1.6vw, 20px); color: var(--black); text-decoration: underline; text-underline-offset: 4px; }
+.pi-act svg { width: 22px; height: 22px; color: #6b7075; }
+.pi-act:hover svg { color: var(--orange); }
+.pi-box { margin-top: clamp(20px, 3vw, 36px); border: 1px solid #d5d7d9; border-radius: 28px; padding: clamp(18px, 2.4vw, 30px) clamp(24px, 6vw, 96px); text-align: center; }
+.pi-box p { margin: 0 auto; max-width: 80ch; font-size: clamp(15px, 1.5vw, 18px); line-height: 1.6; }
 .topnote { text-align: center; font-size: 13.5px; color: var(--muted); max-width: 90ch; margin: 0 auto; padding: 16px 20px 0; }
 .topnote:empty { display: none; }
 .hero-note { font-size: 13.5px; color: var(--muted); max-width: 52ch; margin-top: 14px; }
@@ -257,6 +267,7 @@ footer b { color: var(--black); }
 .foot-links { display: flex; flex-wrap: wrap; gap: 14px 30px; margin-top: 14px; }
 .foot-links a, .foot-links button { color: var(--black); font: inherit; font-size: 15px; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 7px; }
 .foot-links a:hover, .foot-links button:hover { text-decoration: underline; text-underline-offset: 3px; }
+.foot-ref { margin-top: 22px !important; }
 .foot-links svg { width: 12px; height: 12px; color: var(--orange); }
 
 /* Dock */

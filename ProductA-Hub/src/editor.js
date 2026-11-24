@@ -18,7 +18,8 @@ const isStored = u => typeof u === "string" && u.startsWith("@store:");
 const putStore = blob => { const k = "@store:" + (++storeN); STORE.set(k, blob); return k; };
 const fileSize = d => (isStored(d.pdf) && STORE.get(d.pdf) ? STORE.get(d.pdf).size : 0);
 const blobUrl = k => { if (!URLS.has(k)) URLS.set(k, URL.createObjectURL(STORE.get(k))); return URLS.get(k); };
-const withPdfUrls = c => { for (const d of [c.core, ...c.modules]) if (isStored(d.pdf)) d.pdf = blobUrl(d.pdf); return c; };
+const fileDocs = c => [c.core, ...(c.modules || []), c.prescribing].filter(Boolean);
+const withPdfUrls = c => { for (const d of fileDocs(c)) if (isStored(d.pdf)) d.pdf = blobUrl(d.pdf); return c; };
 const MAX_IMG = 30;   // page pictures made per PDF for the in-page viewer
 const DEFAULT_FONTS = ["gsk-light.woff", "gsk-regular.woff", "gsk-regularitalic.woff", "gsk-bold.woff"];
 
@@ -34,7 +35,7 @@ function parseJs(text) { const w = {}; new Function("window", text)(w); if (!w.H
 /* The sample content has no files (they live in the folder version); the editor starts with a placeholder logo */
 const DEFAULT = (() => {
   const h = parseJs(CONTENT_DEFAULT);
-  for (const d of [h.core, ...h.modules]) { d.pdf = ""; d.images = []; }
+  for (const d of [h.core, ...h.modules, h.prescribing]) { d.pdf = ""; d.images = []; }
   h.brand.logo = svgUri(LOGO_SVG);
   return h;
 })();
@@ -62,7 +63,7 @@ function normalize(c) {
     if (c[k] && typeof c[k] === "object" && !Array.isArray(c[k]) && out[k] && typeof out[k] === "object" && !Array.isArray(out[k])) out[k] = Object.assign(out[k], c[k]);
     else out[k] = c[k];
   }
-  for (const d of [out.core, ...out.modules]) { if (isData(d.pdf)) d.pdf = putStore(new Blob([dataBytes(d.pdf)], { type: "application/pdf" })); if (isStored(d.pdf) && !STORE.has(d.pdf)) d.pdf = ""; d.pdf = d.pdf || ""; d.images = d.images || []; d.facts = d.facts || []; d.points = d.points || []; }
+  for (const d of fileDocs(out)) { if (isData(d.pdf)) d.pdf = putStore(new Blob([dataBytes(d.pdf)], { type: "application/pdf" })); if (isStored(d.pdf) && !STORE.has(d.pdf)) d.pdf = ""; d.pdf = d.pdf || ""; d.images = d.images || []; d.facts = d.facts || []; d.points = d.points || []; }
   out.brand.fonts = out.brand.fonts || {};
   return out;
 }
@@ -164,7 +165,7 @@ const SECTIONS = [
      ${slot("font", "brand.fonts.regular", "Regular", ".woff,.woff2,.ttf,.otf")}${slot("font", "brand.fonts.bold", "Bold", ".woff,.woff2,.ttf,.otf")}${slot("font", "brand.fonts.light", "Light", ".woff,.woff2,.ttf,.otf")}${slot("font", "brand.fonts.italic", "Italic", ".woff,.woff2,.ttf,.otf")}
      <p class="small">Check your licence allows the font to be embedded in a file you share. Fonts are embedded so the page works offline.</p></details>`) },
   { id: "sections", title: "Show or hide sections", goto: "top", render: () => frameSection("Show or hide sections", "Hide any part of the page you don't need. Your text is kept, so you can bring it back.",
-    `${fCheck("Key figures (the large numbers)", "sections.stats")}${fCheck("Story chapters", "sections.story")}${fCheck("Timeline (“Where we are”)", "sections.timeline")}
+    `${fCheck("Key figures (the large numbers)", "sections.stats")}${fCheck("Story chapters", "sections.story")}${fCheck("Timeline (“Where we are”)", "sections.timeline")}${fCheck("Prescribing Information", "sections.prescribing")}
      <p class="small">The opening screen and the pack builder are always shown, because they are the heart of the page.</p>`) },
   { id: "hero", title: "Opening screen", goto: "top", render: () => frameSection("Opening screen", "The headline, the intro text and the stakeholder chooser.",
     `${fText("Small heading above the title", "hero.eyebrow")}<h2>Title lines</h2>${strs("hero.titleLines", "Title line", 1)}<p class="small" style="margin:-4px 0 12px">The last line is shown in the brand colour.</p>
@@ -214,9 +215,14 @@ const SECTIONS = [
     `${fCheck("Show this section on the page", "sections.timeline")}${fText("Heading", "timeline.title")}${fArea("Text", "timeline.intro")}${cards("timeline.items", "milestone", "Add milestone", t => (t.when || "") + " · " + (t.what || "New milestone"), (t, i, p) => `
       <div class="cols">${fSel("Status", p + ".state", [["done", "Done"], ["now", "Next (highlighted)"], ["future", "Later"]])}${fText("Label", p + ".tag", { hint: "For example Done, Next, Expected" })}</div>
       <div class="cols">${fText("Date", p + ".when")}${fText("Milestone", p + ".what")}</div>${fArea("Text", p + ".text", { rows: 2 })}`)}`) },
+  { id: "prescribing", title: "Prescribing Information", goto: "pi", render: () => frameSection("Prescribing Information", "The white section after the pack: a download and view box for the prescribing information, and the adverse event statement.",
+    `${fCheck("Show this section on the page", "sections.prescribing")}${fText("Title", "prescribing.title")}${fText("Box text", "prescribing.ctaText")}
+     <div class="cols">${fText("View link", "prescribing.viewLabel")}${fText("Download link", "prescribing.ctaLabel")}</div>
+     <h2>PDF</h2>${slot("pdf", "prescribing", "Prescribing Information PDF", "application/pdf")}
+     <h2>Adverse event statement</h2>${fArea("Text in the outlined box", "prescribing.aeText", { rows: 4 })}`) },
   { id: "finish", title: "Pack and footer", goto: "pack", render: () => frameSection("Pack and footer", "The pack section and the legal footer.",
     `${fText("Pack heading", "finale.title")}${fArea("Pack text", "finale.sub")}
-     <h2>Footer</h2>${fText("First line, title part", "legal.title")}${fText("First line, whole (optional)", "legal.line", { hint: "Leave blank to use the title, job code and date. Type your own to change the dots or wording; ** around words makes them bold." })}${strs("legal.paragraphs", "Legal text", 3)}
+     <h2>Footer</h2>${fText("Reference line (very bottom)", "legal.line", { hint: "Leave blank to show the job code and date of preparation. Type your own to change the wording or the dots; ** around words makes them bold." })}${strs("legal.paragraphs", "Legal text", 3)}
      <h2>Footer links</h2><p class="small" style="margin:-4px 0 10px">The links under the footer text. Leave the address blank until you have it: the link then does nothing.</p>
      ${cards("legal.links", "footlink", "footer link", l => l.label || "Link", (l, i, p) => `<div class="cols">${fText("Text", p + ".label")}${fText("Address", p + ".url", { ph: "https://…" })}</div>${fCheck("Show the external-link icon", p + ".external")}`)}`) },
   { id: "signin", title: "Sign-in and consent screens", goto: "top", render: () => frameSection("Sign-in and consent screens", "The first two screens: a mock sign-in, then a tick-box consent screen, then the page. Switch either off and export again and its code is gone from the file.",
@@ -344,7 +350,7 @@ function initPdfJs() {
 async function ingestPdf(path, file) {
   initPdfJs();
   const d = getP(path), bytes = new Uint8Array(await file.arrayBuffer());
-  const pdf = await pdfjsLib.getDocument({ data: bytes }).promise, imgs = [], shown = Math.min(pdf.numPages, MAX_IMG);
+  const pdf = await pdfjsLib.getDocument({ data: bytes }).promise, imgs = [], shown = path === "prescribing" ? 0 : Math.min(pdf.numPages, MAX_IMG);
   for (let n = 1; n <= shown; n++) {
     status(`Reading ${file.name}: page ${n} of ${shown}${shown < pdf.numPages ? " (of " + pdf.numPages + ")" : ""}…`, "busy");
     const pg = await pdf.getPage(n), w = pg.getViewport({ scale: 1 }).width, vp = pg.getViewport({ scale: 1000 / w });
@@ -360,7 +366,7 @@ function handleFile(kind, path, file) {
     try {
       if (kind === "pdf") {
         if (!/pdf$/i.test(file.type) && !/\.pdf$/i.test(file.name)) throw new Error(`${file.name} is not a PDF.`);
-        await ingestPdf(path, file); { const dd = getP(path); status(`${file.name} added: ${dd.pages} pages${dd.images.length < dd.pages ? " (the viewer shows the first " + dd.images.length + ")" : ""}, ${fmtSize(file.size)}.`, "", 5000); }
+        await ingestPdf(path, file); { const dd = getP(path); status(`${file.name} added: ${dd.pages} pages${dd.images.length && dd.images.length < dd.pages ? " (the viewer shows the first " + dd.images.length + ")" : ""}, ${fmtSize(file.size)}.`, "", 5000); }
       } else if (kind === "logo") {
         let u = await readUri(file); if (!/^data:image\//.test(u)) throw new Error("That file isn't an image.");
         if (/\.svg$/i.test(file.name) && !u.startsWith("data:image/svg+xml")) u = "data:image/svg+xml;base64," + u.split(",")[1];
@@ -435,7 +441,7 @@ const base = () => slug(C.brand.productName) + "-launch-story";
 function finalCopy() {
   const c = clone(C);
   c.brand.mockLabel = "";
-  for (const d of [c.core, ...c.modules]) delete d.pdfName;
+  for (const d of fileDocs(c)) delete d.pdfName;
   return c;
 }
 /* The checks and confirmations before any export; false means the user stopped */
@@ -473,7 +479,7 @@ async function pull(u) { try { if (!u || isData(u) || /^(https?:)?\/\//i.test(u)
 async function pullLinked() {
   if (!/^https?:/.test(location.protocol)) return;
   let n = 0;
-  for (const d of [C.core, ...C.modules]) if (d.pdf && !isStored(d.pdf) && !isData(d.pdf)) {
+  for (const d of fileDocs(C)) if (d.pdf && !isStored(d.pdf) && !isData(d.pdf)) {
     const b = await pull(d.pdf); if (b) { d.pdf = putStore(new Blob([b], { type: "application/pdf" })); d.pdfName = d.pdfName || "PDF from the site"; n++; }
   }
   if (n) { renderForm(true); renderSide(); status(`Loaded ${n} PDF${n > 1 ? "s" : ""} from the site.`, "", 5000); }
@@ -488,7 +494,7 @@ async function exportSite() {
     const add = (name, data) => entries.push({ name: root + name, data });
     const uniq = (dir, stem, ext) => { let n = stem, i = 2; while (names.has(dir + n + ext)) n = stem + "-" + i++; names.add(dir + n + ext); return dir + n + ext; };
     const keep = async u => { if (!u || isData(u) || /^(https?:)?\/\//i.test(u)) return; if (names.has(u)) return; const b = await pull(u); if (b) { names.add(u); add(u, b); } else missing.push(u); };
-    for (const d of [c.core, ...c.modules]) {
+    for (const d of fileDocs(c)) {
       const stem = String(d.code || d.id || "doc").replace(/[^A-Za-z0-9._-]+/g, "-");
       if (isStored(d.pdf)) { const f = uniq("assets/pdfs/", stem, ".pdf"); add(f, STORE.get(d.pdf)); d.pdf = f; } else await keep(d.pdf);
       const imgs = []; for (let i = 0; i < (d.images || []).length; i++) { const u = d.images[i]; if (isData(u)) { const f = uniq("assets/pages/", `${stem}-${pad2(i + 1)}`, ".jpg"); add(f, new Blob([dataBytes(u)], { type: "image/jpeg" })); imgs.push(f); } else { await keep(u); imgs.push(u); } }
@@ -514,7 +520,7 @@ async function exportSite() {
 async function saveProject() {
   try {
     const c = clone(C), entries = []; let n = 0;
-    for (const d of [c.core, ...c.modules]) if (isStored(d.pdf)) { const f = `files/pdf-${++n}.pdf`; entries.push({ name: f, data: STORE.get(d.pdf) }); d.pdf = "@zip:" + f; }
+    for (const d of fileDocs(c)) if (isStored(d.pdf)) { const f = `files/pdf-${++n}.pdf`; entries.push({ name: f, data: STORE.get(d.pdf) }); d.pdf = "@zip:" + f; }
     entries.unshift({ name: "project.json", data: JSON.stringify({ hubEditorProject: 2, content: c }) });
     const zip = await makeZip(entries); download(base().replace("-launch-story", "") + "-content.zip", zip);
     dirty = false; status(`Content saved (${fmtSize(zip.size)}). Load it back any time with Open content.`, "", 6000);
@@ -526,7 +532,7 @@ async function openFile(file) {
     if (/\.zip$/i.test(file.name)) {
       const z = await readZip(file), pj = z.entries.find(e => e.name === "project.json"); if (!pj) throw new Error("That zip isn't a hub project.");
       const j = JSON.parse(await (await z.blob(pj)).text()); obj = j.content;
-      for (const d of [obj.core, ...obj.modules]) if (typeof d.pdf === "string" && d.pdf.startsWith("@zip:")) {
+      for (const d of fileDocs(obj)) if (typeof d.pdf === "string" && d.pdf.startsWith("@zip:")) {
         const e = z.entries.find(x => x.name === d.pdf.slice(5)); d.pdf = e ? putStore(new Blob([await z.blob(e)], { type: "application/pdf" })) : "";
       }
     } else {

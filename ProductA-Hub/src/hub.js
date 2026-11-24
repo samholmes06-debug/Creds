@@ -136,8 +136,8 @@ function bindStatic() {
   $("#dlPack").innerHTML = inV ? `Send pack by Approved Email <span aria-hidden="true">✉</span>` : `Download as one PDF <span aria-hidden="true">↓</span>`;
   $("#pmDownload").innerHTML = inV ? `Send pack <span aria-hidden="true">✉</span>` : `Download pack <span aria-hidden="true">↓</span>`;
   const lg = HUB.legal || {};
-  const dflt = `**${lg.title || ""}** · Job code ${b.jobCode || ""} · Date of preparation ${b.datePrepared || ""}`;
-  $("#footerInner").innerHTML = `<p data-edit="legal.line" data-fallback="${esc(dflt)}">${md(lg.line ? lg.line : dflt)}</p>` + (lg.paragraphs || []).map((p, i) => `<p data-edit="legal.paragraphs.${i}">${esc(p)}</p>`).join("") + footLinks(lg);
+  const dflt = `Job code ${b.jobCode || ""} · Date of preparation ${b.datePrepared || ""}`;
+  $("#footerInner").innerHTML = (lg.paragraphs || []).map((p, i) => `<p data-edit="legal.paragraphs.${i}">${esc(p)}</p>`).join("") + footLinks(lg) + `<p class="foot-ref" data-edit="legal.line" data-fallback="${esc(dflt)}">${md(lg.line ? lg.line : dflt)}</p>`;
   $("#pickWho b").textContent = who() ? who().label : (HUB.builder || {}).whoPlaceholder || "Choose";
   $("#pickEng b").textContent = eng() ? eng().label : (HUB.builder || {}).engPlaceholder || "Choose";
   $("#pickWho b").classList.toggle("empty", !who());
@@ -355,6 +355,13 @@ async function mergePack(ids) {
 
 /* ---------- Pack viewer ---------- */
 const packModal = $("#packModal");
+function piFile(kind) {
+  const d = HUB.prescribing || {}; if (!d.pdf) return toast("The Prescribing Information will be available once it is approved.");
+  veevaTrack(kind === "view" ? "pi_viewed" : "pi_downloaded", "pi", d.ctaText || "Prescribing Information");
+  const a = document.createElement("a"); a.href = via(d.pdf, kind === "view" ? "view" : "download");
+  if (kind === "view" || location.protocol === "file:") { a.target = "_blank"; a.rel = "noopener"; } else a.download = (d.code || "prescribing-information") + ".pdf";
+  document.body.append(a); a.click(); a.remove();
+}
 function openPack(target) {
   veevaTrack("pack_viewed", ["core", ...picked()].join(","), "Pack viewer opened");
   packModal.hidden = false; document.body.classList.add("modal-open"); $("#dock").classList.add("away"); $("#pmScroll").scrollTop = 0;
@@ -392,8 +399,8 @@ addEventListener("resize", onScroll);
 
 /* ---------- Render ---------- */
 function renderAll() { renderChoices(); renderChapters(); renderPack(); syncPrompts(); }
-function applySections() { const v = HUB.sections || {}; [["stats", "stats"], ["story", "story"], ["tl", "timeline"]].forEach(([id, k]) => { const el = document.getElementById(id); if (el) el.hidden = v[k] === false; }); }
-document.addEventListener("click", e => { const a = e.target.closest && e.target.closest("a[data-nolink]"); if (a) e.preventDefault(); });
+function applySections() { const v = HUB.sections || {}; [["stats", "stats"], ["story", "story"], ["tl", "timeline"], ["pi", "prescribing"]].forEach(([id, k]) => { const el = document.getElementById(id); if (el) el.hidden = v[k] === false; }); }
+document.addEventListener("click", e => { const a = e.target.closest && e.target.closest("a[data-nolink]"); if (a) { e.preventDefault(); if (a.id === "piView") piFile("view"); else if (a.id === "piDownload") piFile("download"); } });
 function boot() { applySections(); sanitizeState(); applyBrand(); bindStatic(); renderStats(); renderAll(); onScroll(); if (window.hubConsentLink) window.hubConsentLink(); }
 
 // Live updates from the editor's preview. Only attached in the editor's preview, never in a file that is shared.

@@ -108,6 +108,16 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .hero h1 .line:nth-child(3) span { color: var(--orange); }
 @keyframes rise { from { transform: translateY(60%); } to { transform: none; } }
 .hero-lede { font-size: clamp(18px, 1.6vw, 21px); max-width: 44ch; margin-top: 26px; }
+.pi { background: var(--white); color: var(--black); padding-block: clamp(64px, 9vw, 120px); }
+.pi h2 { font-size: clamp(40px, 6vw, 84px); line-height: .98; letter-spacing: -.025em; margin-bottom: clamp(28px, 4vw, 48px); }
+.pi-cta { display: flex; align-items: center; justify-content: space-between; gap: 20px 32px; flex-wrap: wrap; border: 1px solid #d5d7d9; border-radius: 14px; padding: clamp(28px, 4.5vw, 56px) clamp(24px, 4vw, 56px); }
+.pi-cta-t { font-size: clamp(22px, 3.2vw, 38px); line-height: 1.15; letter-spacing: -.01em; }
+.pi-cta-acts { display: flex; gap: 28px; align-items: center; }
+.pi-act { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: clamp(16px, 1.6vw, 20px); color: var(--black); text-decoration: underline; text-underline-offset: 4px; }
+.pi-act svg { width: 22px; height: 22px; color: #6b7075; }
+.pi-act:hover svg { color: var(--orange); }
+.pi-box { margin-top: clamp(20px, 3vw, 36px); border: 1px solid #d5d7d9; border-radius: 28px; padding: clamp(18px, 2.4vw, 30px) clamp(24px, 6vw, 96px); text-align: center; }
+.pi-box p { margin: 0 auto; max-width: 80ch; font-size: clamp(15px, 1.5vw, 18px); line-height: 1.6; }
 .topnote { text-align: center; font-size: 13.5px; color: var(--muted); max-width: 90ch; margin: 0 auto; padding: 16px 20px 0; }
 .topnote:empty { display: none; }
 .hero-note { font-size: 13.5px; color: var(--muted); max-width: 52ch; margin-top: 14px; }
@@ -270,6 +280,7 @@ footer b { color: var(--black); }
 .foot-links { display: flex; flex-wrap: wrap; gap: 14px 30px; margin-top: 14px; }
 .foot-links a, .foot-links button { color: var(--black); font: inherit; font-size: 15px; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 7px; }
 .foot-links a:hover, .foot-links button:hover { text-decoration: underline; text-underline-offset: 3px; }
+.foot-ref { margin-top: 22px !important; }
 .foot-links svg { width: 12px; height: 12px; color: var(--orange); }
 
 /* Dock */
@@ -504,6 +515,17 @@ body.inline-edit [contenteditable] { outline: 2px solid var(--orange, #f36633) !
     </div>
   </div>
 </section>
+
+<section class="pi" id="pi" aria-labelledby="piHead">
+  <div class="wrap">
+    <h2 id="piHead" data-t="prescribing.title"></h2>
+    <div class="pi-cta">
+      <span class="pi-cta-t" data-t="prescribing.ctaText"></span>
+      <span class="pi-cta-acts"><a href="#" class="pi-act" id="piView" data-nolink="1"><span data-t="prescribing.viewLabel"></span><svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 10s3-5.5 8-5.5S18 10 18 10s-3 5.5-8 5.5S2 10 2 10Z"/><circle cx="10" cy="10" r="2.4"/></svg></a><a href="#" class="pi-act" id="piDownload" data-nolink="1"><span data-t="prescribing.ctaLabel"></span><svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 3v10m0 0-4-4m4 4 4-4M3.5 16.5h13"/></svg></a></span>
+    </div>
+    <div class="pi-box"><p data-t="prescribing.aeText"></p></div>
+  </div>
+</section>
 </main>
 
 <footer>
@@ -533,7 +555,7 @@ body.inline-edit [contenteditable] { outline: 2px solid var(--orange, #f36633) !
 <div class="toast" id="toast" role="status" hidden></div>
 
 <script src="lib/pdf-lib.min.js"></script>
-<script>window.HUB = {"schema":1,"brand":{"productName":"Product A","pageTitle":"Product A Launch Story","logo":"assets/logo/placeholder-logo.svg","accent":"#f36633","jobCode":"XX-UK-0000","datePrepared":"October 2026","mockLabel":"Concept mock-up – not for distribution","fonts":{}},"hero":{"eyebrow":"Advance notification · October 2026","titleLines":["Advance","notification for","NHS planning"],"lede":"A new treatment option for Condition X is expected in Q2 2027. Read the launch story below, and build the briefing pack your stakeholder needs as you go.","note":"For NHS budget holders and formulary decision-makers. Product A does not yet have a UK marketing authorisation.","disclaimer":"Prescribing Information and Adverse Event reporting statement can be found at the bottom of this page"},"core":{"name":"Core launch notification","short":"Core launch notification","code":"PA-CORE-00","pages":4,"blurb":"The core deliverable. Included in every pack.","pdf":"assets/pdfs/PA-CORE-00.pdf","images":["assets/pages/PA-CORE-00-1.jpg","assets/pages/PA-CORE-00-2.jpg","assets/pages/PA-CORE-00-3.jpg","assets/pages/PA-CORE-00-4.jpg"],"draftIntro":"Information to support NHS budget and service planning for a new treatment option in Condition X, expected in Q2 2027.","draftNote":"For NHS budget holders and formulary decision-makers. Product A does not yet have a UK marketing authorisation."},"builder":{"title":"Who's this briefing for?","intro":"Choose a stakeholder and the type of engagement. We'll recommend modules, put the most relevant chapters first, and you can add more as you read.","whoLabel":"I'm engaging","engLabel":"For","whoPick":"Engaging","engPick":"Engagement","whoPlaceholder":"Choose stakeholder","engPlaceholder":"Choose type"},"stakeholders":[{"id":"commissioner","label":"ICB commissioner","plural":"ICB commissioners","desc":"Budgets and service planning"},{"id":"pharmacist","label":"Formulary pharmacist","plural":"formulary pharmacists","desc":"Formulary review and policy"},{"id":"finance","label":"Finance and procurement","plural":"finance and procurement leads","desc":"Cost, tariff and contracts"},{"id":"clinical","label":"Clinical lead","plural":"clinical leads","desc":"Pathway and patient care"},{"id":"trust","label":"Trust pharmacy","plural":"trust pharmacy teams","desc":"Supply, storage and homecare"}],"engagements":[{"id":"proactive","label":"Proactive introduction","desc":"First contact ahead of launch","subject":"Advance notification: Product A","intro":"I'm writing to share advance information about Product A, a new treatment option for Condition X expected to launch in Q2 2027, to support your planning."},{"id":"formulary","label":"Formulary preparation","desc":"A decision meeting is coming up","subject":"Product A: information for your formulary review","intro":"Ahead of your formulary discussions, I've put together the information most relevant to reviewing Product A."},{"id":"reactive","label":"Reactive enquiry","desc":"They've asked a specific question","subject":"Product A: answers to your question","intro":"Thank you for your question about Product A. The answers you need are set out below."},{"id":"implementation","label":"Implementation planning","desc":"Getting ready for launch","subject":"Product A: preparing for launch","intro":"As you prepare for the launch of Product A, these resources set out the practical steps and supply arrangements."}],"modules":[{"id":"value","name":"Mini value proposition","short":"Value proposition","question":"Why does Product A matter?","code":"PA-MOD-01","pages":2,"pdf":"assets/pdfs/PA-MOD-01.pdf","images":["assets/pages/PA-MOD-01-1.jpg","assets/pages/PA-MOD-01-2.jpg"],"intro":"Around 40% of people with Condition X do not reach adequate disease control on current first-line options, and many need frequent hospital visits.","facts":[["Pivotal study","TRIAL-1, Phase III, n=612"],["Primary endpoint","Response at week 24"],["Dosing","Once monthly, self-administered"]],"pointsTitle":"Possible resource considerations","points":["Monthly self-administration may reduce infusion-unit appointments compared with Product B.","No routine therapeutic drug monitoring is expected.","A budget impact model will be available on request after the MHRA decision."]},{"id":"pathway","name":"Patient population and pathway","short":"Population & pathway","question":"Who is it for and where does it fit?","code":"PA-MOD-02","pages":3,"pdf":"assets/pdfs/PA-MOD-02.pdf","images":["assets/pages/PA-MOD-02-1.jpg","assets/pages/PA-MOD-02-2.jpg","assets/pages/PA-MOD-02-3.jpg"],"intro":"The expected position of Product A in the current care pathway, and the estimated eligible population.","facts":[["England","8,400 prevalent · 1,100 new a year"],["Average ICB (1.5m)","225 prevalent · 30 new a year"],["Per 100,000","15 prevalent · 2 new a year"]],"pointsTitle":"Pathway steps","points":["Step 1 · Referral: primary care","Step 2 · Diagnosis: specialist clinic","Step 3 · First line: standard care","Step 4 · **Product A: proposed second line**","Step 5 · Follow-up: homecare and review"]},{"id":"formulary","name":"Formulary and prescribing","short":"Formulary & prescribing","question":"What do formulary committees need to consider?","code":"PA-MOD-03","pages":2,"pdf":"assets/pdfs/PA-MOD-03.pdf","images":["assets/pages/PA-MOD-03-1.jpg","assets/pages/PA-MOD-03-2.jpg"],"intro":"","facts":[["Anticipated indication","Adults, moderate to severe Condition X"],["Prescribing setting","Specialist initiation, secondary care"],["Expected NICE route","Single technology appraisal"]],"pointsTitle":"Points for formulary committees","points":["A formulary submission pack will be available once the MHRA decision is confirmed.","NICE technology appraisals carry a 90-day funding requirement after publication.","Prior approval (for example through Blueteq) may be needed, depending on local policy.","Additional monitoring in the risk management plan will be confirmed at licensing."]},{"id":"tariffs","name":"Drug tariffs and pharmacy","short":"Tariffs & pharmacy","question":"What does it cost and how is it supplied?","code":"PA-MOD-04","pages":2,"pdf":"assets/pdfs/PA-MOD-04.pdf","images":["assets/pages/PA-MOD-04-1.jpg","assets/pages/PA-MOD-04-2.jpg"],"intro":"","facts":[["Indicative list price","£X,XXX per pack"],["Tariff status","Expected high-cost drug"],["Supply route","Homecare and wholesaler"],["Storage","Refrigerated, 2–8°C"]],"pointsTitle":"Pharmacy implications","points":["dm+d codes will be available at launch.","A homecare provider will be appointed through a national framework before launch.","Product B supply continues during transition, so stock of both may need managing for up to 12 months."]},{"id":"checklist","name":"Implementation checklist","short":"Implementation checklist","question":"How do we get ready for launch?","code":"PA-MOD-05","pages":1,"pdf":"assets/pdfs/PA-MOD-05.pdf","images":["assets/pages/PA-MOD-05-1.jpg"],"intro":"Seven practical steps to be ready for launch, with suggested owners.","facts":[],"pointsTitle":"","points":["Add Product A to the formulary review agenda (formulary pharmacist)","Model local eligible population and budget impact (ICB commissioner)","Confirm prior-approval process for high-cost drugs (finance lead)","Agree homecare provider and set-up timeline (trust pharmacy)","Plan clinical review of current Product B patients (clinical lead)","Check cold-chain storage capacity (trust pharmacy)","Brief prescribers once guidance is published (clinical lead)"]},{"id":"faqs","name":"FAQs","short":"FAQs","question":"What do people commonly ask?","code":"PA-MOD-06","pages":3,"pdf":"assets/pdfs/PA-MOD-06.pdf","images":["assets/pages/PA-MOD-06-1.jpg","assets/pages/PA-MOD-06-2.jpg","assets/pages/PA-MOD-06-3.jpg"],"intro":"Answers to the questions stakeholders ask most.","facts":[],"pointsTitle":"","points":["**When will Product A be available?** Launch is planned for Q2 2027, subject to MHRA authorisation and the NICE appraisal timetable.","**Will existing Product B patients have to switch?** No patient needs to switch before a clinical review. Product B will remain available for at least 12 months after launch.","**How will Product A be funded?** It is expected to be a high-cost drug outside the payment system. If NICE recommends it, commissioners must fund it within 90 days.","**Is there a budget impact model?** Yes, on request after the MHRA decision.","**Who can initiate treatment?** Specialists in secondary care.","**How will Product A be supplied?** Through homecare and wholesaler routes.","**What are the storage requirements?** Refrigerated at 2–8°C.","**Will a formulary submission pack be available?** Yes, once the MHRA decision is confirmed."]}],"recommend":{"commissioner":{"proactive":["value"],"formulary":["pathway","value"],"reactive":["faqs"],"implementation":["checklist","pathway"]},"pharmacist":{"proactive":["pathway"],"formulary":["formulary","faqs"],"reactive":["faqs"],"implementation":["checklist","tariffs"]},"finance":{"proactive":["value"],"formulary":["tariffs","value"],"reactive":["faqs"],"implementation":["tariffs","checklist"]},"clinical":{"proactive":["pathway"],"formulary":["pathway","formulary"],"reactive":["faqs"],"implementation":["checklist"]},"trust":{"proactive":["tariffs"],"formulary":["formulary","tariffs"],"reactive":["faqs"],"implementation":["checklist","tariffs"]}},"stats":{"label":"Product A in numbers","items":[{"value":"8,400","suffix":"","suffixStyle":"small","countUp":true,"heading":"Estimated eligible patients in England","text":"Adults with moderate to severe Condition X not controlled after first-line therapy. Around 225 in an average ICB.","module":"pathway"},{"value":"2","suffix":"nd","suffixStyle":"small","countUp":false,"heading":"Line of therapy","text":"Expected after standard first-line care, started by specialists in secondary care.","module":"formulary"},{"value":"1","suffix":"×","suffixStyle":"accent","countUp":false,"heading":"Monthly subcutaneous dose","text":"Self-administered at home, which may reduce infusion-unit appointments compared with Product B.","module":"value"},{"value":"2–8","suffix":"°C","suffixStyle":"small","countUp":false,"heading":"Refrigerated storage","text":"Supplied through homecare and wholesaler routes, with dm+d codes available at launch.","module":"tariffs"},{"value":"90","suffix":"","suffixStyle":"small","countUp":true,"heading":"Days to fund after a positive NICE recommendation","text":"The standard funding requirement for NICE technology appraisals.","module":"faqs"},{"value":"12","suffix":"mo","suffixStyle":"small","countUp":true,"heading":"Planned transition from Product B","text":"Product B stays available while patients are reviewed and moved in a planned way.","module":"checklist"}]},"story":{"title":"The launch story","intro":"The core launch notification, chapter by chapter. Each chapter links to a module with more detail, ready to add to your pack.","downloadLabel":"Download the core notification"},"chapters":[{"id":"value","pin":"first","title":"What's coming","module":"value","lead":"Product A is a **once-monthly subcutaneous** treatment for adults with moderate to severe Condition X. An application went to the MHRA in March 2026, with a decision expected in **Q1 2027**.","facts":[["Dosing","Once monthly"],["Route","Subcutaneous, self-administered"],["MHRA decision","Expected Q1 2027"]]},{"id":"pathway","pin":"","title":"Who it's for","module":"pathway","lead":"Adults whose disease is not adequately controlled after first-line therapy. We estimate around **8,400 eligible patients** in England, or roughly 225 in an average ICB.","facts":[["England","8,400 patients"],["Average ICB","225 patients"],["New each year","1,100 patients"]]},{"id":"formulary","pin":"","title":"Where it fits","module":"formulary","lead":"Expected at the **second-line** stage of the current NICE pathway. Specialists in secondary care would start treatment, with a formulary submission pack following the MHRA decision.","facts":[["Line of therapy","Second line"],["Initiation","Specialist, secondary care"],["NICE route","Single technology appraisal"]]},{"id":"tariffs","pin":"","title":"Cost and supply","module":"tariffs","lead":"Product A is expected to be a **high-cost drug outside the payment system**. It will be supplied through homecare and wholesaler routes, and stored at 2–8°C.","facts":[["Tariff status","Expected high-cost drug"],["Supply","Homecare and wholesaler"],["Storage","2–8°C"]]},{"id":"transition","pin":"","title":"Planned transition","module":"checklist","lead":"Product A is intended to replace Product B. Product B stays available for at least **12 months** after launch, and no patient needs to switch before a clinical review.","facts":[["Transition","At least 12 months"],["Switching","After clinical review"],["Stock","Both products during transition"]]},{"id":"next","pin":"last","title":"What happens next","module":"faqs","lead":"Your account contact can share the modules relevant to you, brief your formulary or medicines optimisation committee, and **update you as MHRA and NICE milestones** are confirmed.","facts":[["Formulary pack","After MHRA decision"],["Budget model","On request"],["Updates","At each milestone"]]}],"chapterPriority":{"commissioner":["pathway","tariffs","formulary","transition"],"pharmacist":["formulary","pathway","tariffs","transition"],"finance":["tariffs","pathway","formulary","transition"],"clinical":["pathway","transition","formulary","tariffs"],"trust":["tariffs","transition","formulary","pathway"]},"keyCount":2,"timeline":{"title":"Where we are","intro":"Dates are expected and subject to regulatory timelines. We'll update stakeholders as each milestone is confirmed.","items":[{"state":"done","tag":"Done","when":"Oct 26","what":"Advance notification issued","text":"This notification shared with NHS budget holders and formulary decision-makers."},{"state":"now","tag":"Next","when":"Q1 27","what":"MHRA decision expected","text":"Licence wording confirmed. Formulary submission pack released."},{"state":"future","tag":"Expected","when":"Q2 27","what":"NICE technology appraisal","text":"A positive recommendation starts the 90-day funding requirement."},{"state":"future","tag":"Planned","when":"Q2 27","what":"UK launch","text":"Supply through homecare and wholesaler routes. dm+d codes live."},{"state":"future","tag":"Planned","when":"+12 mo","what":"Transition from Product B","text":"Patients reviewed and moved in a planned way. Product B stays available."}]},"finale":{"title":"Your pack","sub":"Everything you've added, in recommended order. Preview it or download it as one PDF."},"legal":{"title":"Product A advance notification","line":"","paragraphs":["This information is provided to NHS budget holders and formulary decision-makers to support financial and service planning, in line with the ABPI Code of Practice provisions on advance notification of new medicines. It is not intended for prescribers or patients.","Product A is not licensed in the UK. Its safety and efficacy have not been established by the MHRA. All figures shown are placeholders for this mock-up."],"links":[{"label":"Terms of use","url":"","external":false},{"label":"Cookie policy","url":"","external":false},{"label":"Privacy notice","url":"","external":true}]},"consent":{"enabled":true,"version":"1.0","title":"Before you continue","intro":"This site contains promotional material intended for UK healthcare professionals.","requiredLabel":"I confirm I am a UK healthcare professional.","analytics":false,"analyticsLabel":"Allow anonymous usage statistics (which sections are used and which PDFs are downloaded).","notice":"Your choice is recorded with the time and the notice version. Downloads of documents are logged.","privacyUrl":"","button":"Continue","endpoint":"","eventsEndpoint":""},"sections":{"stats":true,"story":true,"timeline":true},"signin":{"enabled":true,"title":"Sign in","intro":"This site is for UK healthcare professionals. Sign in to continue.","button":"Sign in","helpTitle":"Need access?","help":"Contact your representative to be invited."}};</script>
+<script>window.HUB = {"schema":1,"brand":{"productName":"Product A","pageTitle":"Product A Launch Story","logo":"assets/logo/placeholder-logo.svg","accent":"#f36633","jobCode":"XX-UK-0000","datePrepared":"October 2026","mockLabel":"Concept mock-up – not for distribution","fonts":{}},"hero":{"eyebrow":"Advance notification · October 2026","titleLines":["Advance","notification for","NHS planning"],"lede":"A new treatment option for Condition X is expected in Q2 2027. Read the launch story below, and build the briefing pack your stakeholder needs as you go.","note":"For NHS budget holders and formulary decision-makers. Product A does not yet have a UK marketing authorisation.","disclaimer":"Prescribing Information and Adverse Event reporting statement can be found at the bottom of this page"},"core":{"name":"Core launch notification","short":"Core launch notification","code":"PA-CORE-00","pages":4,"blurb":"The core deliverable. Included in every pack.","pdf":"assets/pdfs/PA-CORE-00.pdf","images":["assets/pages/PA-CORE-00-1.jpg","assets/pages/PA-CORE-00-2.jpg","assets/pages/PA-CORE-00-3.jpg","assets/pages/PA-CORE-00-4.jpg"],"draftIntro":"Information to support NHS budget and service planning for a new treatment option in Condition X, expected in Q2 2027.","draftNote":"For NHS budget holders and formulary decision-makers. Product A does not yet have a UK marketing authorisation."},"builder":{"title":"Who's this briefing for?","intro":"Choose a stakeholder and the type of engagement. We'll recommend modules, put the most relevant chapters first, and you can add more as you read.","whoLabel":"I'm engaging","engLabel":"For","whoPick":"Engaging","engPick":"Engagement","whoPlaceholder":"Choose stakeholder","engPlaceholder":"Choose type"},"stakeholders":[{"id":"commissioner","label":"ICB commissioner","plural":"ICB commissioners","desc":"Budgets and service planning"},{"id":"pharmacist","label":"Formulary pharmacist","plural":"formulary pharmacists","desc":"Formulary review and policy"},{"id":"finance","label":"Finance and procurement","plural":"finance and procurement leads","desc":"Cost, tariff and contracts"},{"id":"clinical","label":"Clinical lead","plural":"clinical leads","desc":"Pathway and patient care"},{"id":"trust","label":"Trust pharmacy","plural":"trust pharmacy teams","desc":"Supply, storage and homecare"}],"engagements":[{"id":"proactive","label":"Proactive introduction","desc":"First contact ahead of launch","subject":"Advance notification: Product A","intro":"I'm writing to share advance information about Product A, a new treatment option for Condition X expected to launch in Q2 2027, to support your planning."},{"id":"formulary","label":"Formulary preparation","desc":"A decision meeting is coming up","subject":"Product A: information for your formulary review","intro":"Ahead of your formulary discussions, I've put together the information most relevant to reviewing Product A."},{"id":"reactive","label":"Reactive enquiry","desc":"They've asked a specific question","subject":"Product A: answers to your question","intro":"Thank you for your question about Product A. The answers you need are set out below."},{"id":"implementation","label":"Implementation planning","desc":"Getting ready for launch","subject":"Product A: preparing for launch","intro":"As you prepare for the launch of Product A, these resources set out the practical steps and supply arrangements."}],"modules":[{"id":"value","name":"Mini value proposition","short":"Value proposition","question":"Why does Product A matter?","code":"PA-MOD-01","pages":2,"pdf":"assets/pdfs/PA-MOD-01.pdf","images":["assets/pages/PA-MOD-01-1.jpg","assets/pages/PA-MOD-01-2.jpg"],"intro":"Around 40% of people with Condition X do not reach adequate disease control on current first-line options, and many need frequent hospital visits.","facts":[["Pivotal study","TRIAL-1, Phase III, n=612"],["Primary endpoint","Response at week 24"],["Dosing","Once monthly, self-administered"]],"pointsTitle":"Possible resource considerations","points":["Monthly self-administration may reduce infusion-unit appointments compared with Product B.","No routine therapeutic drug monitoring is expected.","A budget impact model will be available on request after the MHRA decision."]},{"id":"pathway","name":"Patient population and pathway","short":"Population & pathway","question":"Who is it for and where does it fit?","code":"PA-MOD-02","pages":3,"pdf":"assets/pdfs/PA-MOD-02.pdf","images":["assets/pages/PA-MOD-02-1.jpg","assets/pages/PA-MOD-02-2.jpg","assets/pages/PA-MOD-02-3.jpg"],"intro":"The expected position of Product A in the current care pathway, and the estimated eligible population.","facts":[["England","8,400 prevalent · 1,100 new a year"],["Average ICB (1.5m)","225 prevalent · 30 new a year"],["Per 100,000","15 prevalent · 2 new a year"]],"pointsTitle":"Pathway steps","points":["Step 1 · Referral: primary care","Step 2 · Diagnosis: specialist clinic","Step 3 · First line: standard care","Step 4 · **Product A: proposed second line**","Step 5 · Follow-up: homecare and review"]},{"id":"formulary","name":"Formulary and prescribing","short":"Formulary & prescribing","question":"What do formulary committees need to consider?","code":"PA-MOD-03","pages":2,"pdf":"assets/pdfs/PA-MOD-03.pdf","images":["assets/pages/PA-MOD-03-1.jpg","assets/pages/PA-MOD-03-2.jpg"],"intro":"","facts":[["Anticipated indication","Adults, moderate to severe Condition X"],["Prescribing setting","Specialist initiation, secondary care"],["Expected NICE route","Single technology appraisal"]],"pointsTitle":"Points for formulary committees","points":["A formulary submission pack will be available once the MHRA decision is confirmed.","NICE technology appraisals carry a 90-day funding requirement after publication.","Prior approval (for example through Blueteq) may be needed, depending on local policy.","Additional monitoring in the risk management plan will be confirmed at licensing."]},{"id":"tariffs","name":"Drug tariffs and pharmacy","short":"Tariffs & pharmacy","question":"What does it cost and how is it supplied?","code":"PA-MOD-04","pages":2,"pdf":"assets/pdfs/PA-MOD-04.pdf","images":["assets/pages/PA-MOD-04-1.jpg","assets/pages/PA-MOD-04-2.jpg"],"intro":"","facts":[["Indicative list price","£X,XXX per pack"],["Tariff status","Expected high-cost drug"],["Supply route","Homecare and wholesaler"],["Storage","Refrigerated, 2–8°C"]],"pointsTitle":"Pharmacy implications","points":["dm+d codes will be available at launch.","A homecare provider will be appointed through a national framework before launch.","Product B supply continues during transition, so stock of both may need managing for up to 12 months."]},{"id":"checklist","name":"Implementation checklist","short":"Implementation checklist","question":"How do we get ready for launch?","code":"PA-MOD-05","pages":1,"pdf":"assets/pdfs/PA-MOD-05.pdf","images":["assets/pages/PA-MOD-05-1.jpg"],"intro":"Seven practical steps to be ready for launch, with suggested owners.","facts":[],"pointsTitle":"","points":["Add Product A to the formulary review agenda (formulary pharmacist)","Model local eligible population and budget impact (ICB commissioner)","Confirm prior-approval process for high-cost drugs (finance lead)","Agree homecare provider and set-up timeline (trust pharmacy)","Plan clinical review of current Product B patients (clinical lead)","Check cold-chain storage capacity (trust pharmacy)","Brief prescribers once guidance is published (clinical lead)"]},{"id":"faqs","name":"FAQs","short":"FAQs","question":"What do people commonly ask?","code":"PA-MOD-06","pages":3,"pdf":"assets/pdfs/PA-MOD-06.pdf","images":["assets/pages/PA-MOD-06-1.jpg","assets/pages/PA-MOD-06-2.jpg","assets/pages/PA-MOD-06-3.jpg"],"intro":"Answers to the questions stakeholders ask most.","facts":[],"pointsTitle":"","points":["**When will Product A be available?** Launch is planned for Q2 2027, subject to MHRA authorisation and the NICE appraisal timetable.","**Will existing Product B patients have to switch?** No patient needs to switch before a clinical review. Product B will remain available for at least 12 months after launch.","**How will Product A be funded?** It is expected to be a high-cost drug outside the payment system. If NICE recommends it, commissioners must fund it within 90 days.","**Is there a budget impact model?** Yes, on request after the MHRA decision.","**Who can initiate treatment?** Specialists in secondary care.","**How will Product A be supplied?** Through homecare and wholesaler routes.","**What are the storage requirements?** Refrigerated at 2–8°C.","**Will a formulary submission pack be available?** Yes, once the MHRA decision is confirmed."]}],"recommend":{"commissioner":{"proactive":["value"],"formulary":["pathway","value"],"reactive":["faqs"],"implementation":["checklist","pathway"]},"pharmacist":{"proactive":["pathway"],"formulary":["formulary","faqs"],"reactive":["faqs"],"implementation":["checklist","tariffs"]},"finance":{"proactive":["value"],"formulary":["tariffs","value"],"reactive":["faqs"],"implementation":["tariffs","checklist"]},"clinical":{"proactive":["pathway"],"formulary":["pathway","formulary"],"reactive":["faqs"],"implementation":["checklist"]},"trust":{"proactive":["tariffs"],"formulary":["formulary","tariffs"],"reactive":["faqs"],"implementation":["checklist","tariffs"]}},"stats":{"label":"Product A in numbers","items":[{"value":"8,400","suffix":"","suffixStyle":"small","countUp":true,"heading":"Estimated eligible patients in England","text":"Adults with moderate to severe Condition X not controlled after first-line therapy. Around 225 in an average ICB.","module":"pathway"},{"value":"2","suffix":"nd","suffixStyle":"small","countUp":false,"heading":"Line of therapy","text":"Expected after standard first-line care, started by specialists in secondary care.","module":"formulary"},{"value":"1","suffix":"×","suffixStyle":"accent","countUp":false,"heading":"Monthly subcutaneous dose","text":"Self-administered at home, which may reduce infusion-unit appointments compared with Product B.","module":"value"},{"value":"2–8","suffix":"°C","suffixStyle":"small","countUp":false,"heading":"Refrigerated storage","text":"Supplied through homecare and wholesaler routes, with dm+d codes available at launch.","module":"tariffs"},{"value":"90","suffix":"","suffixStyle":"small","countUp":true,"heading":"Days to fund after a positive NICE recommendation","text":"The standard funding requirement for NICE technology appraisals.","module":"faqs"},{"value":"12","suffix":"mo","suffixStyle":"small","countUp":true,"heading":"Planned transition from Product B","text":"Product B stays available while patients are reviewed and moved in a planned way.","module":"checklist"}]},"story":{"title":"The launch story","intro":"The core launch notification, chapter by chapter. Each chapter links to a module with more detail, ready to add to your pack.","downloadLabel":"Download the core notification"},"chapters":[{"id":"value","pin":"first","title":"What's coming","module":"value","lead":"Product A is a **once-monthly subcutaneous** treatment for adults with moderate to severe Condition X. An application went to the MHRA in March 2026, with a decision expected in **Q1 2027**.","facts":[["Dosing","Once monthly"],["Route","Subcutaneous, self-administered"],["MHRA decision","Expected Q1 2027"]]},{"id":"pathway","pin":"","title":"Who it's for","module":"pathway","lead":"Adults whose disease is not adequately controlled after first-line therapy. We estimate around **8,400 eligible patients** in England, or roughly 225 in an average ICB.","facts":[["England","8,400 patients"],["Average ICB","225 patients"],["New each year","1,100 patients"]]},{"id":"formulary","pin":"","title":"Where it fits","module":"formulary","lead":"Expected at the **second-line** stage of the current NICE pathway. Specialists in secondary care would start treatment, with a formulary submission pack following the MHRA decision.","facts":[["Line of therapy","Second line"],["Initiation","Specialist, secondary care"],["NICE route","Single technology appraisal"]]},{"id":"tariffs","pin":"","title":"Cost and supply","module":"tariffs","lead":"Product A is expected to be a **high-cost drug outside the payment system**. It will be supplied through homecare and wholesaler routes, and stored at 2–8°C.","facts":[["Tariff status","Expected high-cost drug"],["Supply","Homecare and wholesaler"],["Storage","2–8°C"]]},{"id":"transition","pin":"","title":"Planned transition","module":"checklist","lead":"Product A is intended to replace Product B. Product B stays available for at least **12 months** after launch, and no patient needs to switch before a clinical review.","facts":[["Transition","At least 12 months"],["Switching","After clinical review"],["Stock","Both products during transition"]]},{"id":"next","pin":"last","title":"What happens next","module":"faqs","lead":"Your account contact can share the modules relevant to you, brief your formulary or medicines optimisation committee, and **update you as MHRA and NICE milestones** are confirmed.","facts":[["Formulary pack","After MHRA decision"],["Budget model","On request"],["Updates","At each milestone"]]}],"chapterPriority":{"commissioner":["pathway","tariffs","formulary","transition"],"pharmacist":["formulary","pathway","tariffs","transition"],"finance":["tariffs","pathway","formulary","transition"],"clinical":["pathway","transition","formulary","tariffs"],"trust":["tariffs","transition","formulary","pathway"]},"keyCount":2,"timeline":{"title":"Where we are","intro":"Dates are expected and subject to regulatory timelines. We'll update stakeholders as each milestone is confirmed.","items":[{"state":"done","tag":"Done","when":"Oct 26","what":"Advance notification issued","text":"This notification shared with NHS budget holders and formulary decision-makers."},{"state":"now","tag":"Next","when":"Q1 27","what":"MHRA decision expected","text":"Licence wording confirmed. Formulary submission pack released."},{"state":"future","tag":"Expected","when":"Q2 27","what":"NICE technology appraisal","text":"A positive recommendation starts the 90-day funding requirement."},{"state":"future","tag":"Planned","when":"Q2 27","what":"UK launch","text":"Supply through homecare and wholesaler routes. dm+d codes live."},{"state":"future","tag":"Planned","when":"+12 mo","what":"Transition from Product B","text":"Patients reviewed and moved in a planned way. Product B stays available."}]},"finale":{"title":"Your pack","sub":"Everything you've added, in recommended order. Preview it or download it as one PDF."},"prescribing":{"title":"Prescribing Information","ctaText":"Product A prescribing information","viewLabel":"View","ctaLabel":"Download","code":"PA-PI","pdf":"","pages":1,"aeText":"Adverse events should be reported. Reporting forms and information can be found at www.mhra.gov.uk/yellowcard or search for MHRA Yellow Card in the Google Play or Apple App Store. Adverse events should also be reported to [Company name] on [telephone number / email address]."},"legal":{"title":"Product A advance notification","line":"","paragraphs":["This information is provided to NHS budget holders and formulary decision-makers to support financial and service planning, in line with the ABPI Code of Practice provisions on advance notification of new medicines. It is not intended for prescribers or patients.","Product A is not licensed in the UK. Its safety and efficacy have not been established by the MHRA. All figures shown are placeholders for this mock-up."],"links":[{"label":"Terms of use","url":"","external":false},{"label":"Cookie policy","url":"","external":false},{"label":"Privacy notice","url":"","external":true}]},"consent":{"enabled":true,"version":"1.0","title":"Before you continue","intro":"This site contains promotional material intended for UK healthcare professionals.","requiredLabel":"I confirm I am a UK healthcare professional.","analytics":false,"analyticsLabel":"Allow anonymous usage statistics (which sections are used and which PDFs are downloaded).","notice":"Your choice is recorded with the time and the notice version. Downloads of documents are logged.","privacyUrl":"","button":"Continue","endpoint":"","eventsEndpoint":""},"sections":{"stats":true,"story":true,"timeline":true,"prescribing":true},"signin":{"enabled":true,"title":"Sign in","intro":"This site is for UK healthcare professionals. Sign in to continue.","button":"Sign in","helpTitle":"Need access?","help":"Contact your representative to be invited."}};</script>
 <script>
 /* Hub runtime: renders the whole page from window.HUB (its wording is in window.HUB). */
 (() => {
@@ -673,8 +695,8 @@ function bindStatic() {
   $("#dlPack").innerHTML = inV ? `Send pack by Approved Email <span aria-hidden="true">✉</span>` : `Download as one PDF <span aria-hidden="true">↓</span>`;
   $("#pmDownload").innerHTML = inV ? `Send pack <span aria-hidden="true">✉</span>` : `Download pack <span aria-hidden="true">↓</span>`;
   const lg = HUB.legal || {};
-  const dflt = `**${lg.title || ""}** · Job code ${b.jobCode || ""} · Date of preparation ${b.datePrepared || ""}`;
-  $("#footerInner").innerHTML = `<p data-edit="legal.line" data-fallback="${esc(dflt)}">${md(lg.line ? lg.line : dflt)}</p>` + (lg.paragraphs || []).map((p, i) => `<p data-edit="legal.paragraphs.${i}">${esc(p)}</p>`).join("") + footLinks(lg);
+  const dflt = `Job code ${b.jobCode || ""} · Date of preparation ${b.datePrepared || ""}`;
+  $("#footerInner").innerHTML = (lg.paragraphs || []).map((p, i) => `<p data-edit="legal.paragraphs.${i}">${esc(p)}</p>`).join("") + footLinks(lg) + `<p class="foot-ref" data-edit="legal.line" data-fallback="${esc(dflt)}">${md(lg.line ? lg.line : dflt)}</p>`;
   $("#pickWho b").textContent = who() ? who().label : (HUB.builder || {}).whoPlaceholder || "Choose";
   $("#pickEng b").textContent = eng() ? eng().label : (HUB.builder || {}).engPlaceholder || "Choose";
   $("#pickWho b").classList.toggle("empty", !who());
@@ -892,6 +914,13 @@ async function mergePack(ids) {
 
 /* ---------- Pack viewer ---------- */
 const packModal = $("#packModal");
+function piFile(kind) {
+  const d = HUB.prescribing || {}; if (!d.pdf) return toast("The Prescribing Information will be available once it is approved.");
+  veevaTrack(kind === "view" ? "pi_viewed" : "pi_downloaded", "pi", d.ctaText || "Prescribing Information");
+  const a = document.createElement("a"); a.href = via(d.pdf, kind === "view" ? "view" : "download");
+  if (kind === "view" || location.protocol === "file:") { a.target = "_blank"; a.rel = "noopener"; } else a.download = (d.code || "prescribing-information") + ".pdf";
+  document.body.append(a); a.click(); a.remove();
+}
 function openPack(target) {
   veevaTrack("pack_viewed", ["core", ...picked()].join(","), "Pack viewer opened");
   packModal.hidden = false; document.body.classList.add("modal-open"); $("#dock").classList.add("away"); $("#pmScroll").scrollTop = 0;
@@ -929,8 +958,8 @@ addEventListener("resize", onScroll);
 
 /* ---------- Render ---------- */
 function renderAll() { renderChoices(); renderChapters(); renderPack(); syncPrompts(); }
-function applySections() { const v = HUB.sections || {}; [["stats", "stats"], ["story", "story"], ["tl", "timeline"]].forEach(([id, k]) => { const el = document.getElementById(id); if (el) el.hidden = v[k] === false; }); }
-document.addEventListener("click", e => { const a = e.target.closest && e.target.closest("a[data-nolink]"); if (a) e.preventDefault(); });
+function applySections() { const v = HUB.sections || {}; [["stats", "stats"], ["story", "story"], ["tl", "timeline"], ["pi", "prescribing"]].forEach(([id, k]) => { const el = document.getElementById(id); if (el) el.hidden = v[k] === false; }); }
+document.addEventListener("click", e => { const a = e.target.closest && e.target.closest("a[data-nolink]"); if (a) { e.preventDefault(); if (a.id === "piView") piFile("view"); else if (a.id === "piDownload") piFile("download"); } });
 function boot() { applySections(); sanitizeState(); applyBrand(); bindStatic(); renderStats(); renderAll(); onScroll(); if (window.hubConsentLink) window.hubConsentLink(); }
 
 // Live updates from the editor's preview. Only attached in the editor's preview, never in a file that is shared.
@@ -1369,6 +1398,16 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .hero h1 .line:nth-child(3) span { color: var(--orange); }
 @keyframes rise { from { transform: translateY(60%); } to { transform: none; } }
 .hero-lede { font-size: clamp(18px, 1.6vw, 21px); max-width: 44ch; margin-top: 26px; }
+.pi { background: var(--white); color: var(--black); padding-block: clamp(64px, 9vw, 120px); }
+.pi h2 { font-size: clamp(40px, 6vw, 84px); line-height: .98; letter-spacing: -.025em; margin-bottom: clamp(28px, 4vw, 48px); }
+.pi-cta { display: flex; align-items: center; justify-content: space-between; gap: 20px 32px; flex-wrap: wrap; border: 1px solid #d5d7d9; border-radius: 14px; padding: clamp(28px, 4.5vw, 56px) clamp(24px, 4vw, 56px); }
+.pi-cta-t { font-size: clamp(22px, 3.2vw, 38px); line-height: 1.15; letter-spacing: -.01em; }
+.pi-cta-acts { display: flex; gap: 28px; align-items: center; }
+.pi-act { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: clamp(16px, 1.6vw, 20px); color: var(--black); text-decoration: underline; text-underline-offset: 4px; }
+.pi-act svg { width: 22px; height: 22px; color: #6b7075; }
+.pi-act:hover svg { color: var(--orange); }
+.pi-box { margin-top: clamp(20px, 3vw, 36px); border: 1px solid #d5d7d9; border-radius: 28px; padding: clamp(18px, 2.4vw, 30px) clamp(24px, 6vw, 96px); text-align: center; }
+.pi-box p { margin: 0 auto; max-width: 80ch; font-size: clamp(15px, 1.5vw, 18px); line-height: 1.6; }
 .topnote { text-align: center; font-size: 13.5px; color: var(--muted); max-width: 90ch; margin: 0 auto; padding: 16px 20px 0; }
 .topnote:empty { display: none; }
 .hero-note { font-size: 13.5px; color: var(--muted); max-width: 52ch; margin-top: 14px; }
@@ -1531,6 +1570,7 @@ footer b { color: var(--black); }
 .foot-links { display: flex; flex-wrap: wrap; gap: 14px 30px; margin-top: 14px; }
 .foot-links a, .foot-links button { color: var(--black); font: inherit; font-size: 15px; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 7px; }
 .foot-links a:hover, .foot-links button:hover { text-decoration: underline; text-underline-offset: 3px; }
+.foot-ref { margin-top: 22px !important; }
 .foot-links svg { width: 12px; height: 12px; color: var(--orange); }
 
 /* Dock */
@@ -1765,6 +1805,17 @@ body.inline-edit [contenteditable] { outline: 2px solid var(--orange, #f36633) !
     </div>
   </div>
 </section>
+
+<section class="pi" id="pi" aria-labelledby="piHead">
+  <div class="wrap">
+    <h2 id="piHead" data-t="prescribing.title"></h2>
+    <div class="pi-cta">
+      <span class="pi-cta-t" data-t="prescribing.ctaText"></span>
+      <span class="pi-cta-acts"><a href="#" class="pi-act" id="piView" data-nolink="1"><span data-t="prescribing.viewLabel"></span><svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 10s3-5.5 8-5.5S18 10 18 10s-3 5.5-8 5.5S2 10 2 10Z"/><circle cx="10" cy="10" r="2.4"/></svg></a><a href="#" class="pi-act" id="piDownload" data-nolink="1"><span data-t="prescribing.ctaLabel"></span><svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 3v10m0 0-4-4m4 4 4-4M3.5 16.5h13"/></svg></a></span>
+    </div>
+    <div class="pi-box"><p data-t="prescribing.aeText"></p></div>
+  </div>
+</section>
 </main>
 
 <footer>
@@ -1934,8 +1985,8 @@ function bindStatic() {
   $("#dlPack").innerHTML = inV ? `Send pack by Approved Email <span aria-hidden="true">✉</span>` : `Download as one PDF <span aria-hidden="true">↓</span>`;
   $("#pmDownload").innerHTML = inV ? `Send pack <span aria-hidden="true">✉</span>` : `Download pack <span aria-hidden="true">↓</span>`;
   const lg = HUB.legal || {};
-  const dflt = `**${lg.title || ""}** · Job code ${b.jobCode || ""} · Date of preparation ${b.datePrepared || ""}`;
-  $("#footerInner").innerHTML = `<p data-edit="legal.line" data-fallback="${esc(dflt)}">${md(lg.line ? lg.line : dflt)}</p>` + (lg.paragraphs || []).map((p, i) => `<p data-edit="legal.paragraphs.${i}">${esc(p)}</p>`).join("") + footLinks(lg);
+  const dflt = `Job code ${b.jobCode || ""} · Date of preparation ${b.datePrepared || ""}`;
+  $("#footerInner").innerHTML = (lg.paragraphs || []).map((p, i) => `<p data-edit="legal.paragraphs.${i}">${esc(p)}</p>`).join("") + footLinks(lg) + `<p class="foot-ref" data-edit="legal.line" data-fallback="${esc(dflt)}">${md(lg.line ? lg.line : dflt)}</p>`;
   $("#pickWho b").textContent = who() ? who().label : (HUB.builder || {}).whoPlaceholder || "Choose";
   $("#pickEng b").textContent = eng() ? eng().label : (HUB.builder || {}).engPlaceholder || "Choose";
   $("#pickWho b").classList.toggle("empty", !who());
@@ -2153,6 +2204,13 @@ async function mergePack(ids) {
 
 /* ---------- Pack viewer ---------- */
 const packModal = $("#packModal");
+function piFile(kind) {
+  const d = HUB.prescribing || {}; if (!d.pdf) return toast("The Prescribing Information will be available once it is approved.");
+  veevaTrack(kind === "view" ? "pi_viewed" : "pi_downloaded", "pi", d.ctaText || "Prescribing Information");
+  const a = document.createElement("a"); a.href = via(d.pdf, kind === "view" ? "view" : "download");
+  if (kind === "view" || location.protocol === "file:") { a.target = "_blank"; a.rel = "noopener"; } else a.download = (d.code || "prescribing-information") + ".pdf";
+  document.body.append(a); a.click(); a.remove();
+}
 function openPack(target) {
   veevaTrack("pack_viewed", ["core", ...picked()].join(","), "Pack viewer opened");
   packModal.hidden = false; document.body.classList.add("modal-open"); $("#dock").classList.add("away"); $("#pmScroll").scrollTop = 0;
@@ -2190,8 +2248,8 @@ addEventListener("resize", onScroll);
 
 /* ---------- Render ---------- */
 function renderAll() { renderChoices(); renderChapters(); renderPack(); syncPrompts(); }
-function applySections() { const v = HUB.sections || {}; [["stats", "stats"], ["story", "story"], ["tl", "timeline"]].forEach(([id, k]) => { const el = document.getElementById(id); if (el) el.hidden = v[k] === false; }); }
-document.addEventListener("click", e => { const a = e.target.closest && e.target.closest("a[data-nolink]"); if (a) e.preventDefault(); });
+function applySections() { const v = HUB.sections || {}; [["stats", "stats"], ["story", "story"], ["tl", "timeline"], ["pi", "prescribing"]].forEach(([id, k]) => { const el = document.getElementById(id); if (el) el.hidden = v[k] === false; }); }
+document.addEventListener("click", e => { const a = e.target.closest && e.target.closest("a[data-nolink]"); if (a) { e.preventDefault(); if (a.id === "piView") piFile("view"); else if (a.id === "piDownload") piFile("download"); } });
 function boot() { applySections(); sanitizeState(); applyBrand(); bindStatic(); renderStats(); renderAll(); onScroll(); if (window.hubConsentLink) window.hubConsentLink(); }
 
 // Live updates from the editor's preview. Only attached in the editor's preview, never in a file that is shared.
@@ -2544,6 +2602,16 @@ window.HUB = {
     title: "Your pack",
     sub: "Everything you've added, in recommended order. Preview it or download it as one PDF."
   },
+  prescribing: {
+    title: "Prescribing Information",
+    ctaText: "Product A prescribing information",
+    viewLabel: "View",
+    ctaLabel: "Download",
+    code: "PA-PI",
+    pdf: "",                       // the approved prescribing information PDF
+    pages: 1,
+    aeText: "Adverse events should be reported. Reporting forms and information can be found at www.mhra.gov.uk/yellowcard or search for MHRA Yellow Card in the Google Play or Apple App Store. Adverse events should also be reported to [Company name] on [telephone number / email address]."
+  },
   legal: {
     title: "Product A advance notification",
     line: "",                      // optional: the whole first footer line (blank = title, job code and date)
@@ -2577,7 +2645,7 @@ window.HUB = {
   },
 
   /* ---- Which sections of the page to show -------------------------------- */
-  sections: { stats: true, story: true, timeline: true },
+  sections: { stats: true, story: true, timeline: true, prescribing: true },
 
   /* ---- Mock sign-in screen: the first screen. The button just continues (real sign-in is added on the server later) */
   signin: {
@@ -2702,6 +2770,16 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .hero h1 .line:nth-child(3) span { color: var(--orange); }
 @keyframes rise { from { transform: translateY(60%); } to { transform: none; } }
 .hero-lede { font-size: clamp(18px, 1.6vw, 21px); max-width: 44ch; margin-top: 26px; }
+.pi { background: var(--white); color: var(--black); padding-block: clamp(64px, 9vw, 120px); }
+.pi h2 { font-size: clamp(40px, 6vw, 84px); line-height: .98; letter-spacing: -.025em; margin-bottom: clamp(28px, 4vw, 48px); }
+.pi-cta { display: flex; align-items: center; justify-content: space-between; gap: 20px 32px; flex-wrap: wrap; border: 1px solid #d5d7d9; border-radius: 14px; padding: clamp(28px, 4.5vw, 56px) clamp(24px, 4vw, 56px); }
+.pi-cta-t { font-size: clamp(22px, 3.2vw, 38px); line-height: 1.15; letter-spacing: -.01em; }
+.pi-cta-acts { display: flex; gap: 28px; align-items: center; }
+.pi-act { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: clamp(16px, 1.6vw, 20px); color: var(--black); text-decoration: underline; text-underline-offset: 4px; }
+.pi-act svg { width: 22px; height: 22px; color: #6b7075; }
+.pi-act:hover svg { color: var(--orange); }
+.pi-box { margin-top: clamp(20px, 3vw, 36px); border: 1px solid #d5d7d9; border-radius: 28px; padding: clamp(18px, 2.4vw, 30px) clamp(24px, 6vw, 96px); text-align: center; }
+.pi-box p { margin: 0 auto; max-width: 80ch; font-size: clamp(15px, 1.5vw, 18px); line-height: 1.6; }
 .topnote { text-align: center; font-size: 13.5px; color: var(--muted); max-width: 90ch; margin: 0 auto; padding: 16px 20px 0; }
 .topnote:empty { display: none; }
 .hero-note { font-size: 13.5px; color: var(--muted); max-width: 52ch; margin-top: 14px; }
@@ -2864,6 +2942,7 @@ footer b { color: var(--black); }
 .foot-links { display: flex; flex-wrap: wrap; gap: 14px 30px; margin-top: 14px; }
 .foot-links a, .foot-links button { color: var(--black); font: inherit; font-size: 15px; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 7px; }
 .foot-links a:hover, .foot-links button:hover { text-decoration: underline; text-underline-offset: 3px; }
+.foot-ref { margin-top: 22px !important; }
 .foot-links svg { width: 12px; height: 12px; color: var(--orange); }
 
 /* Dock */
@@ -3098,6 +3177,17 @@ body.inline-edit [contenteditable] { outline: 2px solid var(--orange, #f36633) !
     </div>
   </div>
 </section>
+
+<section class="pi" id="pi" aria-labelledby="piHead">
+  <div class="wrap">
+    <h2 id="piHead" data-t="prescribing.title"></h2>
+    <div class="pi-cta">
+      <span class="pi-cta-t" data-t="prescribing.ctaText"></span>
+      <span class="pi-cta-acts"><a href="#" class="pi-act" id="piView" data-nolink="1"><span data-t="prescribing.viewLabel"></span><svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 10s3-5.5 8-5.5S18 10 18 10s-3 5.5-8 5.5S2 10 2 10Z"/><circle cx="10" cy="10" r="2.4"/></svg></a><a href="#" class="pi-act" id="piDownload" data-nolink="1"><span data-t="prescribing.ctaLabel"></span><svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 3v10m0 0-4-4m4 4 4-4M3.5 16.5h13"/></svg></a></span>
+    </div>
+    <div class="pi-box"><p data-t="prescribing.aeText"></p></div>
+  </div>
+</section>
 </main>
 
 <footer>
@@ -3267,8 +3357,8 @@ function bindStatic() {
   $("#dlPack").innerHTML = inV ? `Send pack by Approved Email <span aria-hidden="true">✉</span>` : `Download as one PDF <span aria-hidden="true">↓</span>`;
   $("#pmDownload").innerHTML = inV ? `Send pack <span aria-hidden="true">✉</span>` : `Download pack <span aria-hidden="true">↓</span>`;
   const lg = HUB.legal || {};
-  const dflt = `**${lg.title || ""}** · Job code ${b.jobCode || ""} · Date of preparation ${b.datePrepared || ""}`;
-  $("#footerInner").innerHTML = `<p data-edit="legal.line" data-fallback="${esc(dflt)}">${md(lg.line ? lg.line : dflt)}</p>` + (lg.paragraphs || []).map((p, i) => `<p data-edit="legal.paragraphs.${i}">${esc(p)}</p>`).join("") + footLinks(lg);
+  const dflt = `Job code ${b.jobCode || ""} · Date of preparation ${b.datePrepared || ""}`;
+  $("#footerInner").innerHTML = (lg.paragraphs || []).map((p, i) => `<p data-edit="legal.paragraphs.${i}">${esc(p)}</p>`).join("") + footLinks(lg) + `<p class="foot-ref" data-edit="legal.line" data-fallback="${esc(dflt)}">${md(lg.line ? lg.line : dflt)}</p>`;
   $("#pickWho b").textContent = who() ? who().label : (HUB.builder || {}).whoPlaceholder || "Choose";
   $("#pickEng b").textContent = eng() ? eng().label : (HUB.builder || {}).engPlaceholder || "Choose";
   $("#pickWho b").classList.toggle("empty", !who());
@@ -3486,6 +3576,13 @@ async function mergePack(ids) {
 
 /* ---------- Pack viewer ---------- */
 const packModal = $("#packModal");
+function piFile(kind) {
+  const d = HUB.prescribing || {}; if (!d.pdf) return toast("The Prescribing Information will be available once it is approved.");
+  veevaTrack(kind === "view" ? "pi_viewed" : "pi_downloaded", "pi", d.ctaText || "Prescribing Information");
+  const a = document.createElement("a"); a.href = via(d.pdf, kind === "view" ? "view" : "download");
+  if (kind === "view" || location.protocol === "file:") { a.target = "_blank"; a.rel = "noopener"; } else a.download = (d.code || "prescribing-information") + ".pdf";
+  document.body.append(a); a.click(); a.remove();
+}
 function openPack(target) {
   veevaTrack("pack_viewed", ["core", ...picked()].join(","), "Pack viewer opened");
   packModal.hidden = false; document.body.classList.add("modal-open"); $("#dock").classList.add("away"); $("#pmScroll").scrollTop = 0;
@@ -3523,8 +3620,8 @@ addEventListener("resize", onScroll);
 
 /* ---------- Render ---------- */
 function renderAll() { renderChoices(); renderChapters(); renderPack(); syncPrompts(); }
-function applySections() { const v = HUB.sections || {}; [["stats", "stats"], ["story", "story"], ["tl", "timeline"]].forEach(([id, k]) => { const el = document.getElementById(id); if (el) el.hidden = v[k] === false; }); }
-document.addEventListener("click", e => { const a = e.target.closest && e.target.closest("a[data-nolink]"); if (a) e.preventDefault(); });
+function applySections() { const v = HUB.sections || {}; [["stats", "stats"], ["story", "story"], ["tl", "timeline"], ["pi", "prescribing"]].forEach(([id, k]) => { const el = document.getElementById(id); if (el) el.hidden = v[k] === false; }); }
+document.addEventListener("click", e => { const a = e.target.closest && e.target.closest("a[data-nolink]"); if (a) { e.preventDefault(); if (a.id === "piView") piFile("view"); else if (a.id === "piDownload") piFile("download"); } });
 function boot() { applySections(); sanitizeState(); applyBrand(); bindStatic(); renderStats(); renderAll(); onScroll(); if (window.hubConsentLink) window.hubConsentLink(); }
 
 // Live updates from the editor's preview. Only attached in the editor's preview, never in a file that is shared.
@@ -3713,7 +3810,8 @@ const isStored = u => typeof u === "string" && u.startsWith("@store:");
 const putStore = blob => { const k = "@store:" + (++storeN); STORE.set(k, blob); return k; };
 const fileSize = d => (isStored(d.pdf) && STORE.get(d.pdf) ? STORE.get(d.pdf).size : 0);
 const blobUrl = k => { if (!URLS.has(k)) URLS.set(k, URL.createObjectURL(STORE.get(k))); return URLS.get(k); };
-const withPdfUrls = c => { for (const d of [c.core, ...c.modules]) if (isStored(d.pdf)) d.pdf = blobUrl(d.pdf); return c; };
+const fileDocs = c => [c.core, ...(c.modules || []), c.prescribing].filter(Boolean);
+const withPdfUrls = c => { for (const d of fileDocs(c)) if (isStored(d.pdf)) d.pdf = blobUrl(d.pdf); return c; };
 const MAX_IMG = 30;   // page pictures made per PDF for the in-page viewer
 const DEFAULT_FONTS = ["gsk-light.woff", "gsk-regular.woff", "gsk-regularitalic.woff", "gsk-bold.woff"];
 
@@ -3729,7 +3827,7 @@ function parseJs(text) { const w = {}; new Function("window", text)(w); if (!w.H
 /* The sample content has no files (they live in the folder version); the editor starts with a placeholder logo */
 const DEFAULT = (() => {
   const h = parseJs(CONTENT_DEFAULT);
-  for (const d of [h.core, ...h.modules]) { d.pdf = ""; d.images = []; }
+  for (const d of [h.core, ...h.modules, h.prescribing]) { d.pdf = ""; d.images = []; }
   h.brand.logo = svgUri(LOGO_SVG);
   return h;
 })();
@@ -3757,7 +3855,7 @@ function normalize(c) {
     if (c[k] && typeof c[k] === "object" && !Array.isArray(c[k]) && out[k] && typeof out[k] === "object" && !Array.isArray(out[k])) out[k] = Object.assign(out[k], c[k]);
     else out[k] = c[k];
   }
-  for (const d of [out.core, ...out.modules]) { if (isData(d.pdf)) d.pdf = putStore(new Blob([dataBytes(d.pdf)], { type: "application/pdf" })); if (isStored(d.pdf) && !STORE.has(d.pdf)) d.pdf = ""; d.pdf = d.pdf || ""; d.images = d.images || []; d.facts = d.facts || []; d.points = d.points || []; }
+  for (const d of fileDocs(out)) { if (isData(d.pdf)) d.pdf = putStore(new Blob([dataBytes(d.pdf)], { type: "application/pdf" })); if (isStored(d.pdf) && !STORE.has(d.pdf)) d.pdf = ""; d.pdf = d.pdf || ""; d.images = d.images || []; d.facts = d.facts || []; d.points = d.points || []; }
   out.brand.fonts = out.brand.fonts || {};
   return out;
 }
@@ -3859,7 +3957,7 @@ const SECTIONS = [
      ${slot("font", "brand.fonts.regular", "Regular", ".woff,.woff2,.ttf,.otf")}${slot("font", "brand.fonts.bold", "Bold", ".woff,.woff2,.ttf,.otf")}${slot("font", "brand.fonts.light", "Light", ".woff,.woff2,.ttf,.otf")}${slot("font", "brand.fonts.italic", "Italic", ".woff,.woff2,.ttf,.otf")}
      <p class="small">Check your licence allows the font to be embedded in a file you share. Fonts are embedded so the page works offline.</p></details>`) },
   { id: "sections", title: "Show or hide sections", goto: "top", render: () => frameSection("Show or hide sections", "Hide any part of the page you don't need. Your text is kept, so you can bring it back.",
-    `${fCheck("Key figures (the large numbers)", "sections.stats")}${fCheck("Story chapters", "sections.story")}${fCheck("Timeline (“Where we are”)", "sections.timeline")}
+    `${fCheck("Key figures (the large numbers)", "sections.stats")}${fCheck("Story chapters", "sections.story")}${fCheck("Timeline (“Where we are”)", "sections.timeline")}${fCheck("Prescribing Information", "sections.prescribing")}
      <p class="small">The opening screen and the pack builder are always shown, because they are the heart of the page.</p>`) },
   { id: "hero", title: "Opening screen", goto: "top", render: () => frameSection("Opening screen", "The headline, the intro text and the stakeholder chooser.",
     `${fText("Small heading above the title", "hero.eyebrow")}<h2>Title lines</h2>${strs("hero.titleLines", "Title line", 1)}<p class="small" style="margin:-4px 0 12px">The last line is shown in the brand colour.</p>
@@ -3909,9 +4007,14 @@ const SECTIONS = [
     `${fCheck("Show this section on the page", "sections.timeline")}${fText("Heading", "timeline.title")}${fArea("Text", "timeline.intro")}${cards("timeline.items", "milestone", "Add milestone", t => (t.when || "") + " · " + (t.what || "New milestone"), (t, i, p) => `
       <div class="cols">${fSel("Status", p + ".state", [["done", "Done"], ["now", "Next (highlighted)"], ["future", "Later"]])}${fText("Label", p + ".tag", { hint: "For example Done, Next, Expected" })}</div>
       <div class="cols">${fText("Date", p + ".when")}${fText("Milestone", p + ".what")}</div>${fArea("Text", p + ".text", { rows: 2 })}`)}`) },
+  { id: "prescribing", title: "Prescribing Information", goto: "pi", render: () => frameSection("Prescribing Information", "The white section after the pack: a download and view box for the prescribing information, and the adverse event statement.",
+    `${fCheck("Show this section on the page", "sections.prescribing")}${fText("Title", "prescribing.title")}${fText("Box text", "prescribing.ctaText")}
+     <div class="cols">${fText("View link", "prescribing.viewLabel")}${fText("Download link", "prescribing.ctaLabel")}</div>
+     <h2>PDF</h2>${slot("pdf", "prescribing", "Prescribing Information PDF", "application/pdf")}
+     <h2>Adverse event statement</h2>${fArea("Text in the outlined box", "prescribing.aeText", { rows: 4 })}`) },
   { id: "finish", title: "Pack and footer", goto: "pack", render: () => frameSection("Pack and footer", "The pack section and the legal footer.",
     `${fText("Pack heading", "finale.title")}${fArea("Pack text", "finale.sub")}
-     <h2>Footer</h2>${fText("First line, title part", "legal.title")}${fText("First line, whole (optional)", "legal.line", { hint: "Leave blank to use the title, job code and date. Type your own to change the dots or wording; ** around words makes them bold." })}${strs("legal.paragraphs", "Legal text", 3)}
+     <h2>Footer</h2>${fText("Reference line (very bottom)", "legal.line", { hint: "Leave blank to show the job code and date of preparation. Type your own to change the wording or the dots; ** around words makes them bold." })}${strs("legal.paragraphs", "Legal text", 3)}
      <h2>Footer links</h2><p class="small" style="margin:-4px 0 10px">The links under the footer text. Leave the address blank until you have it: the link then does nothing.</p>
      ${cards("legal.links", "footlink", "footer link", l => l.label || "Link", (l, i, p) => `<div class="cols">${fText("Text", p + ".label")}${fText("Address", p + ".url", { ph: "https://…" })}</div>${fCheck("Show the external-link icon", p + ".external")}`)}`) },
   { id: "signin", title: "Sign-in and consent screens", goto: "top", render: () => frameSection("Sign-in and consent screens", "The first two screens: a mock sign-in, then a tick-box consent screen, then the page. Switch either off and export again and its code is gone from the file.",
@@ -4039,7 +4142,7 @@ function initPdfJs() {
 async function ingestPdf(path, file) {
   initPdfJs();
   const d = getP(path), bytes = new Uint8Array(await file.arrayBuffer());
-  const pdf = await pdfjsLib.getDocument({ data: bytes }).promise, imgs = [], shown = Math.min(pdf.numPages, MAX_IMG);
+  const pdf = await pdfjsLib.getDocument({ data: bytes }).promise, imgs = [], shown = path === "prescribing" ? 0 : Math.min(pdf.numPages, MAX_IMG);
   for (let n = 1; n <= shown; n++) {
     status(`Reading ${file.name}: page ${n} of ${shown}${shown < pdf.numPages ? " (of " + pdf.numPages + ")" : ""}…`, "busy");
     const pg = await pdf.getPage(n), w = pg.getViewport({ scale: 1 }).width, vp = pg.getViewport({ scale: 1000 / w });
@@ -4055,7 +4158,7 @@ function handleFile(kind, path, file) {
     try {
       if (kind === "pdf") {
         if (!/pdf$/i.test(file.type) && !/\.pdf$/i.test(file.name)) throw new Error(`${file.name} is not a PDF.`);
-        await ingestPdf(path, file); { const dd = getP(path); status(`${file.name} added: ${dd.pages} pages${dd.images.length < dd.pages ? " (the viewer shows the first " + dd.images.length + ")" : ""}, ${fmtSize(file.size)}.`, "", 5000); }
+        await ingestPdf(path, file); { const dd = getP(path); status(`${file.name} added: ${dd.pages} pages${dd.images.length && dd.images.length < dd.pages ? " (the viewer shows the first " + dd.images.length + ")" : ""}, ${fmtSize(file.size)}.`, "", 5000); }
       } else if (kind === "logo") {
         let u = await readUri(file); if (!/^data:image\//.test(u)) throw new Error("That file isn't an image.");
         if (/\.svg$/i.test(file.name) && !u.startsWith("data:image/svg+xml")) u = "data:image/svg+xml;base64," + u.split(",")[1];
@@ -4130,7 +4233,7 @@ const base = () => slug(C.brand.productName) + "-launch-story";
 function finalCopy() {
   const c = clone(C);
   c.brand.mockLabel = "";
-  for (const d of [c.core, ...c.modules]) delete d.pdfName;
+  for (const d of fileDocs(c)) delete d.pdfName;
   return c;
 }
 /* The checks and confirmations before any export; false means the user stopped */
@@ -4168,7 +4271,7 @@ async function pull(u) { try { if (!u || isData(u) || /^(https?:)?\/\//i.test(u)
 async function pullLinked() {
   if (!/^https?:/.test(location.protocol)) return;
   let n = 0;
-  for (const d of [C.core, ...C.modules]) if (d.pdf && !isStored(d.pdf) && !isData(d.pdf)) {
+  for (const d of fileDocs(C)) if (d.pdf && !isStored(d.pdf) && !isData(d.pdf)) {
     const b = await pull(d.pdf); if (b) { d.pdf = putStore(new Blob([b], { type: "application/pdf" })); d.pdfName = d.pdfName || "PDF from the site"; n++; }
   }
   if (n) { renderForm(true); renderSide(); status(`Loaded ${n} PDF${n > 1 ? "s" : ""} from the site.`, "", 5000); }
@@ -4183,7 +4286,7 @@ async function exportSite() {
     const add = (name, data) => entries.push({ name: root + name, data });
     const uniq = (dir, stem, ext) => { let n = stem, i = 2; while (names.has(dir + n + ext)) n = stem + "-" + i++; names.add(dir + n + ext); return dir + n + ext; };
     const keep = async u => { if (!u || isData(u) || /^(https?:)?\/\//i.test(u)) return; if (names.has(u)) return; const b = await pull(u); if (b) { names.add(u); add(u, b); } else missing.push(u); };
-    for (const d of [c.core, ...c.modules]) {
+    for (const d of fileDocs(c)) {
       const stem = String(d.code || d.id || "doc").replace(/[^A-Za-z0-9._-]+/g, "-");
       if (isStored(d.pdf)) { const f = uniq("assets/pdfs/", stem, ".pdf"); add(f, STORE.get(d.pdf)); d.pdf = f; } else await keep(d.pdf);
       const imgs = []; for (let i = 0; i < (d.images || []).length; i++) { const u = d.images[i]; if (isData(u)) { const f = uniq("assets/pages/", `${stem}-${pad2(i + 1)}`, ".jpg"); add(f, new Blob([dataBytes(u)], { type: "image/jpeg" })); imgs.push(f); } else { await keep(u); imgs.push(u); } }
@@ -4209,7 +4312,7 @@ async function exportSite() {
 async function saveProject() {
   try {
     const c = clone(C), entries = []; let n = 0;
-    for (const d of [c.core, ...c.modules]) if (isStored(d.pdf)) { const f = `files/pdf-${++n}.pdf`; entries.push({ name: f, data: STORE.get(d.pdf) }); d.pdf = "@zip:" + f; }
+    for (const d of fileDocs(c)) if (isStored(d.pdf)) { const f = `files/pdf-${++n}.pdf`; entries.push({ name: f, data: STORE.get(d.pdf) }); d.pdf = "@zip:" + f; }
     entries.unshift({ name: "project.json", data: JSON.stringify({ hubEditorProject: 2, content: c }) });
     const zip = await makeZip(entries); download(base().replace("-launch-story", "") + "-content.zip", zip);
     dirty = false; status(`Content saved (${fmtSize(zip.size)}). Load it back any time with Open content.`, "", 6000);
@@ -4221,7 +4324,7 @@ async function openFile(file) {
     if (/\.zip$/i.test(file.name)) {
       const z = await readZip(file), pj = z.entries.find(e => e.name === "project.json"); if (!pj) throw new Error("That zip isn't a hub project.");
       const j = JSON.parse(await (await z.blob(pj)).text()); obj = j.content;
-      for (const d of [obj.core, ...obj.modules]) if (typeof d.pdf === "string" && d.pdf.startsWith("@zip:")) {
+      for (const d of fileDocs(obj)) if (typeof d.pdf === "string" && d.pdf.startsWith("@zip:")) {
         const e = z.entries.find(x => x.name === d.pdf.slice(5)); d.pdf = e ? putStore(new Blob([await z.blob(e)], { type: "application/pdf" })) : "";
       }
     } else {
