@@ -130,7 +130,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .pm-pi:hover { color: var(--orange); }
 .pm-actions { display: flex; align-items: center; gap: 12px; }
 .topnote a:hover { color: var(--orange-ink, #c44a1a); }
-#pi { scroll-margin-top: calc(var(--bar-h) + 8px); }
+#pi, #pack { scroll-margin-top: calc(var(--bar-h) + 8px); }
 html { scroll-behavior: smooth; }
 .hero-note { font-size: 13.5px; color: var(--muted); max-width: 52ch; margin-top: 14px; }
 .core-feature { display: grid; justify-items: center; gap: 26px; }
@@ -559,7 +559,7 @@ body.inline-edit [contenteditable] { outline: 2px solid var(--orange, #f36633) !
 <div class="dock away" id="dock">
   <div class="dock-stack" id="dockStack" aria-hidden="true"></div>
   <div class="dock-txt"><b id="dockCount">1 document</b><span id="dockPages"></span></div>
-  <button class="btn btn-orange" type="button" data-open-pack=""><span data-btn="dockView">View pack</span></button>
+  <button class="btn btn-orange" type="button" data-goto="pack"><span data-btn="dockView">View pack</span></button>
 </div>
 
 <div class="pm" id="packModal" hidden>
@@ -1000,7 +1000,7 @@ function applySections() { const v = HUB.sections || {}; [["stats", "stats"], ["
 document.getElementById("pmJump").addEventListener("scroll", updateJump, { passive: true });
 addEventListener("resize", updateJump);
 document.getElementById("pmJumpWrap").addEventListener("click", e => { const a = e.target.closest(".pm-arrow"); if (a) { const n = document.getElementById("pmJump"); n.scrollBy({ left: +a.dataset.jumpDir * Math.max(160, n.clientWidth * 0.7), behavior: "smooth" }); } });
-document.addEventListener("click", e => { const tp = e.target.closest && e.target.closest("a[data-top]"); if (tp) { e.preventDefault(); scrollTo({ top: 0, behavior: "smooth" }); return; } const pa = e.target.closest && e.target.closest("a[data-pi]"); if (pa) { e.preventDefault(); piFile(pa.dataset.pi); return; } const a = e.target.closest && e.target.closest("a[data-nolink]"); if (a) { e.preventDefault(); if (a.id === "piView") piFile("view"); else if (a.id === "piDownload") piFile("download"); } });
+document.addEventListener("click", e => { const gt = e.target.closest && e.target.closest("[data-goto]"); if (gt) { const t = document.getElementById(gt.dataset.goto); if (t) t.scrollIntoView({ behavior: "smooth", block: "start" }); return; } const tp = e.target.closest && e.target.closest("a[data-top]"); if (tp) { e.preventDefault(); scrollTo({ top: 0, behavior: "smooth" }); return; } const pa = e.target.closest && e.target.closest("a[data-pi]"); if (pa) { e.preventDefault(); piFile(pa.dataset.pi); return; } const a = e.target.closest && e.target.closest("a[data-nolink]"); if (a) { e.preventDefault(); if (a.id === "piView") piFile("view"); else if (a.id === "piDownload") piFile("download"); } });
 function boot() { applyButtonText(); applySections(); sanitizeState(); applyBrand(); bindStatic(); renderStats(); renderAll(); onScroll(); if (window.hubConsentLink) window.hubConsentLink(); }
 
 // Live updates from the editor's preview. Only attached in the editor's preview, never in a file that is shared.
@@ -1462,7 +1462,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .pm-pi:hover { color: var(--orange); }
 .pm-actions { display: flex; align-items: center; gap: 12px; }
 .topnote a:hover { color: var(--orange-ink, #c44a1a); }
-#pi { scroll-margin-top: calc(var(--bar-h) + 8px); }
+#pi, #pack { scroll-margin-top: calc(var(--bar-h) + 8px); }
 html { scroll-behavior: smooth; }
 .hero-note { font-size: 13.5px; color: var(--muted); max-width: 52ch; margin-top: 14px; }
 .core-feature { display: grid; justify-items: center; gap: 26px; }
@@ -1891,7 +1891,7 @@ body.inline-edit [contenteditable] { outline: 2px solid var(--orange, #f36633) !
 <div class="dock away" id="dock">
   <div class="dock-stack" id="dockStack" aria-hidden="true"></div>
   <div class="dock-txt"><b id="dockCount">1 document</b><span id="dockPages"></span></div>
-  <button class="btn btn-orange" type="button" data-open-pack=""><span data-btn="dockView">View pack</span></button>
+  <button class="btn btn-orange" type="button" data-goto="pack"><span data-btn="dockView">View pack</span></button>
 </div>
 
 <div class="pm" id="packModal" hidden>
@@ -2332,7 +2332,7 @@ function applySections() { const v = HUB.sections || {}; [["stats", "stats"], ["
 document.getElementById("pmJump").addEventListener("scroll", updateJump, { passive: true });
 addEventListener("resize", updateJump);
 document.getElementById("pmJumpWrap").addEventListener("click", e => { const a = e.target.closest(".pm-arrow"); if (a) { const n = document.getElementById("pmJump"); n.scrollBy({ left: +a.dataset.jumpDir * Math.max(160, n.clientWidth * 0.7), behavior: "smooth" }); } });
-document.addEventListener("click", e => { const tp = e.target.closest && e.target.closest("a[data-top]"); if (tp) { e.preventDefault(); scrollTo({ top: 0, behavior: "smooth" }); return; } const pa = e.target.closest && e.target.closest("a[data-pi]"); if (pa) { e.preventDefault(); piFile(pa.dataset.pi); return; } const a = e.target.closest && e.target.closest("a[data-nolink]"); if (a) { e.preventDefault(); if (a.id === "piView") piFile("view"); else if (a.id === "piDownload") piFile("download"); } });
+document.addEventListener("click", e => { const gt = e.target.closest && e.target.closest("[data-goto]"); if (gt) { const t = document.getElementById(gt.dataset.goto); if (t) t.scrollIntoView({ behavior: "smooth", block: "start" }); return; } const tp = e.target.closest && e.target.closest("a[data-top]"); if (tp) { e.preventDefault(); scrollTo({ top: 0, behavior: "smooth" }); return; } const pa = e.target.closest && e.target.closest("a[data-pi]"); if (pa) { e.preventDefault(); piFile(pa.dataset.pi); return; } const a = e.target.closest && e.target.closest("a[data-nolink]"); if (a) { e.preventDefault(); if (a.id === "piView") piFile("view"); else if (a.id === "piDownload") piFile("download"); } });
 function boot() { applyButtonText(); applySections(); sanitizeState(); applyBrand(); bindStatic(); renderStats(); renderAll(); onScroll(); if (window.hubConsentLink) window.hubConsentLink(); }
 
 // Live updates from the editor's preview. Only attached in the editor's preview, never in a file that is shared.
@@ -2893,7 +2893,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .pm-pi:hover { color: var(--orange); }
 .pm-actions { display: flex; align-items: center; gap: 12px; }
 .topnote a:hover { color: var(--orange-ink, #c44a1a); }
-#pi { scroll-margin-top: calc(var(--bar-h) + 8px); }
+#pi, #pack { scroll-margin-top: calc(var(--bar-h) + 8px); }
 html { scroll-behavior: smooth; }
 .hero-note { font-size: 13.5px; color: var(--muted); max-width: 52ch; margin-top: 14px; }
 .core-feature { display: grid; justify-items: center; gap: 26px; }
@@ -3322,7 +3322,7 @@ body.inline-edit [contenteditable] { outline: 2px solid var(--orange, #f36633) !
 <div class="dock away" id="dock">
   <div class="dock-stack" id="dockStack" aria-hidden="true"></div>
   <div class="dock-txt"><b id="dockCount">1 document</b><span id="dockPages"></span></div>
-  <button class="btn btn-orange" type="button" data-open-pack=""><span data-btn="dockView">View pack</span></button>
+  <button class="btn btn-orange" type="button" data-goto="pack"><span data-btn="dockView">View pack</span></button>
 </div>
 
 <div class="pm" id="packModal" hidden>
@@ -3763,7 +3763,7 @@ function applySections() { const v = HUB.sections || {}; [["stats", "stats"], ["
 document.getElementById("pmJump").addEventListener("scroll", updateJump, { passive: true });
 addEventListener("resize", updateJump);
 document.getElementById("pmJumpWrap").addEventListener("click", e => { const a = e.target.closest(".pm-arrow"); if (a) { const n = document.getElementById("pmJump"); n.scrollBy({ left: +a.dataset.jumpDir * Math.max(160, n.clientWidth * 0.7), behavior: "smooth" }); } });
-document.addEventListener("click", e => { const tp = e.target.closest && e.target.closest("a[data-top]"); if (tp) { e.preventDefault(); scrollTo({ top: 0, behavior: "smooth" }); return; } const pa = e.target.closest && e.target.closest("a[data-pi]"); if (pa) { e.preventDefault(); piFile(pa.dataset.pi); return; } const a = e.target.closest && e.target.closest("a[data-nolink]"); if (a) { e.preventDefault(); if (a.id === "piView") piFile("view"); else if (a.id === "piDownload") piFile("download"); } });
+document.addEventListener("click", e => { const gt = e.target.closest && e.target.closest("[data-goto]"); if (gt) { const t = document.getElementById(gt.dataset.goto); if (t) t.scrollIntoView({ behavior: "smooth", block: "start" }); return; } const tp = e.target.closest && e.target.closest("a[data-top]"); if (tp) { e.preventDefault(); scrollTo({ top: 0, behavior: "smooth" }); return; } const pa = e.target.closest && e.target.closest("a[data-pi]"); if (pa) { e.preventDefault(); piFile(pa.dataset.pi); return; } const a = e.target.closest && e.target.closest("a[data-nolink]"); if (a) { e.preventDefault(); if (a.id === "piView") piFile("view"); else if (a.id === "piDownload") piFile("download"); } });
 function boot() { applyButtonText(); applySections(); sanitizeState(); applyBrand(); bindStatic(); renderStats(); renderAll(); onScroll(); if (window.hubConsentLink) window.hubConsentLink(); }
 
 // Live updates from the editor's preview. Only attached in the editor's preview, never in a file that is shared.

@@ -117,7 +117,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .pm-pi:hover { color: var(--orange); }
 .pm-actions { display: flex; align-items: center; gap: 12px; }
 .topnote a:hover { color: var(--orange-ink, #c44a1a); }
-#pi { scroll-margin-top: calc(var(--bar-h) + 8px); }
+#pi, #pack { scroll-margin-top: calc(var(--bar-h) + 8px); }
 html { scroll-behavior: smooth; }
 .hero-note { font-size: 13.5px; color: var(--muted); max-width: 52ch; margin-top: 14px; }
 .core-feature { display: grid; justify-items: center; gap: 26px; }
