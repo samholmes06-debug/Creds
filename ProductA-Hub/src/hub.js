@@ -119,6 +119,9 @@ function applyBrand() {
 const mark = (cls = "") => HUB.brand && HUB.brand.logo ? `<img class="logo" src="${esc(HUB.brand.logo)}" alt="${esc(HUB.brand.productName)}">` : `<i aria-hidden="true"></i>${esc((HUB.brand || {}).productName)}`;
 
 /* ---------- Static text and shell ---------- */
+const BT = { barCore: "Download core PDF", barCoreShort: "Core PDF", heroDownload: "Download PDF", heroPreview: "Preview", packPreview: "Preview pack", packDownload: "Download as one PDF", dockView: "View pack", viewerDownload: "Download pack", viewerDocDownload: "Download PDF", pdfSmall: "PDF", remove: "Remove" };
+const bt = k => ((HUB.buttons || {})[k]) || BT[k];
+function applyButtonText() { $$("[data-btn]").forEach(el => { el.textContent = bt(el.dataset.btn); }); }
 const linkify = t => esc(t).replace(/\[([^\]]+)\]\((#[\w-]+|https?:\/\/[^)\s]+)\)/g, (m, a, u) => `<a href="${u}"${/^#pi-(view|download)$/.test(u) ? ` data-pi="${u.slice(4)}"` : u[0] === "#" ? "" : ` target="_blank" rel="noopener"`}>${a}</a>`);
 function bindStatic() {
   { const h0 = HUB.hero || {}, tn = $("#topNote"); if (tn) tn.innerHTML = [["disclaimer", h0.disclaimer], ["disclaimer2", h0.disclaimer2]].filter(x => x[1]).map(x => `<p data-edit="hero.${x[0]}">${linkify(x[1])}</p>`).join(""); }
@@ -131,12 +134,12 @@ function bindStatic() {
   if ($("#heroTitle").dataset.h !== titleHtml) { $("#heroTitle").innerHTML = titleHtml; $("#heroTitle").dataset.h = titleHtml; }
   $("#coverMeta").textContent = `PDF · ${pagesOf(c)} pages · ${b.jobCode || ""}`;
   const inV = !!clm();
-  $("#barCore").innerHTML = inV ? `<span class="long">Send core PDF</span><span class="short">Send PDF</span><span aria-hidden="true">✉</span>` : `<span class="long">Download core PDF</span><span class="short">Core PDF</span><span aria-hidden="true">↓</span>`;
-  $("#heroDownload").innerHTML = inV ? `Send core PDF <span aria-hidden="true">✉</span>` : `Download PDF <span aria-hidden="true">↓</span>`;
+  $("#barCore").innerHTML = inV ? `<span class="long">Send core PDF</span><span class="short">Send PDF</span><span aria-hidden="true">✉</span>` : `<span class="long">${esc(bt("barCore"))}</span><span class="short">${esc(bt("barCoreShort"))}</span><span aria-hidden="true">↓</span>`;
+  $("#heroDownload").innerHTML = inV ? `Send core PDF <span aria-hidden="true">✉</span>` : `${esc(bt("heroDownload"))} <span aria-hidden="true">↓</span>`;
   $("#storyDownload").innerHTML = (esc((HUB.story || {}).downloadLabel || "Download the core notification")) + (inV ? ` <span aria-hidden="true">✉</span>` : ` <span aria-hidden="true">↓</span>`);
   $("#storyMeta").textContent = `PDF · ${pagesOf(c)} pages`;
-  $("#dlPack").innerHTML = inV ? `Send pack by Approved Email <span aria-hidden="true">✉</span>` : `Download as one PDF <span aria-hidden="true">↓</span>`;
-  $("#pmDownload").innerHTML = inV ? `Send pack <span aria-hidden="true">✉</span>` : `Download pack <span aria-hidden="true">↓</span>`;
+  $("#dlPack").innerHTML = inV ? `Send pack by Approved Email <span aria-hidden="true">✉</span>` : `${esc(bt("packDownload"))} <span aria-hidden="true">↓</span>`;
+  $("#pmDownload").innerHTML = inV ? `Send pack <span aria-hidden="true">✉</span>` : `${esc(bt("viewerDownload"))} <span aria-hidden="true">↓</span>`;
   const lg = HUB.legal || {};
   const dflt = `Job code ${b.jobCode || ""} | Date of preparation ${b.datePrepared || ""}`;
   $("#footerInner").innerHTML = (lg.paragraphs || []).map((p, i) => `<p data-edit="legal.paragraphs.${i}">${esc(p)}</p>`).join("") + footLinks(lg) + `<p class="foot-ref" data-edit="legal.line" data-fallback="${esc(dflt)}">${md(lg.line ? lg.line : dflt).replace(/ \| /g, `<span class="foot-vr" aria-hidden="true"></span>`)}</p>`;
@@ -229,7 +232,7 @@ function renderChapters() {
 }
 
 /* ---------- Pack: dock, finale, viewer ---------- */
-const dlBtn = id => hasPdf(info(id)) ? `<button type="button" class="x-btn" data-pdf="${esc(id)}" aria-label="Download ${esc(info(id).name)} as PDF">PDF ↓</button>` : `<span></span>`;
+const dlBtn = id => hasPdf(info(id)) ? `<button type="button" class="x-btn" data-pdf="${esc(id)}" aria-label="Download ${esc(info(id).name)} as PDF">${esc(bt("pdfSmall"))} ↓</button>` : `<span></span>`;
 function renderPack() {
   const ids = picked(), all = ["core", ...ids], pp = totalPages(ids), docs = `${all.length} document${all.length > 1 ? "s" : ""}`;
   $("#dockStack").innerHTML = all.map(id => cover(id)).join("");
@@ -238,7 +241,7 @@ function renderPack() {
   $("#finPages").innerHTML = `document${all.length > 1 ? "s" : ""}<br>${pp} pages`;
   $("#finFor").innerHTML = state.who && state.eng ? `Built for a <b>${esc(who().label.toLowerCase())}</b> · <b>${esc(eng().label.toLowerCase())}</b>` : "Choose a stakeholder and engagement in the bar above for recommended modules.";
   $("#finList").innerHTML = `<li class="core"><span class="n">00</span><span>${esc(HUB.core.name)}</span><span class="pp">${pagesOf(HUB.core)} pp</span>${dlBtn("core")}<span></span></li>` +
-    ids.map((id, i) => `<li><span class="n">${pad(i + 1)}</span><span>${esc(info(id).name)}</span><span class="pp">${pagesOf(info(id))} pp</span>${dlBtn(id)}<button type="button" class="x-btn" data-toggle="${esc(id)}" aria-label="Remove ${esc(info(id).name)}">Remove</button></li>`).join("");
+    ids.map((id, i) => `<li><span class="n">${pad(i + 1)}</span><span>${esc(info(id).name)}</span><span class="pp">${pagesOf(info(id))} pp</span>${dlBtn(id)}<button type="button" class="x-btn" data-toggle="${esc(id)}" aria-label="Remove ${esc(info(id).name)}">${esc(bt("remove"))}</button></li>`).join("");
   const rest = modules().filter(m => !ids.includes(m.id));
   $("#finMore").innerHTML = rest.length ? `<span>Add:</span>` + rest.map(m => `<button type="button" data-toggle="${esc(m.id)}">+ ${esc(m.name)}</button>`).join("") : "";
   const n = all.length;
@@ -272,7 +275,7 @@ function renderViewer(all, pp) {
   note.textContent = draft.length ? `Draft pages: ${draft.length === all.length ? "these pages stand in for the artworked PDFs." : draft.length + " of " + all.length + " documents still show draft pages in place of the artworked PDF."} Once the approved PDF is added, it appears here and downloads as the same file.` : "";
   $("#pmDocs").innerHTML = all.map((id, i) => {
     const d = info(id), real = d.images && d.images.length;
-    const btns = `${clm() && (V().pdfSlides || {})[id] ? `<button class="chip-btn" type="button" data-open-slide="${esc(id)}">Open PDF</button>` : ""}<button class="chip-btn" type="button" data-pdf="${esc(id)}">${clm() ? "Send PDF ✉" : "Download PDF ↓"}</button>${isCore(id) ? "" : `<button class="chip-btn" type="button" data-toggle="${esc(id)}">Remove</button>`}`;
+    const btns = `${clm() && (V().pdfSlides || {})[id] ? `<button class="chip-btn" type="button" data-open-slide="${esc(id)}">Open PDF</button>` : ""}<button class="chip-btn" type="button" data-pdf="${esc(id)}">${clm() ? "Send PDF ✉" : esc(bt("viewerDocDownload")) + " ↓"}</button>${isCore(id) ? "" : `<button class="chip-btn" type="button" data-toggle="${esc(id)}">${esc(bt("remove"))}</button>`}`;
     return `<section class="pm-doc" id="doc-${esc(id)}" aria-label="${esc(d.name)}"><div class="pm-doc-head"><span class="n${isCore(id) ? " core" : ""}">${pad(i)}</span><div><div class="label">${esc(d.code || "")} · PDF · ${pagesOf(d)} pages</div><h3>${esc(d.name)}</h3></div><div class="btns">${btns}</div></div>${real ? d.images.map((src, n) => `<div class="pm-page img"><img src="${esc(src)}" alt="${esc(d.name)}, page ${n + 1}" loading="lazy"></div>`).join("") + (+d.pages > d.images.length ? `<p class="pm-more">Showing the first ${d.images.length} of ${+d.pages} pages here. Download the PDF to read all of it.</p>` : "") : mockPages(id, d)}</section>`;
   }).join("");
 }
@@ -403,7 +406,7 @@ addEventListener("resize", onScroll);
 function renderAll() { renderChoices(); renderChapters(); renderPack(); syncPrompts(); }
 function applySections() { const v = HUB.sections || {}; [["stats", "stats"], ["story", "story"], ["tl", "timeline"], ["pi", "prescribing"]].forEach(([id, k]) => { const el = document.getElementById(id); if (el) el.hidden = v[k] === false; }); const pp = document.getElementById("pmPi"); if (pp) pp.hidden = v.prescribing === false; }
 document.addEventListener("click", e => { const pa = e.target.closest && e.target.closest("a[data-pi]"); if (pa) { e.preventDefault(); piFile(pa.dataset.pi); return; } const a = e.target.closest && e.target.closest("a[data-nolink]"); if (a) { e.preventDefault(); if (a.id === "piView") piFile("view"); else if (a.id === "piDownload") piFile("download"); } });
-function boot() { applySections(); sanitizeState(); applyBrand(); bindStatic(); renderStats(); renderAll(); onScroll(); if (window.hubConsentLink) window.hubConsentLink(); }
+function boot() { applyButtonText(); applySections(); sanitizeState(); applyBrand(); bindStatic(); renderStats(); renderAll(); onScroll(); if (window.hubConsentLink) window.hubConsentLink(); }
 
 // Live updates from the editor's preview. Only attached in the editor's preview, never in a file that is shared.
 

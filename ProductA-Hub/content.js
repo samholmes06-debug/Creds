@@ -236,6 +236,21 @@ window.HUB = {
   },
 
   /* ---- Which sections of the page to show -------------------------------- */
+  /* ---- Button text ----------------------------------------------------------- */
+  buttons: {
+    barCore: "Download core PDF",      // top bar, wide screens
+    barCoreShort: "Core PDF",          // top bar, narrow screens
+    heroDownload: "Download PDF",      // opening screen
+    heroPreview: "Preview",            // opening screen
+    packPreview: "Preview pack",       // pack section
+    packDownload: "Download as one PDF",
+    dockView: "View pack",             // floating pack bar
+    viewerDownload: "Download pack",   // pack viewer, top right
+    viewerDocDownload: "Download PDF", // pack viewer, each document
+    pdfSmall: "PDF",                   // small button in the pack list
+    remove: "Remove"
+  },
+
   sections: { stats: true, story: true, timeline: true, prescribing: true },
 
   /* ---- Mock sign-in screen: the first screen. The button just continues (real sign-in is added on the server later) */
