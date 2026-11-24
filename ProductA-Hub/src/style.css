@@ -105,11 +105,14 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .pi-act:hover svg { color: var(--orange); }
 .pi-box { margin-top: clamp(20px, 3vw, 36px); border: 1px solid #d5d7d9; border-radius: 28px; padding: clamp(18px, 2.4vw, 30px) clamp(24px, 6vw, 96px); text-align: center; }
 .pi-box p { margin: 0 auto; max-width: 80ch; font-size: clamp(15px, 1.5vw, 18px); line-height: 1.6; }
-.topnote { text-align: center; font-size: 13.5px; color: var(--muted); max-width: 90ch; margin: 0 auto; padding: 16px 20px 0; }
+.topnote { text-align: center; font-size: 15.5px; color: var(--black); max-width: 90ch; margin: 0 auto; padding: 16px 20px 0; }
 .topnote:empty { display: none; }
 .topnote p { margin: 0; }
 .topnote p + p { margin-top: 4px; }
-.topnote a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.topnote a { color: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.pm-pi { color: var(--white); font-weight: 700; font-size: 14px; text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; margin-right: 6px; }
+.pm-pi:hover { color: var(--orange); }
+.pm-actions { display: flex; align-items: center; gap: 12px; }
 .topnote a:hover { color: var(--orange-ink, #c44a1a); }
 #pi { scroll-margin-top: calc(var(--bar-h) + 8px); }
 html { scroll-behavior: smooth; }
