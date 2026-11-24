@@ -195,6 +195,18 @@ window.HUB = {
     title: "Your pack",
     sub: "Everything you've added, in recommended order. Preview it or download it as one PDF."
   },
+  references: {
+    title: "References",
+    items: [
+      "[Author A, Author B]. [Title of the study]. [Journal]. [Year];[Volume]([Issue]):[Pages].",
+      "NHS England. [Title of the document]. [Year]. Available at: [web address]. Accessed [date].",
+      "Product A Summary of Product Characteristics. [Company name]. [Date]."
+    ]
+  },
+  abbreviations: {
+    title: "Abbreviations",
+    text: "ABPI, Association of the British Pharmaceutical Industry; ICB, integrated care board; MHRA, Medicines and Healthcare products Regulatory Agency; NHS, National Health Service; NICE, National Institute for Health and Care Excellence."
+  },
   prescribing: {
     title: "Prescribing Information",
     ctaText: "Product A prescribing information",
@@ -253,7 +265,7 @@ window.HUB = {
     backToTop: "Back to top"            // link at the very bottom of the page
   },
 
-  sections: { stats: true, story: true, timeline: true, prescribing: true },
+  sections: { stats: true, story: true, timeline: true, references: true, abbreviations: true, prescribing: true },
 
   /* ---- Mock sign-in screen: the first screen. The button just continues (real sign-in is added on the server later) */
   signin: {

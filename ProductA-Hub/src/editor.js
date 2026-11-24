@@ -169,7 +169,7 @@ const SECTIONS = [
      ${slot("font", "brand.fonts.regular", "Regular", ".woff,.woff2,.ttf,.otf")}${slot("font", "brand.fonts.bold", "Bold", ".woff,.woff2,.ttf,.otf")}${slot("font", "brand.fonts.light", "Light", ".woff,.woff2,.ttf,.otf")}${slot("font", "brand.fonts.italic", "Italic", ".woff,.woff2,.ttf,.otf")}
      <p class="small">Check your licence allows the font to be embedded in a file you share. Fonts are embedded so the page works offline.</p></details>`) },
   { id: "sections", title: "Show or hide sections", goto: "top", render: () => frameSection("Show or hide sections", "Hide any part of the page you don't need. Your text is kept, so you can bring it back.",
-    `${fCheck("Key figures (the large numbers)", "sections.stats")}${fCheck("Story chapters", "sections.story")}${fCheck("Timeline (“Where we are”)", "sections.timeline")}${fCheck("Prescribing Information", "sections.prescribing")}
+    `${fCheck("Key figures (the large numbers)", "sections.stats")}${fCheck("Story chapters", "sections.story")}${fCheck("Timeline (“Where we are”)", "sections.timeline")}${fCheck("References", "sections.references")}${fCheck("Abbreviations", "sections.abbreviations")}${fCheck("Prescribing Information", "sections.prescribing")}
      <p class="small">The opening screen and the pack builder are always shown, because they are the heart of the page.</p>`) },
   { id: "topline", title: "Line under the top bar", goto: "top", render: () => frameSection("Line under the top bar", "Up to two lines of small text, centred just under the top bar. Leave both blank to hide it.",
     `${fArea("First line", "hero.disclaimer", { rows: 2, hint: "Links: [words](#pi-view) opens the Prescribing Information PDF in one click. [words](#pi-download) downloads it. [words](#pi) scrolls to the Prescribing Information section. [words](https://…) opens a web address." })}
@@ -222,6 +222,11 @@ const SECTIONS = [
     `${fCheck("Show this section on the page", "sections.timeline")}${fText("Heading", "timeline.title")}${fArea("Text", "timeline.intro")}${cards("timeline.items", "milestone", "Add milestone", t => (t.when || "") + " · " + (t.what || "New milestone"), (t, i, p) => `
       <div class="cols">${fSel("Status", p + ".state", [["done", "Done"], ["now", "Next (highlighted)"], ["future", "Later"]])}${fText("Label", p + ".tag", { hint: "For example Done, Next, Expected" })}</div>
       <div class="cols">${fText("Date", p + ".when")}${fText("Milestone", p + ".what")}</div>${fArea("Text", p + ".text", { rows: 2 })}`)}`) },
+  { id: "refs", title: "References and abbreviations", goto: "pi", render: () => frameSection("References and abbreviations", "Two small sections in the white area, just above Prescribing Information.",
+    `<h2>References</h2>${fCheck("Show References", "sections.references")}${fText("Title", "references.title")}
+     <p class="small" style="margin:-4px 0 10px">One reference per box. They are numbered automatically, in this order.</p>
+     ${strs("references.items", "Reference text", 2)}${addBtn("references.items", "str", "reference")}
+     <h2>Abbreviations</h2>${fCheck("Show Abbreviations", "sections.abbreviations")}${fText("Title", "abbreviations.title")}${fArea("Text", "abbreviations.text", { rows: 4, hint: "One line of text, for example: ABPI, Association of the British Pharmaceutical Industry; MHRA, …" })}`) },
   { id: "prescribing", title: "Prescribing Information", goto: "pi", render: () => frameSection("Prescribing Information", "The white section after the pack: a download and view box for the prescribing information, and the adverse event statement.",
     `${fCheck("Show this section on the page", "sections.prescribing")}${fText("Title", "prescribing.title")}${fText("Box text", "prescribing.ctaText")}
      <div class="cols">${fText("View link", "prescribing.viewLabel")}${fText("Download link", "prescribing.ctaLabel")}</div>

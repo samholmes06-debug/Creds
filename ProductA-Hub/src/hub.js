@@ -125,6 +125,7 @@ const bt = k => ((HUB.buttons || {})[k]) || BT[k];
 function applyButtonText() { $$("[data-btn]").forEach(el => { el.textContent = bt(el.dataset.btn); }); }
 const linkify = t => esc(t).replace(/\[([^\]]+)\]\((#[\w-]+|https?:\/\/[^)\s]+)\)/g, (m, a, u) => `<a href="${u}"${/^#pi-(view|download)$/.test(u) ? ` data-pi="${u.slice(4)}"` : u[0] === "#" ? "" : ` target="_blank" rel="noopener"`}>${a}</a>`);
 function bindStatic() {
+  { const rl = $("#refsList"); if (rl) rl.innerHTML = ((HUB.references || {}).items || []).map((t, i) => `<li data-edit="references.items.${i}">${esc(t)}</li>`).join(""); }
   { const h0 = HUB.hero || {}, tn = $("#topNote"); if (tn) tn.innerHTML = [["disclaimer", h0.disclaimer], ["disclaimer2", h0.disclaimer2]].filter(x => x[1]).map(x => `<p data-edit="hero.${x[0]}">${linkify(x[1])}</p>`).join(""); }
   $$("[data-t]").forEach(el => { const v = get(HUB, el.dataset.t); el.textContent = v == null ? "" : v; });
   const b = HUB.brand || {}, h = HUB.hero || {}, c = HUB.core || {};
@@ -431,7 +432,11 @@ addEventListener("resize", onScroll);
 
 /* ---------- Render ---------- */
 function renderAll() { renderChoices(); renderChapters(); renderPack(); syncPrompts(); }
-function applySections() { const v = HUB.sections || {}; [["stats", "stats"], ["story", "story"], ["tl", "timeline"], ["pi", "prescribing"]].forEach(([id, k]) => { const el = document.getElementById(id); if (el) el.hidden = v[k] === false; }); const pp = document.getElementById("pmPi"); if (pp) pp.hidden = v.prescribing === false; }
+function applySections() { const v = HUB.sections || {}; [["stats", "stats"], ["story", "story"], ["tl", "timeline"], ["pi", "prescribing"]].forEach(([id, k]) => { const el = document.getElementById(id); if (el) el.hidden = v[k] === false; }); const pp = document.getElementById("pmPi"); if (pp) pp.hidden = v.prescribing === false;
+  const refs = ((HUB.references || {}).items || []).length > 0 && v.references !== false, abbr = !!(HUB.abbreviations || {}).text && v.abbreviations !== false;
+  const re = document.getElementById("refs"), ab = document.getElementById("abbr"), ru = document.getElementById("piRule");
+  if (re) re.hidden = !refs; if (ab) ab.hidden = !abbr; if (ru) ru.hidden = !(refs || abbr);
+}
 document.getElementById("pmJump").addEventListener("scroll", updateJump, { passive: true });
 addEventListener("resize", updateJump);
 document.getElementById("pmJumpWrap").addEventListener("click", e => { const a = e.target.closest(".pm-arrow"); if (a) { const n = document.getElementById("pmJump"); n.scrollBy({ left: +a.dataset.jumpDir * Math.max(160, n.clientWidth * 0.7), behavior: "smooth" }); } });
