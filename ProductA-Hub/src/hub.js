@@ -104,6 +104,7 @@ function applyBrand() {
   while (contrast(ink, "#ffffff") < 4.5 && l > 4) { l -= 2; ink = hsl2hex(h, s, l); }
   root.setProperty("--orange", acc);
   root.setProperty("--on-accent", contrast(acc, "#0d0e0f") >= contrast(acc, "#ffffff") ? "#0d0e0f" : "#ffffff");
+  root.setProperty("--on-button", contrast(acc, "#ffffff") >= 2 ? "#ffffff" : "#0d0e0f");   // white button text unless the brand colour is too light for it
   root.setProperty("--orange-ink", ink);
   root.setProperty("--orange-soft", hsl2hex(h, Math.min(s, 92), 92));
   root.setProperty("--accent-deep", hsl2hex(h, Math.min(s, 80), 22));
