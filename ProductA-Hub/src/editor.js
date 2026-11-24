@@ -157,7 +157,7 @@ const SECTIONS = [
   { id: "brand", title: "Brand and logo", goto: "top", render: () => frameSection("Brand and logo", "The product name, logo, colour and job details shown across the page.",
     `<div class="cols">${fText("Product name", "brand.productName")}${fText("Browser tab title", "brand.pageTitle")}</div>
      <div class="cols">${fText("Job code", "brand.jobCode")}${fText("Date of preparation", "brand.datePrepared")}</div>
-     ${fText("Concept label", "brand.mockLabel", { hint: "Shown in the top bar. Leave empty for the approved version." })}
+     ${fText("Header text, first line", "brand.mockLabel", { hint: "Small capitals next to the logo. Leave empty to hide it." })}${fText("Header text, second line (optional)", "brand.mockLabel2", { hint: "Shown under the first line. To add a line above, move the first line down into this box." })}
      ${fColor("Brand colour", "brand.accent", "One colour drives buttons, highlights and the timeline. Text colours on it are chosen automatically for contrast.")}
      <h2>Logo</h2>${slot("logo", "brand.logo", "Logo", "image/svg+xml,image/png,image/jpeg,image/webp")}
      <p class="small">SVG is best (sharp at every size). A PNG should be at least 400 pixels wide.</p>
@@ -267,7 +267,6 @@ function issues() {
   const mo = modules(), ids = new Set();
   const all = [C.core, ...mo];
   if (!C.brand.jobCode) add("warn", "No job code", "Add the approval job code under Brand and logo.");
-  if (C.brand.mockLabel) add("info", "The concept label is on", "Clear it under Brand and logo for the approved version.");
   const acc = /^#[0-9a-f]{6}$/i.test(C.brand.accent) ? C.brand.accent : null;
   if (!acc) add("err", "The brand colour isn't a valid hex colour", "Use a value like #f36633.");
   else { const c = ((a, b) => { const l = h => { const r = [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255).map(v => v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4)); return .2126 * r[0] + .7152 * r[1] + .0722 * r[2]; }; const x = l(a), y = l(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); })(acc, "#0d0e0f"); if (c < 3) add("warn", "The brand colour is hard to read on the black sections", `Contrast is ${c.toFixed(1)}:1 on black. Try a lighter colour.`); }
@@ -443,7 +442,6 @@ const base = () => slug(C.brand.productName) + "-launch-story";
 /* A clean copy for sharing: no concept label and no editor-only notes about the files */
 function finalCopy() {
   const c = clone(C);
-  c.brand.mockLabel = "";
   for (const d of fileDocs(c)) delete d.pdfName;
   return c;
 }

@@ -20,7 +20,8 @@ window.HUB = {
     accent: "#f36633",                         // the one brand colour; shades are derived from it
     jobCode: "XX-UK-0000",
     datePrepared: "October 2026",
-    mockLabel: "Concept mock-up – not for distribution",  // "" removes the label (for approved versions)
+    mockLabel: "For UK healthcare professionals and other relevant decision makers",   // header text, first line ("" removes it)
+    mockLabel2: "",                                                                    // optional second line
     fonts: {}                                  // optional: { regular, bold, light, italic } font files
   },
 

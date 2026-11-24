@@ -113,8 +113,8 @@ function applyBrand() {
   const f = b.fonts || {}, face = (src, w, style) => src ? `@font-face{font-family:"BrandFont";src:url(${src});font-weight:${w};font-style:${style};font-display:swap}` : "";
   st.textContent = face(f.light, 300, "normal") + face(f.regular, 400, "normal") + face(f.italic, 400, "italic") + face(f.bold, 700, "normal");
   document.title = b.pageTitle || ((b.productName || "Launch story") + " launch story");
-  document.body.classList.toggle("no-mock", !b.mockLabel);
-  $("#conceptStrip").textContent = b.mockLabel || "";
+  document.body.classList.toggle("no-mock", !b.mockLabel && !b.mockLabel2);
+  $("#conceptStrip").innerHTML = [b.mockLabel, b.mockLabel2].filter(Boolean).map(esc).join("<br>");
 }
 const mark = (cls = "") => HUB.brand && HUB.brand.logo ? `<img class="logo" src="${esc(HUB.brand.logo)}" alt="${esc(HUB.brand.productName)}">` : `<i aria-hidden="true"></i>${esc((HUB.brand || {}).productName)}`;
 
@@ -124,7 +124,7 @@ function bindStatic() {
   { const h0 = HUB.hero || {}, tn = $("#topNote"); if (tn) tn.innerHTML = [["disclaimer", h0.disclaimer], ["disclaimer2", h0.disclaimer2]].filter(x => x[1]).map(x => `<p data-edit="hero.${x[0]}">${linkify(x[1])}</p>`).join(""); }
   $$("[data-t]").forEach(el => { const v = get(HUB, el.dataset.t); el.textContent = v == null ? "" : v; });
   const b = HUB.brand || {}, h = HUB.hero || {}, c = HUB.core || {};
-  $("#brand").innerHTML = (HUB.brand && HUB.brand.logo ? mark() : `<i aria-hidden="true"></i><span>${esc(b.productName)}</span>`) + (b.mockLabel ? `<span class="concept">${esc(b.mockLabel)}</span>` : "");
+  $("#brand").innerHTML = (HUB.brand && HUB.brand.logo ? mark() : `<i aria-hidden="true"></i><span>${esc(b.productName)}</span>`) + (b.mockLabel || b.mockLabel2 ? `<span class="concept">${b.mockLabel ? `<span data-edit="brand.mockLabel">${esc(b.mockLabel)}</span>` : ""}${b.mockLabel2 ? `<span data-edit="brand.mockLabel2">${esc(b.mockLabel2)}</span>` : ""}</span>` : "");
   $("#coverBrand").innerHTML = (HUB.brand && HUB.brand.logo) ? "" : `<i></i>${esc(b.productName)}`;
   // Only redraw the title when its text changes, so its rise-in animation doesn't replay on every edit
   const titleHtml = (h.titleLines || []).map((t, i) => `<span class="line"><span data-edit="hero.titleLines.${i}">${esc(t)}</span></span>`).join("");
