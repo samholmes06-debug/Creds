@@ -388,6 +388,12 @@ body.no-mock .concept, body.no-mock .concept-strip { display: none !important; }
 .cg-help { border-top: 1px solid #d5d7d9; padding-top: 16px; display: grid; gap: 4px; }
 .cg-help p { font-size: 14.5px; }
 
+/* Editing text on the page (working copy only) */
+body.inline-edit [data-t]:not(button *):hover, body.inline-edit [data-edit]:hover { outline: 2px dashed var(--orange, #f36633); outline-offset: 4px; cursor: text; }
+body.inline-edit [contenteditable] { outline: 2px solid var(--orange, #f36633) !important; outline-offset: 4px; background: rgba(243, 102, 51, .08); }
+#inlineBar { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 900; display: flex; gap: 14px; align-items: center; background: #0d0e0f; color: #fff; border-radius: 999px; padding: 10px 10px 10px 20px; font-size: 14px; box-shadow: 0 8px 30px rgba(0, 0, 0, .3); max-width: calc(100vw - 24px); }
+#inlineBar button { border: 0; border-radius: 999px; padding: 8px 16px; font: inherit; font-weight: 700; background: var(--orange, #f36633); color: var(--on-accent, #fff); cursor: pointer; white-space: nowrap; }
+
 </style>
 </head>
 <body>
@@ -656,7 +662,7 @@ function bindStatic() {
   $("#brand").innerHTML = (HUB.brand && HUB.brand.logo ? mark() : `<i aria-hidden="true"></i><span>${esc(b.productName)}</span>`) + (b.mockLabel ? `<span class="concept">${esc(b.mockLabel)}</span>` : "");
   $("#coverBrand").innerHTML = (HUB.brand && HUB.brand.logo) ? "" : `<i></i>${esc(b.productName)}`;
   // Only redraw the title when its text changes, so its rise-in animation doesn't replay on every edit
-  const titleHtml = (h.titleLines || []).map(t => `<span class="line"><span>${esc(t)}</span></span>`).join("");
+  const titleHtml = (h.titleLines || []).map((t, i) => `<span class="line"><span data-edit="hero.titleLines.${i}">${esc(t)}</span></span>`).join("");
   if ($("#heroTitle").dataset.h !== titleHtml) { $("#heroTitle").innerHTML = titleHtml; $("#heroTitle").dataset.h = titleHtml; }
   $("#coverMeta").textContent = `PDF · ${pagesOf(c)} pages · ${b.jobCode || ""}`;
   const inV = !!clm();
@@ -675,7 +681,7 @@ function bindStatic() {
   $("#pickWho b").classList.toggle("empty", !who());
   $("#pickEng b").classList.toggle("empty", !eng());
   // Timeline
-  $("#tlTrack").innerHTML = ((HUB.timeline || {}).items || []).map(i => `<div class="ms ${i.state === "done" ? "done" : i.state === "now" ? "now" : ""}"><span class="dot"></span><span class="tag">${esc(i.tag)}</span><span class="when">${esc(i.when)}</span><span class="what">${esc(i.what)}</span><p>${esc(i.text)}</p></div>`).join("");
+  $("#tlTrack").innerHTML = ((HUB.timeline || {}).items || []).map((i, n) => `<div class="ms ${i.state === "done" ? "done" : i.state === "now" ? "now" : ""}"><span class="dot"></span><span class="tag" data-edit="timeline.items.${n}.tag">${esc(i.tag)}</span><span class="when" data-edit="timeline.items.${n}.when">${esc(i.when)}</span><span class="what" data-edit="timeline.items.${n}.what">${esc(i.what)}</span><p data-edit="timeline.items.${n}.text">${esc(i.text)}</p></div>`).join("");
 }
 
 /* ---------- Builder: chips in the hero, menus in the bar ---------- */
@@ -714,7 +720,7 @@ const statHtml = s => esc(s.value) + (s.suffix ? (s.suffixStyle === "accent" ? `
 let statIdx = -1;
 function renderStats() {
   const st = (HUB.stats && HUB.stats.items) || [];
-  $("#slides").innerHTML = st.map((s, i) => `<div class="slide${i === 0 ? " on" : ""}" data-i="${i}"><div class="num" data-count="${/^[\d,]+$/.test(s.value) && s.countUp !== false ? 1 : ""}">${statHtml(s)}</div><div class="copy"><h3>${esc(s.heading)}</h3><p>${esc(s.text)}</p>${s.module && info(s.module) ? promptCard(s.module) : ""}</div></div>`).join("");
+  $("#slides").innerHTML = st.map((s, i) => `<div class="slide${i === 0 ? " on" : ""}" data-i="${i}"><div class="num" data-count="${/^[\d,]+$/.test(s.value) && s.countUp !== false ? 1 : ""}">${statHtml(s)}</div><div class="copy"><h3 data-edit="stats.items.${i}.heading">${esc(s.heading)}</h3><p data-edit="stats.items.${i}.text">${esc(s.text)}</p>${s.module && info(s.module) ? promptCard(s.module) : ""}</div></div>`).join("");
   $("#statsRail").innerHTML = st.map(() => "<i></i>").join("");
   $("#statCount").innerHTML = st.length ? `<b>01</b> / ${pad(st.length)}` : "";
   $("#stats").style.display = st.length ? "" : "none";
@@ -752,7 +758,7 @@ function chapterOrder() {
 let chObs;
 function renderChapters() {
   const { list, top } = chapterOrder();
-  $("#chapters").innerHTML = list.map((c, i) => `<article class="chapter" data-ch="${esc(c.id)}"><div class="ch-side"><span class="ch-n">${pad(i + 1)}</span><h3>${esc(c.title)}</h3>${top.includes(c.id) && who() ? `<span class="ch-for">Key for ${esc(who().plural || who().label)}</span>` : ""}</div><div class="ch-body"><p class="lead">${md(c.lead)}</p>${(c.facts || []).length ? `<div class="ch-facts">${c.facts.map(f => `<div><span>${esc(f[0])}</span><b>${esc(f[1])}</b></div>`).join("")}</div>` : ""}${c.module && info(c.module) ? promptCard(c.module) : ""}</div></article>`).join("");
+  $("#chapters").innerHTML = list.map((c, i) => `<article class="chapter" data-ch="${esc(c.id)}"><div class="ch-side"><span class="ch-n">${pad(i + 1)}</span><h3 data-edit="chapters.${(HUB.chapters || []).indexOf(c)}.title">${esc(c.title)}</h3>${top.includes(c.id) && who() ? `<span class="ch-for">Key for ${esc(who().plural || who().label)}</span>` : ""}</div><div class="ch-body"><p class="lead" data-edit="chapters.${(HUB.chapters || []).indexOf(c)}.lead">${md(c.lead)}</p>${(c.facts || []).length ? `<div class="ch-facts">${c.facts.map(f => `<div><span>${esc(f[0])}</span><b>${esc(f[1])}</b></div>`).join("")}</div>` : ""}${c.module && info(c.module) ? promptCard(c.module) : ""}</div></article>`).join("");
   if (chObs) chObs.disconnect();
   chObs = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("seen"); const c = (HUB.chapters || []).find(x => x.id === e.target.dataset.ch); veevaTrack("chapter_viewed", e.target.dataset.ch, c ? c.title : "", true); } }), { rootMargin: "0px 0px -45% 0px" });
   $$(".chapter").forEach(c => chObs.observe(c));
@@ -1032,6 +1038,42 @@ function boot() { applySections(); sanitizeState(); applyBrand(); bindStatic(); 
 /*EDIT_START*/
 // The hidden editor (working copy only) pushes edits into the page behind it with this
 window.__applyContent = c => { HUB = c; window.HUB = c; boot(); };
+// Editing text directly on the page: the editor switches this on; double-click any marked text to change it
+(() => {
+  let on = false;
+  function bar() {
+    let b = document.getElementById("inlineBar");
+    if (!b) {
+      b = document.createElement("div"); b.id = "inlineBar";
+      b.innerHTML = `<span>Editing on the page: double-click any text to change it. Enter saves, Esc cancels.</span><button type="button">Back to editor</button>`;
+      b.querySelector("button").addEventListener("click", () => { window.__stopInline(); if (window.__showEditor) window.__showEditor(); });
+      document.body.append(b);
+    }
+    b.hidden = false;
+  }
+  window.__startInline = fn => { window.__inlineSet = fn; on = true; document.body.classList.add("inline-edit"); bar(); if (window.__hideEditor) window.__hideEditor(); };
+  window.__stopInline = () => { on = false; document.body.classList.remove("inline-edit"); const b = document.getElementById("inlineBar"); if (b) b.hidden = true; };
+  function edit(el) {
+    const path = el.dataset.edit || el.dataset.t, raw = get(HUB, path); if (typeof raw !== "string") return;
+    el.textContent = raw;
+    try { el.contentEditable = "plaintext-only"; } catch (e) { el.contentEditable = "true"; }
+    if (el.contentEditable !== "plaintext-only") el.contentEditable = "true";
+    el.focus(); const r = document.createRange(); r.selectNodeContents(el); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+    let done = false;
+    const finish = ok => {
+      if (done) return; done = true; el.removeAttribute("contenteditable");
+      const v = el.textContent.replace(/\s*\n\s*/g, " ").trim();
+      if (ok && v !== raw && window.__inlineSet) window.__inlineSet(path, v); else boot();
+    };
+    el.addEventListener("blur", () => finish(true), { once: true });
+    el.addEventListener("keydown", ke => { if (ke.key === "Enter") { ke.preventDefault(); el.blur(); } else if (ke.key === "Escape") { ke.preventDefault(); finish(false); el.blur(); } });
+  }
+  document.addEventListener("dblclick", e => {
+    if (!on) return;
+    const el = e.target.closest && e.target.closest("[data-t],[data-edit]"); if (!el || el.isContentEditable || el.closest("button, a, label")) return;
+    e.preventDefault(); edit(el);
+  });
+})();
 /*EDIT_END*/
 
 
@@ -1043,6 +1085,7 @@ boot();
 (() => {
   let n = 0, last = 0, frame = null;
   function showEditor() {
+    if (window.__stopInline) window.__stopInline();
     if (!frame) {
       const ed = document.getElementById("edHtml"); if (!ed) return;
       window.__HANDOFF = JSON.parse(JSON.stringify(window.HUB));
@@ -1210,7 +1253,8 @@ summary:hover { color: var(--black); }
   <header class="tb">
     <div class="tb-brand"><i></i><b>Hub editor</b><span id="projName"></span></div>
     <div class="tb-actions">
-      <button class="tbtn primary" type="button" data-act="backToSite" id="backBtn" hidden>← Back to site</button>
+      <button class="tbtn primary" type="button" data-act="editOnPage" id="inlineBtn" hidden>Edit text on the page</button>
+      <button class="tbtn" type="button" data-act="backToSite" id="backBtn" hidden>← Back to site</button>
       <label class="tbtn">Open content…<input type="file" id="openFile" accept=".zip,.json,.js,application/zip,application/json,text/javascript" hidden></label>
       <button class="tbtn" type="button" data-act="saveProject">Save my content</button>
       <button class="tbtn primary" type="button" data-act="exportSite">Export site ↓</button>
@@ -1615,6 +1659,12 @@ body.no-mock .concept, body.no-mock .concept-strip { display: none !important; }
 .cg-help { border-top: 1px solid #d5d7d9; padding-top: 16px; display: grid; gap: 4px; }
 .cg-help p { font-size: 14.5px; }
 
+/* Editing text on the page (working copy only) */
+body.inline-edit [data-t]:not(button *):hover, body.inline-edit [data-edit]:hover { outline: 2px dashed var(--orange, #f36633); outline-offset: 4px; cursor: text; }
+body.inline-edit [contenteditable] { outline: 2px solid var(--orange, #f36633) !important; outline-offset: 4px; background: rgba(243, 102, 51, .08); }
+#inlineBar { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 900; display: flex; gap: 14px; align-items: center; background: #0d0e0f; color: #fff; border-radius: 999px; padding: 10px 10px 10px 20px; font-size: 14px; box-shadow: 0 8px 30px rgba(0, 0, 0, .3); max-width: calc(100vw - 24px); }
+#inlineBar button { border: 0; border-radius: 999px; padding: 8px 16px; font: inherit; font-weight: 700; background: var(--orange, #f36633); color: var(--on-accent, #fff); cursor: pointer; white-space: nowrap; }
+
 </style>
 </head>
 <body>
@@ -1883,7 +1933,7 @@ function bindStatic() {
   $("#brand").innerHTML = (HUB.brand && HUB.brand.logo ? mark() : `<i aria-hidden="true"></i><span>${esc(b.productName)}</span>`) + (b.mockLabel ? `<span class="concept">${esc(b.mockLabel)}</span>` : "");
   $("#coverBrand").innerHTML = (HUB.brand && HUB.brand.logo) ? "" : `<i></i>${esc(b.productName)}`;
   // Only redraw the title when its text changes, so its rise-in animation doesn't replay on every edit
-  const titleHtml = (h.titleLines || []).map(t => `<span class="line"><span>${esc(t)}</span></span>`).join("");
+  const titleHtml = (h.titleLines || []).map((t, i) => `<span class="line"><span data-edit="hero.titleLines.${i}">${esc(t)}</span></span>`).join("");
   if ($("#heroTitle").dataset.h !== titleHtml) { $("#heroTitle").innerHTML = titleHtml; $("#heroTitle").dataset.h = titleHtml; }
   $("#coverMeta").textContent = `PDF · ${pagesOf(c)} pages · ${b.jobCode || ""}`;
   const inV = !!clm();
@@ -1902,7 +1952,7 @@ function bindStatic() {
   $("#pickWho b").classList.toggle("empty", !who());
   $("#pickEng b").classList.toggle("empty", !eng());
   // Timeline
-  $("#tlTrack").innerHTML = ((HUB.timeline || {}).items || []).map(i => `<div class="ms ${i.state === "done" ? "done" : i.state === "now" ? "now" : ""}"><span class="dot"></span><span class="tag">${esc(i.tag)}</span><span class="when">${esc(i.when)}</span><span class="what">${esc(i.what)}</span><p>${esc(i.text)}</p></div>`).join("");
+  $("#tlTrack").innerHTML = ((HUB.timeline || {}).items || []).map((i, n) => `<div class="ms ${i.state === "done" ? "done" : i.state === "now" ? "now" : ""}"><span class="dot"></span><span class="tag" data-edit="timeline.items.${n}.tag">${esc(i.tag)}</span><span class="when" data-edit="timeline.items.${n}.when">${esc(i.when)}</span><span class="what" data-edit="timeline.items.${n}.what">${esc(i.what)}</span><p data-edit="timeline.items.${n}.text">${esc(i.text)}</p></div>`).join("");
 }
 
 /* ---------- Builder: chips in the hero, menus in the bar ---------- */
@@ -1941,7 +1991,7 @@ const statHtml = s => esc(s.value) + (s.suffix ? (s.suffixStyle === "accent" ? `
 let statIdx = -1;
 function renderStats() {
   const st = (HUB.stats && HUB.stats.items) || [];
-  $("#slides").innerHTML = st.map((s, i) => `<div class="slide${i === 0 ? " on" : ""}" data-i="${i}"><div class="num" data-count="${/^[\d,]+$/.test(s.value) && s.countUp !== false ? 1 : ""}">${statHtml(s)}</div><div class="copy"><h3>${esc(s.heading)}</h3><p>${esc(s.text)}</p>${s.module && info(s.module) ? promptCard(s.module) : ""}</div></div>`).join("");
+  $("#slides").innerHTML = st.map((s, i) => `<div class="slide${i === 0 ? " on" : ""}" data-i="${i}"><div class="num" data-count="${/^[\d,]+$/.test(s.value) && s.countUp !== false ? 1 : ""}">${statHtml(s)}</div><div class="copy"><h3 data-edit="stats.items.${i}.heading">${esc(s.heading)}</h3><p data-edit="stats.items.${i}.text">${esc(s.text)}</p>${s.module && info(s.module) ? promptCard(s.module) : ""}</div></div>`).join("");
   $("#statsRail").innerHTML = st.map(() => "<i></i>").join("");
   $("#statCount").innerHTML = st.length ? `<b>01</b> / ${pad(st.length)}` : "";
   $("#stats").style.display = st.length ? "" : "none";
@@ -1979,7 +2029,7 @@ function chapterOrder() {
 let chObs;
 function renderChapters() {
   const { list, top } = chapterOrder();
-  $("#chapters").innerHTML = list.map((c, i) => `<article class="chapter" data-ch="${esc(c.id)}"><div class="ch-side"><span class="ch-n">${pad(i + 1)}</span><h3>${esc(c.title)}</h3>${top.includes(c.id) && who() ? `<span class="ch-for">Key for ${esc(who().plural || who().label)}</span>` : ""}</div><div class="ch-body"><p class="lead">${md(c.lead)}</p>${(c.facts || []).length ? `<div class="ch-facts">${c.facts.map(f => `<div><span>${esc(f[0])}</span><b>${esc(f[1])}</b></div>`).join("")}</div>` : ""}${c.module && info(c.module) ? promptCard(c.module) : ""}</div></article>`).join("");
+  $("#chapters").innerHTML = list.map((c, i) => `<article class="chapter" data-ch="${esc(c.id)}"><div class="ch-side"><span class="ch-n">${pad(i + 1)}</span><h3 data-edit="chapters.${(HUB.chapters || []).indexOf(c)}.title">${esc(c.title)}</h3>${top.includes(c.id) && who() ? `<span class="ch-for">Key for ${esc(who().plural || who().label)}</span>` : ""}</div><div class="ch-body"><p class="lead" data-edit="chapters.${(HUB.chapters || []).indexOf(c)}.lead">${md(c.lead)}</p>${(c.facts || []).length ? `<div class="ch-facts">${c.facts.map(f => `<div><span>${esc(f[0])}</span><b>${esc(f[1])}</b></div>`).join("")}</div>` : ""}${c.module && info(c.module) ? promptCard(c.module) : ""}</div></article>`).join("");
   if (chObs) chObs.disconnect();
   chObs = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("seen"); const c = (HUB.chapters || []).find(x => x.id === e.target.dataset.ch); veevaTrack("chapter_viewed", e.target.dataset.ch, c ? c.title : "", true); } }), { rootMargin: "0px 0px -45% 0px" });
   $$(".chapter").forEach(c => chObs.observe(c));
@@ -2259,6 +2309,42 @@ function boot() { applySections(); sanitizeState(); applyBrand(); bindStatic(); 
 /*EDIT_START*/
 // The hidden editor (working copy only) pushes edits into the page behind it with this
 window.__applyContent = c => { HUB = c; window.HUB = c; boot(); };
+// Editing text directly on the page: the editor switches this on; double-click any marked text to change it
+(() => {
+  let on = false;
+  function bar() {
+    let b = document.getElementById("inlineBar");
+    if (!b) {
+      b = document.createElement("div"); b.id = "inlineBar";
+      b.innerHTML = `<span>Editing on the page: double-click any text to change it. Enter saves, Esc cancels.</span><button type="button">Back to editor</button>`;
+      b.querySelector("button").addEventListener("click", () => { window.__stopInline(); if (window.__showEditor) window.__showEditor(); });
+      document.body.append(b);
+    }
+    b.hidden = false;
+  }
+  window.__startInline = fn => { window.__inlineSet = fn; on = true; document.body.classList.add("inline-edit"); bar(); if (window.__hideEditor) window.__hideEditor(); };
+  window.__stopInline = () => { on = false; document.body.classList.remove("inline-edit"); const b = document.getElementById("inlineBar"); if (b) b.hidden = true; };
+  function edit(el) {
+    const path = el.dataset.edit || el.dataset.t, raw = get(HUB, path); if (typeof raw !== "string") return;
+    el.textContent = raw;
+    try { el.contentEditable = "plaintext-only"; } catch (e) { el.contentEditable = "true"; }
+    if (el.contentEditable !== "plaintext-only") el.contentEditable = "true";
+    el.focus(); const r = document.createRange(); r.selectNodeContents(el); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+    let done = false;
+    const finish = ok => {
+      if (done) return; done = true; el.removeAttribute("contenteditable");
+      const v = el.textContent.replace(/\s*\n\s*/g, " ").trim();
+      if (ok && v !== raw && window.__inlineSet) window.__inlineSet(path, v); else boot();
+    };
+    el.addEventListener("blur", () => finish(true), { once: true });
+    el.addEventListener("keydown", ke => { if (ke.key === "Enter") { ke.preventDefault(); el.blur(); } else if (ke.key === "Escape") { ke.preventDefault(); finish(false); el.blur(); } });
+  }
+  document.addEventListener("dblclick", e => {
+    if (!on) return;
+    const el = e.target.closest && e.target.closest("[data-t],[data-edit]"); if (!el || el.isContentEditable || el.closest("button, a, label")) return;
+    e.preventDefault(); edit(el);
+  });
+})();
 /*EDIT_END*/
 
 /*PREVIEW_START*/
@@ -2913,6 +2999,12 @@ body.no-mock .concept, body.no-mock .concept-strip { display: none !important; }
 .cg-help { border-top: 1px solid #d5d7d9; padding-top: 16px; display: grid; gap: 4px; }
 .cg-help p { font-size: 14.5px; }
 
+/* Editing text on the page (working copy only) */
+body.inline-edit [data-t]:not(button *):hover, body.inline-edit [data-edit]:hover { outline: 2px dashed var(--orange, #f36633); outline-offset: 4px; cursor: text; }
+body.inline-edit [contenteditable] { outline: 2px solid var(--orange, #f36633) !important; outline-offset: 4px; background: rgba(243, 102, 51, .08); }
+#inlineBar { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 900; display: flex; gap: 14px; align-items: center; background: #0d0e0f; color: #fff; border-radius: 999px; padding: 10px 10px 10px 20px; font-size: 14px; box-shadow: 0 8px 30px rgba(0, 0, 0, .3); max-width: calc(100vw - 24px); }
+#inlineBar button { border: 0; border-radius: 999px; padding: 8px 16px; font: inherit; font-weight: 700; background: var(--orange, #f36633); color: var(--on-accent, #fff); cursor: pointer; white-space: nowrap; }
+
 </style>
 </head>
 <body>
@@ -3181,7 +3273,7 @@ function bindStatic() {
   $("#brand").innerHTML = (HUB.brand && HUB.brand.logo ? mark() : `<i aria-hidden="true"></i><span>${esc(b.productName)}</span>`) + (b.mockLabel ? `<span class="concept">${esc(b.mockLabel)}</span>` : "");
   $("#coverBrand").innerHTML = (HUB.brand && HUB.brand.logo) ? "" : `<i></i>${esc(b.productName)}`;
   // Only redraw the title when its text changes, so its rise-in animation doesn't replay on every edit
-  const titleHtml = (h.titleLines || []).map(t => `<span class="line"><span>${esc(t)}</span></span>`).join("");
+  const titleHtml = (h.titleLines || []).map((t, i) => `<span class="line"><span data-edit="hero.titleLines.${i}">${esc(t)}</span></span>`).join("");
   if ($("#heroTitle").dataset.h !== titleHtml) { $("#heroTitle").innerHTML = titleHtml; $("#heroTitle").dataset.h = titleHtml; }
   $("#coverMeta").textContent = `PDF · ${pagesOf(c)} pages · ${b.jobCode || ""}`;
   const inV = !!clm();
@@ -3200,7 +3292,7 @@ function bindStatic() {
   $("#pickWho b").classList.toggle("empty", !who());
   $("#pickEng b").classList.toggle("empty", !eng());
   // Timeline
-  $("#tlTrack").innerHTML = ((HUB.timeline || {}).items || []).map(i => `<div class="ms ${i.state === "done" ? "done" : i.state === "now" ? "now" : ""}"><span class="dot"></span><span class="tag">${esc(i.tag)}</span><span class="when">${esc(i.when)}</span><span class="what">${esc(i.what)}</span><p>${esc(i.text)}</p></div>`).join("");
+  $("#tlTrack").innerHTML = ((HUB.timeline || {}).items || []).map((i, n) => `<div class="ms ${i.state === "done" ? "done" : i.state === "now" ? "now" : ""}"><span class="dot"></span><span class="tag" data-edit="timeline.items.${n}.tag">${esc(i.tag)}</span><span class="when" data-edit="timeline.items.${n}.when">${esc(i.when)}</span><span class="what" data-edit="timeline.items.${n}.what">${esc(i.what)}</span><p data-edit="timeline.items.${n}.text">${esc(i.text)}</p></div>`).join("");
 }
 
 /* ---------- Builder: chips in the hero, menus in the bar ---------- */
@@ -3239,7 +3331,7 @@ const statHtml = s => esc(s.value) + (s.suffix ? (s.suffixStyle === "accent" ? `
 let statIdx = -1;
 function renderStats() {
   const st = (HUB.stats && HUB.stats.items) || [];
-  $("#slides").innerHTML = st.map((s, i) => `<div class="slide${i === 0 ? " on" : ""}" data-i="${i}"><div class="num" data-count="${/^[\d,]+$/.test(s.value) && s.countUp !== false ? 1 : ""}">${statHtml(s)}</div><div class="copy"><h3>${esc(s.heading)}</h3><p>${esc(s.text)}</p>${s.module && info(s.module) ? promptCard(s.module) : ""}</div></div>`).join("");
+  $("#slides").innerHTML = st.map((s, i) => `<div class="slide${i === 0 ? " on" : ""}" data-i="${i}"><div class="num" data-count="${/^[\d,]+$/.test(s.value) && s.countUp !== false ? 1 : ""}">${statHtml(s)}</div><div class="copy"><h3 data-edit="stats.items.${i}.heading">${esc(s.heading)}</h3><p data-edit="stats.items.${i}.text">${esc(s.text)}</p>${s.module && info(s.module) ? promptCard(s.module) : ""}</div></div>`).join("");
   $("#statsRail").innerHTML = st.map(() => "<i></i>").join("");
   $("#statCount").innerHTML = st.length ? `<b>01</b> / ${pad(st.length)}` : "";
   $("#stats").style.display = st.length ? "" : "none";
@@ -3277,7 +3369,7 @@ function chapterOrder() {
 let chObs;
 function renderChapters() {
   const { list, top } = chapterOrder();
-  $("#chapters").innerHTML = list.map((c, i) => `<article class="chapter" data-ch="${esc(c.id)}"><div class="ch-side"><span class="ch-n">${pad(i + 1)}</span><h3>${esc(c.title)}</h3>${top.includes(c.id) && who() ? `<span class="ch-for">Key for ${esc(who().plural || who().label)}</span>` : ""}</div><div class="ch-body"><p class="lead">${md(c.lead)}</p>${(c.facts || []).length ? `<div class="ch-facts">${c.facts.map(f => `<div><span>${esc(f[0])}</span><b>${esc(f[1])}</b></div>`).join("")}</div>` : ""}${c.module && info(c.module) ? promptCard(c.module) : ""}</div></article>`).join("");
+  $("#chapters").innerHTML = list.map((c, i) => `<article class="chapter" data-ch="${esc(c.id)}"><div class="ch-side"><span class="ch-n">${pad(i + 1)}</span><h3 data-edit="chapters.${(HUB.chapters || []).indexOf(c)}.title">${esc(c.title)}</h3>${top.includes(c.id) && who() ? `<span class="ch-for">Key for ${esc(who().plural || who().label)}</span>` : ""}</div><div class="ch-body"><p class="lead" data-edit="chapters.${(HUB.chapters || []).indexOf(c)}.lead">${md(c.lead)}</p>${(c.facts || []).length ? `<div class="ch-facts">${c.facts.map(f => `<div><span>${esc(f[0])}</span><b>${esc(f[1])}</b></div>`).join("")}</div>` : ""}${c.module && info(c.module) ? promptCard(c.module) : ""}</div></article>`).join("");
   if (chObs) chObs.disconnect();
   chObs = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("seen"); const c = (HUB.chapters || []).find(x => x.id === e.target.dataset.ch); veevaTrack("chapter_viewed", e.target.dataset.ch, c ? c.title : "", true); } }), { rootMargin: "0px 0px -45% 0px" });
   $$(".chapter").forEach(c => chObs.observe(c));
@@ -3724,6 +3816,7 @@ function fillTemplate(content, forExport) {
   return Object.entries(map).reduce((s, [k, v]) => s.split(`{{${k}}}`).join(v), tpl);
 }
 function reloadPreview() { frameReady = false; frame.onload = () => { frameReady = true; }; frame.srcdoc = fillTemplate(withPdfUrls(clone(C)), false); }
+function inlineSet(path, v) { setP(path, v); renderForm(true); renderSide(); touch(); }
 function touch() { dirty = true; updateSide(); clearTimeout(sendTimer); sendTimer = setTimeout(() => { try { if (window.parent !== window && window.parent.__applyContent) window.parent.__applyContent(withPdfUrls(clone(C))); } catch (e) {} if (frameReady) frame.contentWindow.postMessage({ type: "hub-content", content: withPdfUrls(clone(C)) }, "*"); }, 350); }
 function gotoPreview(id) { if (frameReady) frame.contentWindow.postMessage({ type: "hub-goto", id }, "*"); }
 
@@ -4202,6 +4295,7 @@ document.addEventListener("click", e => {
   else if (act === "exportSite") exportSite();
   else if (act === "reloadPreview") reloadPreview();
   else if (act === "replayFlow") { try { if (window.parent !== window && window.parent.hubFlowRestart) { window.parent.hubFlowRestart(); window.parent.__hideEditor(); } else if (frameReady) frame.contentWindow.postMessage({ type: "hub-consent-demo" }, "*"); } catch (err) {} }
+  else if (act === "editOnPage") { try { window.parent.__startInline(inlineSet); } catch (err) { status("This works from the page's hidden editor (click the logo 5 times).", "err", 5000); } }
   else if (act === "backToSite") { try { window.parent.__hideEditor(); } catch (err) {} }
 });
 // Drag and drop onto file slots and the bulk drop zone
@@ -4219,7 +4313,7 @@ addEventListener("beforeunload", e => { if (dirty) { e.preventDefault(); e.retur
 /* ---------- Test hooks and start ---------- */
 window.__editor = { get content() { return C; }, set content(v) { C = normalize(v); tidy(); renderSide(); renderForm(false); reloadPreview(); }, buildExport: () => fillTemplate(C, true), exportSite, pullLinked, saveProject, openFile, makeZip, readZip, STORE, issues, go };
 tidy(); renderSide(); renderForm(false); reloadPreview(); pullLinked();
-if (window.parent !== window) { const bb = document.getElementById("backBtn"); if (bb) bb.hidden = false; }
+if (window.parent !== window) { for (const id of ["backBtn", "inlineBtn"]) { const bb = document.getElementById(id); if (bb) bb.hidden = false; } }
 })();
 
 </scr@@ipt>

@@ -10,6 +10,7 @@ One main file, `index.html`, with `assets/` and `lib/` beside it. Open it in Chr
 ## Editing (the hidden editor)
 - On the hub page, **click the logo 5 times quickly**. The editor opens over the page.
 - Edit the wording, add your PDFs (drop them on the document boxes; in **Modules** you can drop them all at once, matched by their codes), set the brand colour and logo.
+- **Edit text on the page** (top of the editor) hides the editor and lets you double-click text on the page itself to change it: Enter saves, Esc cancels, and **Back to editor** returns. It covers the section headings and intros, the opening title, key-figure headings and text, story chapter titles and text, and timeline entries. Anything else (names of modules, stakeholders, email text) is edited in the editor's forms.
 - **Show or hide sections** removes parts you don't need (key figures, story, timeline). Your text is kept.
 - **Sign-in and consent screens** has their wording and on/off switches.
 - **← Back to site** hides the editor so you can see the page as a reader would. Your edits show straight away. Click the logo 5 times again to return to the editor; your work is kept.

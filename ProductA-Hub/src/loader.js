@@ -2,6 +2,7 @@
 (() => {
   let n = 0, last = 0, frame = null;
   function showEditor() {
+    if (window.__stopInline) window.__stopInline();
     if (!frame) {
       const ed = document.getElementById("edHtml"); if (!ed) return;
       window.__HANDOFF = JSON.parse(JSON.stringify(window.HUB));

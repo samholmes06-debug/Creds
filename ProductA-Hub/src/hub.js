@@ -120,7 +120,7 @@ function bindStatic() {
   $("#brand").innerHTML = (HUB.brand && HUB.brand.logo ? mark() : `<i aria-hidden="true"></i><span>${esc(b.productName)}</span>`) + (b.mockLabel ? `<span class="concept">${esc(b.mockLabel)}</span>` : "");
   $("#coverBrand").innerHTML = (HUB.brand && HUB.brand.logo) ? "" : `<i></i>${esc(b.productName)}`;
   // Only redraw the title when its text changes, so its rise-in animation doesn't replay on every edit
-  const titleHtml = (h.titleLines || []).map(t => `<span class="line"><span>${esc(t)}</span></span>`).join("");
+  const titleHtml = (h.titleLines || []).map((t, i) => `<span class="line"><span data-edit="hero.titleLines.${i}">${esc(t)}</span></span>`).join("");
   if ($("#heroTitle").dataset.h !== titleHtml) { $("#heroTitle").innerHTML = titleHtml; $("#heroTitle").dataset.h = titleHtml; }
   $("#coverMeta").textContent = `PDF · ${pagesOf(c)} pages · ${b.jobCode || ""}`;
   const inV = !!clm();
@@ -139,7 +139,7 @@ function bindStatic() {
   $("#pickWho b").classList.toggle("empty", !who());
   $("#pickEng b").classList.toggle("empty", !eng());
   // Timeline
-  $("#tlTrack").innerHTML = ((HUB.timeline || {}).items || []).map(i => `<div class="ms ${i.state === "done" ? "done" : i.state === "now" ? "now" : ""}"><span class="dot"></span><span class="tag">${esc(i.tag)}</span><span class="when">${esc(i.when)}</span><span class="what">${esc(i.what)}</span><p>${esc(i.text)}</p></div>`).join("");
+  $("#tlTrack").innerHTML = ((HUB.timeline || {}).items || []).map((i, n) => `<div class="ms ${i.state === "done" ? "done" : i.state === "now" ? "now" : ""}"><span class="dot"></span><span class="tag" data-edit="timeline.items.${n}.tag">${esc(i.tag)}</span><span class="when" data-edit="timeline.items.${n}.when">${esc(i.when)}</span><span class="what" data-edit="timeline.items.${n}.what">${esc(i.what)}</span><p data-edit="timeline.items.${n}.text">${esc(i.text)}</p></div>`).join("");
 }
 
 /* ---------- Builder: chips in the hero, menus in the bar ---------- */
@@ -178,7 +178,7 @@ const statHtml = s => esc(s.value) + (s.suffix ? (s.suffixStyle === "accent" ? `
 let statIdx = -1;
 function renderStats() {
   const st = (HUB.stats && HUB.stats.items) || [];
-  $("#slides").innerHTML = st.map((s, i) => `<div class="slide${i === 0 ? " on" : ""}" data-i="${i}"><div class="num" data-count="${/^[\d,]+$/.test(s.value) && s.countUp !== false ? 1 : ""}">${statHtml(s)}</div><div class="copy"><h3>${esc(s.heading)}</h3><p>${esc(s.text)}</p>${s.module && info(s.module) ? promptCard(s.module) : ""}</div></div>`).join("");
+  $("#slides").innerHTML = st.map((s, i) => `<div class="slide${i === 0 ? " on" : ""}" data-i="${i}"><div class="num" data-count="${/^[\d,]+$/.test(s.value) && s.countUp !== false ? 1 : ""}">${statHtml(s)}</div><div class="copy"><h3 data-edit="stats.items.${i}.heading">${esc(s.heading)}</h3><p data-edit="stats.items.${i}.text">${esc(s.text)}</p>${s.module && info(s.module) ? promptCard(s.module) : ""}</div></div>`).join("");
   $("#statsRail").innerHTML = st.map(() => "<i></i>").join("");
   $("#statCount").innerHTML = st.length ? `<b>01</b> / ${pad(st.length)}` : "";
   $("#stats").style.display = st.length ? "" : "none";
@@ -216,7 +216,7 @@ function chapterOrder() {
 let chObs;
 function renderChapters() {
   const { list, top } = chapterOrder();
-  $("#chapters").innerHTML = list.map((c, i) => `<article class="chapter" data-ch="${esc(c.id)}"><div class="ch-side"><span class="ch-n">${pad(i + 1)}</span><h3>${esc(c.title)}</h3>${top.includes(c.id) && who() ? `<span class="ch-for">Key for ${esc(who().plural || who().label)}</span>` : ""}</div><div class="ch-body"><p class="lead">${md(c.lead)}</p>${(c.facts || []).length ? `<div class="ch-facts">${c.facts.map(f => `<div><span>${esc(f[0])}</span><b>${esc(f[1])}</b></div>`).join("")}</div>` : ""}${c.module && info(c.module) ? promptCard(c.module) : ""}</div></article>`).join("");
+  $("#chapters").innerHTML = list.map((c, i) => `<article class="chapter" data-ch="${esc(c.id)}"><div class="ch-side"><span class="ch-n">${pad(i + 1)}</span><h3 data-edit="chapters.${(HUB.chapters || []).indexOf(c)}.title">${esc(c.title)}</h3>${top.includes(c.id) && who() ? `<span class="ch-for">Key for ${esc(who().plural || who().label)}</span>` : ""}</div><div class="ch-body"><p class="lead" data-edit="chapters.${(HUB.chapters || []).indexOf(c)}.lead">${md(c.lead)}</p>${(c.facts || []).length ? `<div class="ch-facts">${c.facts.map(f => `<div><span>${esc(f[0])}</span><b>${esc(f[1])}</b></div>`).join("")}</div>` : ""}${c.module && info(c.module) ? promptCard(c.module) : ""}</div></article>`).join("");
   if (chObs) chObs.disconnect();
   chObs = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("seen"); const c = (HUB.chapters || []).find(x => x.id === e.target.dataset.ch); veevaTrack("chapter_viewed", e.target.dataset.ch, c ? c.title : "", true); } }), { rootMargin: "0px 0px -45% 0px" });
   $$(".chapter").forEach(c => chObs.observe(c));
@@ -496,6 +496,42 @@ function boot() { applySections(); sanitizeState(); applyBrand(); bindStatic(); 
 /*EDIT_START*/
 // The hidden editor (working copy only) pushes edits into the page behind it with this
 window.__applyContent = c => { HUB = c; window.HUB = c; boot(); };
+// Editing text directly on the page: the editor switches this on; double-click any marked text to change it
+(() => {
+  let on = false;
+  function bar() {
+    let b = document.getElementById("inlineBar");
+    if (!b) {
+      b = document.createElement("div"); b.id = "inlineBar";
+      b.innerHTML = `<span>Editing on the page: double-click any text to change it. Enter saves, Esc cancels.</span><button type="button">Back to editor</button>`;
+      b.querySelector("button").addEventListener("click", () => { window.__stopInline(); if (window.__showEditor) window.__showEditor(); });
+      document.body.append(b);
+    }
+    b.hidden = false;
+  }
+  window.__startInline = fn => { window.__inlineSet = fn; on = true; document.body.classList.add("inline-edit"); bar(); if (window.__hideEditor) window.__hideEditor(); };
+  window.__stopInline = () => { on = false; document.body.classList.remove("inline-edit"); const b = document.getElementById("inlineBar"); if (b) b.hidden = true; };
+  function edit(el) {
+    const path = el.dataset.edit || el.dataset.t, raw = get(HUB, path); if (typeof raw !== "string") return;
+    el.textContent = raw;
+    try { el.contentEditable = "plaintext-only"; } catch (e) { el.contentEditable = "true"; }
+    if (el.contentEditable !== "plaintext-only") el.contentEditable = "true";
+    el.focus(); const r = document.createRange(); r.selectNodeContents(el); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+    let done = false;
+    const finish = ok => {
+      if (done) return; done = true; el.removeAttribute("contenteditable");
+      const v = el.textContent.replace(/\s*\n\s*/g, " ").trim();
+      if (ok && v !== raw && window.__inlineSet) window.__inlineSet(path, v); else boot();
+    };
+    el.addEventListener("blur", () => finish(true), { once: true });
+    el.addEventListener("keydown", ke => { if (ke.key === "Enter") { ke.preventDefault(); el.blur(); } else if (ke.key === "Escape") { ke.preventDefault(); finish(false); el.blur(); } });
+  }
+  document.addEventListener("dblclick", e => {
+    if (!on) return;
+    const el = e.target.closest && e.target.closest("[data-t],[data-edit]"); if (!el || el.isContentEditable || el.closest("button, a, label")) return;
+    e.preventDefault(); edit(el);
+  });
+})();
 /*EDIT_END*/
 
 /*PREVIEW_START*/
