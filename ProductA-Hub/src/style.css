@@ -67,10 +67,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .menu button b { font-size: 15px; }
 .menu button span { font-size: 13px; color: var(--muted); }
 .menu button[aria-pressed="true"] span { color: #b9bdc1; }
-.bar-core { white-space: nowrap; padding: 12px 18px; font-size: 14px; }
 .readbar { position: absolute; left: 0; right: 0; bottom: -1px; height: 3px; background: var(--orange); transform-origin: left; transform: scaleX(0); }
-.bar-core .short { display: none; }
-@media (max-width: 1080px) { .bar-core .long { display: none; } .bar-core .short { display: inline; } }
 @media (max-width: 1300px) { .brand .concept { display: none; } .concept-strip { display: block; } }
 @media (max-width: 640px) {
   :root { --bar-h: 0px; }
@@ -82,7 +79,6 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   .pick-btn { width: 100%; padding: 6px 14px; min-height: 48px; }
   .pick-btn b { overflow: hidden; text-overflow: ellipsis; font-size: 15px; }
   .menu { position: absolute; left: 0; right: 0; top: calc(100% + 6px); min-width: 0; }
-  .bar-core { width: 100%; justify-content: center; padding: 14px; }
 }
 
 /* Hero */
@@ -425,10 +421,11 @@ body.inline-edit [contenteditable] { outline: 2px solid var(--orange, #f36633) !
 /* Skip links, short header text on phones, print button */
 .skip-link { position: absolute; left: 12px; top: -60px; z-index: 2000; background: var(--black); color: var(--white); padding: 10px 16px; border-radius: 8px; font-weight: 700; text-decoration: none; }
 .skip-link:focus { top: 12px; }
-.skiprow { text-align: center; margin: 6px 0 0; }
-.skip-pack { font-size: 14px; color: var(--black); text-decoration: underline; text-underline-offset: 3px; }
-.skip-pack:hover { color: var(--orange-ink, #c44a1a); }
 main:focus { outline: none; }
 .concept-strip .short { display: none !important; }
 @media (max-width: 640px) { .concept-strip .long { display: none !important; } .concept-strip .short { display: block !important; font-size: 15px; } }
 .pm-print { padding: 10px 16px; }
+
+/* One primary action in the opening screen: Preview is a quiet text link */
+.core-actions .btn-line { background: none; border: 0; padding: 14px 10px; font-weight: 400; text-decoration: underline; text-underline-offset: 4px; }
+.core-actions .btn-line:hover { border: 0; color: var(--orange-ink, #c44a1a); }

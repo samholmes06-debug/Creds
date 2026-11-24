@@ -228,14 +228,13 @@ const SECTIONS = [
      <h2>PDF</h2>${slot("pdf", "prescribing", "Prescribing Information PDF", "application/pdf")}
      <h2>Adverse event statement</h2>${fArea("Text in the outlined box", "prescribing.aeText", { rows: 4 })}`) },
   { id: "buttons", title: "Button text", goto: "top", render: () => frameSection("Button text", "The wording on the buttons across the page. The arrows and icons stay.",
-    `<div class="cols">${fText("Top bar, wide screens", "buttons.barCore")}${fText("Top bar, narrow screens", "buttons.barCoreShort")}</div>
-     <div class="cols">${fText("Opening screen: download", "buttons.heroDownload")}${fText("Opening screen: preview", "buttons.heroPreview")}</div>
+    `<div class="cols">${fText("Opening screen: download", "buttons.heroDownload")}${fText("Opening screen: preview", "buttons.heroPreview")}</div>
      ${fText("Story: download the core notification", "story.downloadLabel")}
      <div class="cols">${fText("Pack section: preview", "buttons.packPreview")}${fText("Pack section: download all", "buttons.packDownload")}</div>
      <div class="cols">${fText("Floating bar: view pack", "buttons.dockView")}${fText("Pack viewer: download all", "buttons.viewerDownload")}</div>
      <div class="cols">${fText("Pack viewer: each document", "buttons.viewerDocDownload")}${fText("Pack list: small PDF button", "buttons.pdfSmall")}</div>
      <div class="cols">${fText("Remove button", "buttons.remove")}${fText("Back to top link (footer)", "buttons.backToTop")}</div>
-     <div class="cols">${fText("Skip link under the top line", "buttons.skipPack")}${fText("Print button (pack viewer)", "buttons.print")}</div>
+     <div class="cols">${fText("Print button (pack viewer)", "buttons.print")}</div>
      <p class="small">Prescribing Information buttons are under Prescribing Information. Sign-in and consent buttons are under Sign-in and consent screens. Stakeholder and type choices are under Stakeholders and engagements.</p>`) },
   { id: "finish", title: "Pack and footer", goto: "pack", render: () => frameSection("Pack and footer", "The pack section and the legal footer.",
     `${fText("Pack heading", "finale.title")}${fArea("Pack text", "finale.sub")}

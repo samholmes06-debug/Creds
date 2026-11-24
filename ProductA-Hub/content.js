@@ -240,8 +240,6 @@ window.HUB = {
   /* ---- Which sections of the page to show -------------------------------- */
   /* ---- Button text ----------------------------------------------------------- */
   buttons: {
-    barCore: "Download core PDF",      // top bar, wide screens
-    barCoreShort: "Core PDF",          // top bar, narrow screens
     heroDownload: "Download PDF",      // opening screen
     heroPreview: "Preview",            // opening screen
     packPreview: "Preview pack",       // pack section
@@ -251,7 +249,6 @@ window.HUB = {
     viewerDocDownload: "Download PDF", // pack viewer, each document
     pdfSmall: "PDF",                   // small button in the pack list
     remove: "Remove",
-    skipPack: "Skip to your pack",     // link under the top line
     print: "Print",                    // pack viewer
     backToTop: "Back to top"            // link at the very bottom of the page
   },

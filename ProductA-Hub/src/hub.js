@@ -120,7 +120,7 @@ function applyBrand() {
 const mark = (cls = "") => HUB.brand && HUB.brand.logo ? `<img class="logo" src="${esc(HUB.brand.logo)}" alt="${esc(HUB.brand.productName)}">` : `<i aria-hidden="true"></i>${esc((HUB.brand || {}).productName)}`;
 
 /* ---------- Static text and shell ---------- */
-const BT = { skipPack: "Skip to your pack", print: "Print", backToTop: "Back to top", barCore: "Download core PDF", barCoreShort: "Core PDF", heroDownload: "Download PDF", heroPreview: "Preview", packPreview: "Preview pack", packDownload: "Download as one PDF", dockView: "View pack", viewerDownload: "Download pack", viewerDocDownload: "Download PDF", pdfSmall: "PDF", remove: "Remove" };
+const BT = { print: "Print", backToTop: "Back to top", heroDownload: "Download PDF", heroPreview: "Preview", packPreview: "Preview pack", packDownload: "Download as one PDF", dockView: "View pack", viewerDownload: "Download pack", viewerDocDownload: "Download PDF", pdfSmall: "PDF", remove: "Remove" };
 const bt = k => ((HUB.buttons || {})[k]) || BT[k];
 function applyButtonText() { $$("[data-btn]").forEach(el => { el.textContent = bt(el.dataset.btn); }); }
 const linkify = t => esc(t).replace(/\[([^\]]+)\]\((#[\w-]+|https?:\/\/[^)\s]+)\)/g, (m, a, u) => `<a href="${u}"${/^#pi-(view|download)$/.test(u) ? ` data-pi="${u.slice(4)}"` : u[0] === "#" ? "" : ` target="_blank" rel="noopener"`}>${a}</a>`);
@@ -136,7 +136,6 @@ function bindStatic() {
   { const cl = document.querySelector(".cover-lg"); if (cl) { const old = cl.querySelector(".cover-img"); if (old) old.remove(); cl.classList.toggle("has-img", !!c.cover); if (c.cover) { const im = document.createElement("img"); im.className = "cover-img"; im.alt = ""; im.src = c.cover; cl.prepend(im); } } }
   $("#coverMeta").textContent = `PDF - ${pagesOf(c)} pages - ${b.jobCode || ""}`;
   const inV = !!clm();
-  $("#barCore").innerHTML = inV ? `<span class="long">Send core PDF</span><span class="short">Send PDF</span><span aria-hidden="true">✉</span>` : `<span class="long">${esc(bt("barCore"))}</span><span class="short">${esc(bt("barCoreShort"))}</span><span aria-hidden="true">↓</span>`;
   $("#heroDownload").innerHTML = inV ? `Send core PDF <span aria-hidden="true">✉</span>` : `${esc(bt("heroDownload"))} <span aria-hidden="true">↓</span>`;
   $("#storyDownload").innerHTML = (esc((HUB.story || {}).downloadLabel || "Download the core notification")) + (inV ? ` <span aria-hidden="true">✉</span>` : ` <span aria-hidden="true">↓</span>`);
   $("#storyMeta").textContent = `PDF - ${pagesOf(c)} pages`;
