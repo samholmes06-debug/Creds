@@ -95,6 +95,8 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .hero h1 .line:nth-child(3) span { color: var(--orange); }
 @keyframes rise { from { transform: translateY(60%); } to { transform: none; } }
 .hero-lede { font-size: clamp(18px, 1.6vw, 21px); max-width: 44ch; margin-top: 26px; }
+.topnote { text-align: center; font-size: 13.5px; color: var(--muted); max-width: 90ch; margin: 0 auto; padding: 16px 20px 0; }
+.topnote:empty { display: none; }
 .hero-note { font-size: 13.5px; color: var(--muted); max-width: 52ch; margin-top: 14px; }
 .core-feature { display: grid; justify-items: center; gap: 26px; }
 .cover-lg { width: min(300px, 70vw); aspect-ratio: 1 / 1.414; border-radius: 10px; background: var(--orange); color: var(--on-accent); padding: 28px 24px; display: grid; grid-template-rows: auto 1fr auto; box-shadow: 0 2px 4px rgba(13, 14, 15, .08), 0 40px 70px -20px rgba(13, 14, 15, .45); transform: perspective(1200px) rotateY(-14deg) rotateX(4deg) rotate(2deg); transition: transform .6s var(--ease); position: relative; overflow: hidden; }

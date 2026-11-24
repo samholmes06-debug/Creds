@@ -168,7 +168,7 @@ const SECTIONS = [
      <p class="small">The opening screen and the pack builder are always shown, because they are the heart of the page.</p>`) },
   { id: "hero", title: "Opening screen", goto: "top", render: () => frameSection("Opening screen", "The headline, the intro text and the stakeholder chooser.",
     `${fText("Small heading above the title", "hero.eyebrow")}<h2>Title lines</h2>${strs("hero.titleLines", "Title line", 1)}<p class="small" style="margin:-4px 0 12px">The last line is shown in the brand colour.</p>
-     ${fArea("Intro", "hero.lede")}${fArea("Small print", "hero.note")}
+     ${fArea("Intro", "hero.lede")}${fArea("Small print", "hero.note")}${fArea("Line under the top bar", "hero.disclaimer", { rows: 2, hint: "Shown centred just under the top bar. Leave blank to hide it." })}
      <h2>Stakeholder chooser</h2>${fText("Heading", "builder.title")}${fArea("Text", "builder.intro")}
      <div class="cols">${fText("First row label", "builder.whoLabel")}${fText("Second row label", "builder.engLabel")}</div>
      <div class="cols">${fText("Top bar label (who)", "builder.whoPick")}${fText("Top bar label (type)", "builder.engPick")}</div>
