@@ -282,6 +282,9 @@ footer b { color: var(--black); }
 .foot-links a, .foot-links button { color: var(--black); font: inherit; font-size: 15px; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 7px; }
 .foot-links a:hover, .foot-links button:hover { text-decoration: underline; text-underline-offset: 3px; }
 .foot-ref { margin-top: 22px !important; }
+.foot-top { justify-self: start; margin-top: 18px; display: inline-flex; align-items: center; gap: 7px; font-size: 15px; color: var(--black); text-decoration: none; }
+.foot-top:hover { text-decoration: underline; text-underline-offset: 3px; }
+.foot-top svg { width: 12px; height: 12px; color: var(--orange); }
 .foot-vr { display: inline-block; width: 1px; height: .95em; background: currentColor; opacity: .55; margin: 0 12px; vertical-align: -1px; }
 .foot-links svg { width: 12px; height: 12px; color: var(--orange); }
 

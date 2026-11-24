@@ -119,7 +119,7 @@ function applyBrand() {
 const mark = (cls = "") => HUB.brand && HUB.brand.logo ? `<img class="logo" src="${esc(HUB.brand.logo)}" alt="${esc(HUB.brand.productName)}">` : `<i aria-hidden="true"></i>${esc((HUB.brand || {}).productName)}`;
 
 /* ---------- Static text and shell ---------- */
-const BT = { barCore: "Download core PDF", barCoreShort: "Core PDF", heroDownload: "Download PDF", heroPreview: "Preview", packPreview: "Preview pack", packDownload: "Download as one PDF", dockView: "View pack", viewerDownload: "Download pack", viewerDocDownload: "Download PDF", pdfSmall: "PDF", remove: "Remove" };
+const BT = { backToTop: "Back to top", barCore: "Download core PDF", barCoreShort: "Core PDF", heroDownload: "Download PDF", heroPreview: "Preview", packPreview: "Preview pack", packDownload: "Download as one PDF", dockView: "View pack", viewerDownload: "Download pack", viewerDocDownload: "Download PDF", pdfSmall: "PDF", remove: "Remove" };
 const bt = k => ((HUB.buttons || {})[k]) || BT[k];
 function applyButtonText() { $$("[data-btn]").forEach(el => { el.textContent = bt(el.dataset.btn); }); }
 const linkify = t => esc(t).replace(/\[([^\]]+)\]\((#[\w-]+|https?:\/\/[^)\s]+)\)/g, (m, a, u) => `<a href="${u}"${/^#pi-(view|download)$/.test(u) ? ` data-pi="${u.slice(4)}"` : u[0] === "#" ? "" : ` target="_blank" rel="noopener"`}>${a}</a>`);
@@ -143,7 +143,7 @@ function bindStatic() {
   $("#pmDownload").innerHTML = inV ? `Send pack <span aria-hidden="true">✉</span>` : `${esc(bt("viewerDownload"))} <span aria-hidden="true">↓</span>`;
   const lg = HUB.legal || {};
   const dflt = `Job code ${b.jobCode || ""} | Date of preparation ${b.datePrepared || ""}`;
-  $("#footerInner").innerHTML = (lg.paragraphs || []).map((p, i) => `<p data-edit="legal.paragraphs.${i}">${esc(p)}</p>`).join("") + footLinks(lg) + `<p class="foot-ref" data-edit="legal.line" data-fallback="${esc(dflt)}">${md(lg.line ? lg.line : dflt).replace(/ \| /g, `<span class="foot-vr" aria-hidden="true"></span>`)}</p>`;
+  $("#footerInner").innerHTML = (lg.paragraphs || []).map((p, i) => `<p data-edit="legal.paragraphs.${i}">${esc(p)}</p>`).join("") + footLinks(lg) + `<p class="foot-ref" data-edit="legal.line" data-fallback="${esc(dflt)}">${md(lg.line ? lg.line : dflt).replace(/ \| /g, `<span class="foot-vr" aria-hidden="true"></span>`)}</p>` + `<a class="foot-top" href="#top" data-top="1"><span data-btn="backToTop">Back to top</span><svg viewBox="0 0 12 12" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 10V2M2.5 5.5 6 2l3.5 3.5"/></svg></a>`;
   $("#pickWho b").textContent = who() ? who().label : (HUB.builder || {}).whoPlaceholder || "Choose";
   $("#pickEng b").textContent = eng() ? eng().label : (HUB.builder || {}).engPlaceholder || "Choose";
   $("#pickWho b").classList.toggle("empty", !who());
@@ -416,7 +416,7 @@ function applySections() { const v = HUB.sections || {}; [["stats", "stats"], ["
 document.getElementById("pmJump").addEventListener("scroll", updateJump, { passive: true });
 addEventListener("resize", updateJump);
 document.getElementById("pmJumpWrap").addEventListener("click", e => { const a = e.target.closest(".pm-arrow"); if (a) { const n = document.getElementById("pmJump"); n.scrollBy({ left: +a.dataset.jumpDir * Math.max(160, n.clientWidth * 0.7), behavior: "smooth" }); } });
-document.addEventListener("click", e => { const pa = e.target.closest && e.target.closest("a[data-pi]"); if (pa) { e.preventDefault(); piFile(pa.dataset.pi); return; } const a = e.target.closest && e.target.closest("a[data-nolink]"); if (a) { e.preventDefault(); if (a.id === "piView") piFile("view"); else if (a.id === "piDownload") piFile("download"); } });
+document.addEventListener("click", e => { const tp = e.target.closest && e.target.closest("a[data-top]"); if (tp) { e.preventDefault(); scrollTo({ top: 0, behavior: "smooth" }); return; } const pa = e.target.closest && e.target.closest("a[data-pi]"); if (pa) { e.preventDefault(); piFile(pa.dataset.pi); return; } const a = e.target.closest && e.target.closest("a[data-nolink]"); if (a) { e.preventDefault(); if (a.id === "piView") piFile("view"); else if (a.id === "piDownload") piFile("download"); } });
 function boot() { applyButtonText(); applySections(); sanitizeState(); applyBrand(); bindStatic(); renderStats(); renderAll(); onScroll(); if (window.hubConsentLink) window.hubConsentLink(); }
 
 // Live updates from the editor's preview. Only attached in the editor's preview, never in a file that is shared.

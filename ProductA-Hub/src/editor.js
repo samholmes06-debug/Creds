@@ -234,7 +234,7 @@ const SECTIONS = [
      <div class="cols">${fText("Pack section: preview", "buttons.packPreview")}${fText("Pack section: download all", "buttons.packDownload")}</div>
      <div class="cols">${fText("Floating bar: view pack", "buttons.dockView")}${fText("Pack viewer: download all", "buttons.viewerDownload")}</div>
      <div class="cols">${fText("Pack viewer: each document", "buttons.viewerDocDownload")}${fText("Pack list: small PDF button", "buttons.pdfSmall")}</div>
-     ${fText("Remove button", "buttons.remove")}
+     <div class="cols">${fText("Remove button", "buttons.remove")}${fText("Back to top link (footer)", "buttons.backToTop")}</div>
      <p class="small">Prescribing Information buttons are under Prescribing Information. Sign-in and consent buttons are under Sign-in and consent screens. Stakeholder and type choices are under Stakeholders and engagements.</p>`) },
   { id: "finish", title: "Pack and footer", goto: "pack", render: () => frameSection("Pack and footer", "The pack section and the legal footer.",
     `${fText("Pack heading", "finale.title")}${fArea("Pack text", "finale.sub")}

@@ -249,7 +249,8 @@ window.HUB = {
     viewerDownload: "Download pack",   // pack viewer, top right
     viewerDocDownload: "Download PDF", // pack viewer, each document
     pdfSmall: "PDF",                   // small button in the pack list
-    remove: "Remove"
+    remove: "Remove",
+    backToTop: "Back to top"            // link at the very bottom of the page
   },
 
   sections: { stats: true, story: true, timeline: true, prescribing: true },
