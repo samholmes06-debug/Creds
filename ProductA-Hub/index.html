@@ -300,10 +300,10 @@ footer b { color: var(--black); }
 .foot-links svg { width: 12px; height: 12px; color: var(--orange); }
 
 /* Dock */
-.dock { position: fixed; right: max(20px, env(safe-area-inset-right, 0px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 18px); z-index: 22; transform: translate(0, 0); background: var(--black); color: var(--white); border-radius: 999px; padding: 10px 10px 10px 18px; display: flex; align-items: center; gap: 16px; box-shadow: 0 18px 40px rgba(13, 14, 15, .35); transition: transform .5s var(--ease), opacity .4s; max-width: calc(100% - 24px); }
-.dock.away { transform: translate(0, 140%); opacity: 0; pointer-events: none; }
+.dock { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 18px); z-index: 22; transform: translate(-50%, 0); background: var(--black); color: var(--white); border-radius: 999px; padding: 10px 10px 10px 18px; display: flex; align-items: center; gap: 16px; box-shadow: 0 18px 40px rgba(13, 14, 15, .35); transition: transform .5s var(--ease), opacity .4s; max-width: calc(100% - 24px); }
+.dock.away { transform: translate(-50%, 140%); opacity: 0; pointer-events: none; }
 .dock.bump { animation: bump .5s var(--ease); }
-@keyframes bump { 40% { transform: translate(0, -6px) scale(1.04); } }
+@keyframes bump { 40% { transform: translate(-50%, -6px) scale(1.04); } }
 .dock-stack { display: flex; align-items: center; height: 46px; }
 .dock-stack .cv { width: 32px; margin-left: -14px; transition: transform .3s var(--ease); }
 .dock-stack .cv:first-child { margin-left: 0; }
@@ -1659,10 +1659,10 @@ footer b { color: var(--black); }
 .foot-links svg { width: 12px; height: 12px; color: var(--orange); }
 
 /* Dock */
-.dock { position: fixed; right: max(20px, env(safe-area-inset-right, 0px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 18px); z-index: 22; transform: translate(0, 0); background: var(--black); color: var(--white); border-radius: 999px; padding: 10px 10px 10px 18px; display: flex; align-items: center; gap: 16px; box-shadow: 0 18px 40px rgba(13, 14, 15, .35); transition: transform .5s var(--ease), opacity .4s; max-width: calc(100% - 24px); }
-.dock.away { transform: translate(0, 140%); opacity: 0; pointer-events: none; }
+.dock { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 18px); z-index: 22; transform: translate(-50%, 0); background: var(--black); color: var(--white); border-radius: 999px; padding: 10px 10px 10px 18px; display: flex; align-items: center; gap: 16px; box-shadow: 0 18px 40px rgba(13, 14, 15, .35); transition: transform .5s var(--ease), opacity .4s; max-width: calc(100% - 24px); }
+.dock.away { transform: translate(-50%, 140%); opacity: 0; pointer-events: none; }
 .dock.bump { animation: bump .5s var(--ease); }
-@keyframes bump { 40% { transform: translate(0, -6px) scale(1.04); } }
+@keyframes bump { 40% { transform: translate(-50%, -6px) scale(1.04); } }
 .dock-stack { display: flex; align-items: center; height: 46px; }
 .dock-stack .cv { width: 32px; margin-left: -14px; transition: transform .3s var(--ease); }
 .dock-stack .cv:first-child { margin-left: 0; }
@@ -3117,10 +3117,10 @@ footer b { color: var(--black); }
 .foot-links svg { width: 12px; height: 12px; color: var(--orange); }
 
 /* Dock */
-.dock { position: fixed; right: max(20px, env(safe-area-inset-right, 0px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 18px); z-index: 22; transform: translate(0, 0); background: var(--black); color: var(--white); border-radius: 999px; padding: 10px 10px 10px 18px; display: flex; align-items: center; gap: 16px; box-shadow: 0 18px 40px rgba(13, 14, 15, .35); transition: transform .5s var(--ease), opacity .4s; max-width: calc(100% - 24px); }
-.dock.away { transform: translate(0, 140%); opacity: 0; pointer-events: none; }
+.dock { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 18px); z-index: 22; transform: translate(-50%, 0); background: var(--black); color: var(--white); border-radius: 999px; padding: 10px 10px 10px 18px; display: flex; align-items: center; gap: 16px; box-shadow: 0 18px 40px rgba(13, 14, 15, .35); transition: transform .5s var(--ease), opacity .4s; max-width: calc(100% - 24px); }
+.dock.away { transform: translate(-50%, 140%); opacity: 0; pointer-events: none; }
 .dock.bump { animation: bump .5s var(--ease); }
-@keyframes bump { 40% { transform: translate(0, -6px) scale(1.04); } }
+@keyframes bump { 40% { transform: translate(-50%, -6px) scale(1.04); } }
 .dock-stack { display: flex; align-items: center; height: 46px; }
 .dock-stack .cv { width: 32px; margin-left: -14px; transition: transform .3s var(--ease); }
 .dock-stack .cv:first-child { margin-left: 0; }
