@@ -324,7 +324,7 @@ footer b { color: var(--black); }
 .pm-arrow:hover { background: var(--white); color: var(--black); }
 .pm-jump button { flex: none; border: 1px solid #3b3e41; background: transparent; color: var(--white); border-radius: 999px; padding: 7px 12px; font-size: 13px; cursor: pointer; white-space: nowrap; }
 .pm-jump button:hover { background: var(--white); color: var(--black); }
-.pm-actions { display: flex; gap: 8px; align-items: center; }
+.pm-actions { display: flex; gap: 12px; align-items: center; }
 .pm-actions .btn { padding: 10px 16px; font-size: 14px; }
 .pm-close { width: 42px; height: 42px; border-radius: 50%; border: 1px solid #3b3e41; background: transparent; color: var(--white); font-size: 18px; cursor: pointer; }
 .pm-close:hover { border-color: var(--white); }
@@ -430,7 +430,7 @@ body.inline-edit [contenteditable] { outline: 2px solid var(--orange, #f36633) !
 main:focus { outline: none; }
 .concept-strip .short { display: none !important; }
 @media (max-width: 640px) { .concept-strip .long { display: none !important; } .concept-strip .short { display: block !important; font-size: 15px; } }
-.pm-print { padding: 10px 16px; }
+.pm-actions .pm-print { padding: 9px 18px; }
 
 /* One primary action in the opening screen: Preview is a quiet text link */
 .core-actions .btn-line { background: none; border: 0; padding: 14px 10px; font-weight: 400; text-decoration: underline; text-underline-offset: 4px; }
