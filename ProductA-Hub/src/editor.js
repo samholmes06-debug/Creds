@@ -162,6 +162,9 @@ const SECTIONS = [
      <h2>Fonts</h2><details><summary>Replace the built-in font (optional)</summary>
      ${slot("font", "brand.fonts.regular", "Regular", ".woff,.woff2,.ttf,.otf")}${slot("font", "brand.fonts.bold", "Bold", ".woff,.woff2,.ttf,.otf")}${slot("font", "brand.fonts.light", "Light", ".woff,.woff2,.ttf,.otf")}${slot("font", "brand.fonts.italic", "Italic", ".woff,.woff2,.ttf,.otf")}
      <p class="small">Check your licence allows the font to be embedded in a file you share. Fonts are embedded so the page works offline.</p></details>`) },
+  { id: "sections", title: "Show or hide sections", goto: "top", render: () => frameSection("Show or hide sections", "Hide any part of the page you don't need. Your text is kept, so you can bring it back.",
+    `${fCheck("Key figures (the large numbers)", "sections.stats")}${fCheck("Story chapters", "sections.story")}${fCheck("Timeline (“Where we are”)", "sections.timeline")}
+     <p class="small">The opening screen and the pack builder are always shown, because they are the heart of the page.</p>`) },
   { id: "hero", title: "Opening screen", goto: "top", render: () => frameSection("Opening screen", "The headline, the intro text and the stakeholder chooser.",
     `${fText("Small heading above the title", "hero.eyebrow")}<h2>Title lines</h2>${strs("hero.titleLines", "Title line", 1)}<p class="small" style="margin:-4px 0 12px">The last line is shown in the brand colour.</p>
      ${fArea("Intro", "hero.lede")}${fArea("Small print", "hero.note")}
@@ -191,14 +194,14 @@ const SECTIONS = [
     return frameSection("Recommendations", "Which modules each choice adds to the pack, in the order they appear. The core notification is always included.", `<div class="matrix"><table>${head}${rows}</table></div>`);
   } },
   { id: "stats", title: "Key figures", goto: "stats", render: () => frameSection("Key figures", "The large numbers shown one at a time while the reader scrolls.",
-    `${fText("Section label", "stats.label")}${cards("stats.items", "stat", "Add figure", s => (s.value || "") + (s.suffix || "") + " · " + (s.heading || "New figure"), (s, i, p) => `
+    `${fCheck("Show this section on the page", "sections.stats")}${fText("Section label", "stats.label")}${cards("stats.items", "stat", "Add figure", s => (s.value || "") + (s.suffix || "") + " · " + (s.heading || "New figure"), (s, i, p) => `
       <div class="cols">${fText("Number", p + ".value", { hint: "For example 8,400" })}${fText("Unit or suffix", p + ".suffix", { hint: "For example nd, °C or ×" })}</div>
       <div class="cols">${fSel("Suffix style", p + ".suffixStyle", [["small", "Small"], ["accent", "Large, brand colour"]])}<div>${fCheck("Count up", p + ".countUp", "Only for plain numbers.")}</div></div>
       ${fText("Heading", p + ".heading")}${fArea("Text", p + ".text", { rows: 2 })}${fSel("Offer this module", p + ".module", modOpts("No module"))}`)}`) },
   { id: "story", title: "Story chapters", goto: "story", render: () => {
     const flex = (C.chapters || []).filter(c => !c.pin).map(c => ({ id: c.id, name: c.title })), st = C.stakeholders || [];
     return frameSection("Story chapters", "The core notification, chapter by chapter. Each chapter can offer one related module.",
-      `${fText("Heading", "story.title")}${fArea("Intro", "story.intro")}${fText("Download button text", "story.downloadLabel")}
+      `${fCheck("Show this section on the page", "sections.story")}${fText("Heading", "story.title")}${fArea("Intro", "story.intro")}${fText("Download button text", "story.downloadLabel")}
        ${cards("chapters", "chapter", "Add chapter", c => c.title || "New chapter", (c, i, p) => `
          <div class="cols">${fText("Title", p + ".title")}${fSel("Position", p + ".pin", [["", "Moves for each stakeholder"], ["first", "Always first"], ["last", "Always last"]])}</div>
          ${fSel("Related module", p + ".module", modOpts("No module"))}${fArea("Text", p + ".lead", { rows: 4, hint: "Use **double asterisks** for bold." })}<h2>Key facts</h2>${pairs(p + ".facts")}`)}
@@ -207,7 +210,7 @@ const SECTIONS = [
        ${st.map(s => `<div class="card"><div class="card-h"><b>${esc(s.label)}</b></div>${orderedIds("chapterPriority." + s.id, flex, id => (flex.find(c => c.id === id) || {}).name)}</div>`).join("")}`);
   } },
   { id: "timeline", title: "Timeline", goto: "tl", render: () => frameSection("Timeline", "Milestones shown as the page scrolls sideways.",
-    `${fText("Heading", "timeline.title")}${fArea("Text", "timeline.intro")}${cards("timeline.items", "milestone", "Add milestone", t => (t.when || "") + " · " + (t.what || "New milestone"), (t, i, p) => `
+    `${fCheck("Show this section on the page", "sections.timeline")}${fText("Heading", "timeline.title")}${fArea("Text", "timeline.intro")}${cards("timeline.items", "milestone", "Add milestone", t => (t.when || "") + " · " + (t.what || "New milestone"), (t, i, p) => `
       <div class="cols">${fSel("Status", p + ".state", [["done", "Done"], ["now", "Next (highlighted)"], ["future", "Later"]])}${fText("Label", p + ".tag", { hint: "For example Done, Next, Expected" })}</div>
       <div class="cols">${fText("Date", p + ".when")}${fText("Milestone", p + ".what")}</div>${fArea("Text", p + ".text", { rows: 2 })}`)}`) },
   { id: "finish", title: "Pack, email and footer", goto: "pack", render: () => frameSection("Pack, email and footer", "The pack section, the email text and the legal footer.",
@@ -225,9 +228,6 @@ const SECTIONS = [
      <button class="bigbtn line" type="button" data-act="replayFlow">Show me the sign-in and consent screens</button>
      <h2>Later: connect to a server</h2><p class="small" style="margin:-4px 0 10px">Leave these blank for the mock-up (the choice is only remembered in this browser tab). When the server is ready, give the addresses it provides.</p>
      ${fText("Consent address", "consent.endpoint", { ph: "/api/consent", hint: "GET returns this reader's record; POST saves it." })}${fText("Usage events address", "consent.eventsEndpoint", { ph: "/api/events", hint: "Only used if the reader ticked the optional box." })}`) },
-  { id: "sections", title: "Show or hide sections", goto: "top", render: () => frameSection("Show or hide sections", "Hide any part of the page you don't need. Your text is kept, so you can bring it back.",
-    `${fCheck("Key figures (the large numbers)", "sections.stats")}${fCheck("Story chapters", "sections.story")}${fCheck("Timeline (“Where we are”)", "sections.timeline")}
-     <p class="small">The opening screen and the pack builder are always shown, because they are the heart of the page.</p>`) },
   { id: "export", title: "Check and export", goto: "top", render: () => {
     const is = issues(), counts = { err: is.filter(i => i.k === "err").length, warn: is.filter(i => i.k === "warn").length };
     return frameSection("Check and export", "Review these points, then export the site.",
