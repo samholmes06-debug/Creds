@@ -114,7 +114,7 @@ function applyBrand() {
   st.textContent = face(f.light, 300, "normal") + face(f.regular, 400, "normal") + face(f.italic, 400, "italic") + face(f.bold, 700, "normal");
   document.title = b.pageTitle || ((b.productName || "Launch story") + " launch story");
   document.body.classList.toggle("no-mock", !b.mockLabel && !b.mockLabel2);
-  $("#conceptStrip").innerHTML = [b.mockLabel, b.mockLabel2].filter(Boolean).map(esc).join("<br>");
+  $("#conceptStrip").innerHTML = [b.mockLabel, b.mockLabel2].filter(Boolean).map(t => `<span>${esc(t)}</span>`).join("");
 }
 const mark = (cls = "") => HUB.brand && HUB.brand.logo ? `<img class="logo" src="${esc(HUB.brand.logo)}" alt="${esc(HUB.brand.productName)}">` : `<i aria-hidden="true"></i>${esc((HUB.brand || {}).productName)}`;
 

@@ -21,17 +21,17 @@ window.HUB = {
     jobCode: "XX-UK-0000",
     datePrepared: "October 2026",
     mockLabel: "For UK healthcare professionals and other relevant decision makers",   // header text, first line ("" removes it)
-    mockLabel2: "",                                                                    // optional second line
+    mockLabel2: "This site contains promotional material",                             // optional second line, smaller than the first
     fonts: {}                                  // optional: { regular, bold, light, italic } font files
   },
 
   /* ---- Opening screen -------------------------------------------------- */
   hero: {
-    eyebrow: "Advance notification · October 2026",
+    eyebrow: "",                   // small line above the main title (blank = none)
     titleLines: ["Advance", "notification for", "NHS planning"],   // the last line is shown in the accent colour
     lede: "A new treatment option for Condition X is expected in Q2 2027. Read the launch story below, and build the briefing pack your stakeholder needs as you go.",
     note: "For NHS budget holders and formulary decision-makers. Product A does not yet have a UK marketing authorisation.",
-    disclaimer: "[Prescribing Information](#pi-view) and Adverse Event reporting statement can be found [at the bottom of this page](#pi)",   // [words](#pi) makes a link to the Prescribing Information section
+    disclaimer: "Prescribing Information and Adverse Event reporting statement can be found by [clicking here](#pi-view) or [at the bottom of this page](#pi)",   // [words](#pi) makes a link to the Prescribing Information section
     disclaimer2: ""                 // optional second line
   },
 

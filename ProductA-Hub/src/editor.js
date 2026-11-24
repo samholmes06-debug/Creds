@@ -157,7 +157,7 @@ const SECTIONS = [
   { id: "brand", title: "Brand and logo", goto: "top", render: () => frameSection("Brand and logo", "The product name, logo, colour and job details shown across the page.",
     `<div class="cols">${fText("Product name", "brand.productName")}${fText("Browser tab title", "brand.pageTitle")}</div>
      <div class="cols">${fText("Job code", "brand.jobCode")}${fText("Date of preparation", "brand.datePrepared")}</div>
-     ${fText("Header text, first line", "brand.mockLabel", { hint: "Small capitals next to the logo. Leave empty to hide it." })}${fText("Header text, second line (optional)", "brand.mockLabel2", { hint: "Shown under the first line. To add a line above, move the first line down into this box." })}
+     ${fText("Header text, first line", "brand.mockLabel", { hint: "Next to the logo. This line is shown 3 points larger than the second. Leave empty to hide it." })}${fText("Header text, second line (optional)", "brand.mockLabel2", { hint: "Shown under the first line. To add a line above, move the first line down into this box." })}
      ${fColor("Brand colour", "brand.accent", "One colour drives buttons, highlights and the timeline. Text colours on it are chosen automatically for contrast.")}
      <h2>Logo</h2>${slot("logo", "brand.logo", "Logo", "image/svg+xml,image/png,image/jpeg,image/webp")}
      <p class="small">SVG is best (sharp at every size). A PNG should be at least 400 pixels wide.</p>
