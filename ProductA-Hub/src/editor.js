@@ -214,10 +214,9 @@ const SECTIONS = [
     `${fCheck("Show this section on the page", "sections.timeline")}${fText("Heading", "timeline.title")}${fArea("Text", "timeline.intro")}${cards("timeline.items", "milestone", "Add milestone", t => (t.when || "") + " · " + (t.what || "New milestone"), (t, i, p) => `
       <div class="cols">${fSel("Status", p + ".state", [["done", "Done"], ["now", "Next (highlighted)"], ["future", "Later"]])}${fText("Label", p + ".tag", { hint: "For example Done, Next, Expected" })}</div>
       <div class="cols">${fText("Date", p + ".when")}${fText("Milestone", p + ".what")}</div>${fArea("Text", p + ".text", { rows: 2 })}`)}`) },
-  { id: "finish", title: "Pack, email and footer", goto: "pack", render: () => frameSection("Pack, email and footer", "The pack section, the email text and the legal footer.",
+  { id: "finish", title: "Pack and footer", goto: "pack", render: () => frameSection("Pack and footer", "The pack section and the legal footer.",
     `${fText("Pack heading", "finale.title")}${fArea("Pack text", "finale.sub")}
-     <h2>Approved email</h2>${fArea("Closing paragraph", "email.closing")}${fArea("Sign-off", "email.signoff", { rows: 4 })}
-     <h2>Footer</h2>${fText("First line", "legal.title")}${strs("legal.paragraphs", "Legal text", 3)}
+     <h2>Footer</h2>${fText("First line, title part", "legal.title")}${fText("First line, whole (optional)", "legal.line", { hint: "Leave blank to use the title, job code and date. Type your own to change the dots or wording; ** around words makes them bold." })}${strs("legal.paragraphs", "Legal text", 3)}
      <h2>Footer links</h2><p class="small" style="margin:-4px 0 10px">The links under the footer text. Leave the address blank until you have it: the link then does nothing.</p>
      ${cards("legal.links", "footlink", "footer link", l => l.label || "Link", (l, i, p) => `<div class="cols">${fText("Text", p + ".label")}${fText("Address", p + ".url", { ph: "https://…" })}</div>${fCheck("Show the external-link icon", p + ".external")}`)}`) },
   { id: "signin", title: "Sign-in and consent screens", goto: "top", render: () => frameSection("Sign-in and consent screens", "The first two screens: a mock sign-in, then a tick-box consent screen, then the page. Switch either off and export again and its code is gone from the file.",

@@ -187,17 +187,14 @@ window.HUB = {
     ]
   },
 
-  /* ---- Pack section, email and footer ------------------------------------ */
+  /* ---- Pack section and footer ------------------------------------ */
   finale: {
     title: "Your pack",
-    sub: "Everything you've added, in recommended order. Preview it, download it as one PDF, or send it with an approved email."
-  },
-  email: {
-    closing: "This information is provided to support budget and service planning. Product A does not currently have a UK marketing authorisation.",
-    signoff: "Kind regards,\n[Account contact name]\n[Company] · [Phone]"
+    sub: "Everything you've added, in recommended order. Preview it or download it as one PDF."
   },
   legal: {
     title: "Product A advance notification",
+    line: "",                      // optional: the whole first footer line (blank = title, job code and date)
     paragraphs: [
       "This information is provided to NHS budget holders and formulary decision-makers to support financial and service planning, in line with the ABPI Code of Practice provisions on advance notification of new medicines. It is not intended for prescribers or patients.",
       "Product A is not licensed in the UK. Its safety and efficacy have not been established by the MHRA. All figures shown are placeholders for this mock-up."

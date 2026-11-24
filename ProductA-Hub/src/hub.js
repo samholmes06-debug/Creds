@@ -135,10 +135,9 @@ function bindStatic() {
   $("#storyMeta").textContent = `PDF · ${pagesOf(c)} pages`;
   $("#dlPack").innerHTML = inV ? `Send pack by Approved Email <span aria-hidden="true">✉</span>` : `Download as one PDF <span aria-hidden="true">↓</span>`;
   $("#pmDownload").innerHTML = inV ? `Send pack <span aria-hidden="true">✉</span>` : `Download pack <span aria-hidden="true">↓</span>`;
-  $("#showEmail").hidden = inV;
-  $("#emailCode").textContent = `Approved email · ${b.jobCode || ""}`;
   const lg = HUB.legal || {};
-  $("#footerInner").innerHTML = `<p><b>${esc(lg.title)}</b> · Job code ${esc(b.jobCode)} · Date of preparation ${esc(b.datePrepared)}</p>` + (lg.paragraphs || []).map(p => `<p>${esc(p)}</p>`).join("") + footLinks(lg);
+  const dflt = `**${lg.title || ""}** · Job code ${b.jobCode || ""} · Date of preparation ${b.datePrepared || ""}`;
+  $("#footerInner").innerHTML = `<p data-edit="legal.line" data-fallback="${esc(dflt)}">${md(lg.line ? lg.line : dflt)}</p>` + (lg.paragraphs || []).map((p, i) => `<p data-edit="legal.paragraphs.${i}">${esc(p)}</p>`).join("") + footLinks(lg);
   $("#pickWho b").textContent = who() ? who().label : (HUB.builder || {}).whoPlaceholder || "Choose";
   $("#pickEng b").textContent = eng() ? eng().label : (HUB.builder || {}).engPlaceholder || "Choose";
   $("#pickWho b").classList.toggle("empty", !who());
@@ -354,8 +353,8 @@ async function mergePack(ids) {
   } catch (e) { toast("Couldn't merge the pack. Opened from a local folder, browsers block this; on a web host a very large PDF can also fail. Download each PDF separately instead."); }
 }
 
-/* ---------- Pack viewer and email ---------- */
-const packModal = $("#packModal"), overlay = $("#emailOverlay");
+/* ---------- Pack viewer ---------- */
+const packModal = $("#packModal");
 function openPack(target) {
   veevaTrack("pack_viewed", ["core", ...picked()].join(","), "Pack viewer opened");
   packModal.hidden = false; document.body.classList.add("modal-open"); $("#dock").classList.add("away"); $("#pmScroll").scrollTop = 0;
@@ -363,11 +362,6 @@ function openPack(target) {
   $("#pmClose").focus();
 }
 function closePack() { packModal.hidden = true; document.body.classList.remove("modal-open"); onScroll(); }
-function emailText() {
-  const e = eng() || (HUB.engagements || [])[0] || { subject: "Information", intro: "" }, em = HUB.email || {};
-  const links = [HUB.core.name, ...picked().map(id => info(id).name)];
-  return `Subject: ${e.subject}\n\nDear [Name],\n\n${e.intro}\n\n${links.map(l => "• " + l + ": [hub link]").join("\n")}\n\n${em.closing || ""}\n\n${em.signoff || ""}\n\nJob code ${(HUB.brand || {}).jobCode || ""} · Date of preparation ${(HUB.brand || {}).datePrepared || ""}`;
-}
 let toastTimer;
 function toast(msg) { const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 3200); }
 
@@ -386,19 +380,12 @@ document.addEventListener("keydown", e => {
   const m = e.target.closest && e.target.closest(".menu");
   if (m && (e.key === "ArrowDown" || e.key === "ArrowUp")) { e.preventDefault(); const items = $$("button", m), i = items.indexOf(e.target); items[(i + (e.key === "ArrowDown" ? 1 : items.length - 1)) % items.length].focus(); }
   if (e.key !== "Escape") return;
-  if (!overlay.hidden) { overlay.hidden = true; $("#showEmail").focus(); } else if (!packModal.hidden) closePack(); else closeMenus();
+  if (!packModal.hidden) closePack(); else closeMenus();
 });
 $("#pmClose").addEventListener("click", closePack);
 packModal.addEventListener("click", e => { if (e.target === packModal) closePack(); });
 $("#dlPack").addEventListener("click", () => { const ids = ["core", ...picked()]; if (clm()) veevaSend(ids, ""); else mergePack(ids); });
 $("#pmDownload").addEventListener("click", () => $("#dlPack").click());
-$("#showEmail").addEventListener("click", () => { $("#emailBody").textContent = emailText(); overlay.hidden = false; $("#closeEmail").focus(); });
-$("#closeEmail").addEventListener("click", () => { overlay.hidden = true; $("#showEmail").focus(); });
-overlay.addEventListener("click", e => { if (e.target === overlay) overlay.hidden = true; });
-$("#copyEmail").addEventListener("click", () => {
-  const fallback = () => { const r = document.createRange(); r.selectNodeContents($("#emailBody")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast("Text selected. Press Ctrl+C or ⌘C to copy."); };
-  if (navigator.clipboard) navigator.clipboard.writeText(emailText()).then(() => toast("Email text copied"), fallback); else fallback();
-});
 let ticking = false;
 addEventListener("scroll", () => { if (!ticking) { ticking = true; requestAnimationFrame(() => { onScroll(); ticking = false; }); } }, { passive: true });
 addEventListener("resize", onScroll);
@@ -520,7 +507,7 @@ window.__applyContent = c => { HUB = c; window.HUB = c; boot(); };
   window.__startInline = fn => { window.__inlineSet = fn; on = true; document.body.classList.add("inline-edit"); bar(); if (window.__hideEditor) window.__hideEditor(); };
   window.__stopInline = () => { on = false; document.body.classList.remove("inline-edit"); const b = document.getElementById("inlineBar"); if (b) b.hidden = true; };
   function edit(el) {
-    const path = el.dataset.edit || el.dataset.t, raw = get(HUB, path); if (typeof raw !== "string") return;
+    const path = el.dataset.edit || el.dataset.t; let raw = get(HUB, path); if ((raw == null || raw === "") && el.dataset.fallback != null) raw = el.dataset.fallback; if (typeof raw !== "string") return;
     el.textContent = raw;
     try { el.contentEditable = "plaintext-only"; } catch (e) { el.contentEditable = "true"; }
     if (el.contentEditable !== "plaintext-only") el.contentEditable = "true";
