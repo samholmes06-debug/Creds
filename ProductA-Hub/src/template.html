@@ -12,6 +12,7 @@
 </style>
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to main content</a>
 <div class="concept-strip" id="conceptStrip"></div>
 <header class="bar">
   <div class="wrap">
@@ -29,8 +30,9 @@
   <div class="readbar" id="readBar"></div>
 </header>
 
-<main>
+<main id="main" tabindex="-1">
 <div class="topnote" id="topNote"></div>
+<p class="skiprow"><a class="skip-pack" href="#pack"><span data-btn="skipPack">Skip to your pack</span> <span aria-hidden="true">&darr;</span></a></p>
 <section class="hero">
   <div class="wrap">
     <div class="hero-top">
@@ -142,7 +144,7 @@
     <header class="pm-bar">
       <div><div class="label" id="pmCount"></div><h2 id="pmTitle">Your pack</h2></div>
       <div class="pm-jumpwrap" id="pmJumpWrap"><button type="button" class="pm-arrow" data-jump-dir="-1" aria-label="Show earlier documents" hidden>&#8249;</button><nav class="pm-jump" id="pmJump" aria-label="Documents in this pack"></nav><button type="button" class="pm-arrow" data-jump-dir="1" aria-label="Show more documents" hidden>&#8250;</button></div>
-      <div class="pm-actions"><a href="#pi-view" class="pm-pi" id="pmPi" data-pi="view" data-t="prescribing.title"></a><button class="btn btn-orange" type="button" id="pmDownload"></button><button class="pm-close" type="button" id="pmClose" aria-label="Close pack viewer">✕</button></div>
+      <div class="pm-actions"><button class="btn btn-line-dark pm-print" type="button" id="pmPrint"><span data-btn="print">Print</span></button><a href="#pi-view" class="pm-pi" id="pmPi" data-pi="view" data-t="prescribing.title"></a><button class="btn btn-orange" type="button" id="pmDownload"></button><button class="pm-close" type="button" id="pmClose" aria-label="Close pack viewer">✕</button></div>
     </header>
     <div class="pm-scroll" id="pmScroll">
       <p class="pm-note" id="pmNote" hidden></p>

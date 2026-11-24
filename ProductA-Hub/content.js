@@ -21,6 +21,7 @@ window.HUB = {
     jobCode: "XX-UK-0000",
     datePrepared: "October 2026",
     mockLabel: "For UK healthcare professionals and other relevant decision makers",   // header text, first line ("" removes it)
+    mockLabelShort: "For UK healthcare professionals",                                // shown instead of the first line on phones
     mockLabel2: "This site contains promotional material",                             // optional second line, smaller than the first
     fonts: {}                                  // optional: { regular, bold, light, italic } font files
   },
@@ -250,6 +251,8 @@ window.HUB = {
     viewerDocDownload: "Download PDF", // pack viewer, each document
     pdfSmall: "PDF",                   // small button in the pack list
     remove: "Remove",
+    skipPack: "Skip to your pack",     // link under the top line
+    print: "Print",                    // pack viewer
     backToTop: "Back to top"            // link at the very bottom of the page
   },
 

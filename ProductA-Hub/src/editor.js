@@ -161,7 +161,7 @@ const SECTIONS = [
   { id: "brand", title: "Brand and logo", goto: "top", render: () => frameSection("Brand and logo", "The product name, logo, colour and job details shown across the page.",
     `<div class="cols">${fText("Product name", "brand.productName")}${fText("Browser tab title", "brand.pageTitle")}</div>
      <div class="cols">${fText("Job code", "brand.jobCode")}${fText("Date of preparation", "brand.datePrepared")}</div>
-     ${fText("Header text, first line", "brand.mockLabel", { hint: "Next to the logo. This line is shown 3 points larger than the second. Leave empty to hide it." })}${fText("Header text, second line (optional)", "brand.mockLabel2", { hint: "Shown under the first line. To add a line above, move the first line down into this box." })}
+     ${fText("Header text, first line", "brand.mockLabel", { hint: "Next to the logo. This line is shown 3 points larger than the second. Leave empty to hide it." })}${fText("Header text, first line on phones", "brand.mockLabelShort", { hint: "A shorter version shown on phones." })}${fText("Header text, second line (optional)", "brand.mockLabel2", { hint: "Shown under the first line. To add a line above, move the first line down into this box." })}
      ${fColor("Brand colour", "brand.accent", "One colour drives buttons, highlights and the timeline. Text colours on it are chosen automatically for contrast.")}
      <h2>Logo</h2>${slot("logo", "brand.logo", "Logo", "image/svg+xml,image/png,image/jpeg,image/webp")}
      <p class="small">SVG is best (sharp at every size). A PNG should be at least 400 pixels wide.</p>
@@ -235,6 +235,7 @@ const SECTIONS = [
      <div class="cols">${fText("Floating bar: view pack", "buttons.dockView")}${fText("Pack viewer: download all", "buttons.viewerDownload")}</div>
      <div class="cols">${fText("Pack viewer: each document", "buttons.viewerDocDownload")}${fText("Pack list: small PDF button", "buttons.pdfSmall")}</div>
      <div class="cols">${fText("Remove button", "buttons.remove")}${fText("Back to top link (footer)", "buttons.backToTop")}</div>
+     <div class="cols">${fText("Skip link under the top line", "buttons.skipPack")}${fText("Print button (pack viewer)", "buttons.print")}</div>
      <p class="small">Prescribing Information buttons are under Prescribing Information. Sign-in and consent buttons are under Sign-in and consent screens. Stakeholder and type choices are under Stakeholders and engagements.</p>`) },
   { id: "finish", title: "Pack and footer", goto: "pack", render: () => frameSection("Pack and footer", "The pack section and the legal footer.",
     `${fText("Pack heading", "finale.title")}${fArea("Pack text", "finale.sub")}

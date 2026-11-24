@@ -115,12 +115,12 @@ function applyBrand() {
   st.textContent = face(f.light, 300, "normal") + face(f.regular, 400, "normal") + face(f.italic, 400, "italic") + face(f.bold, 700, "normal");
   document.title = b.pageTitle || ((b.productName || "Launch story") + " launch story");
   document.body.classList.toggle("no-mock", !b.mockLabel && !b.mockLabel2);
-  $("#conceptStrip").innerHTML = [b.mockLabel, b.mockLabel2].filter(Boolean).map(t => `<span>${esc(t)}</span>`).join("");
+  $("#conceptStrip").innerHTML = (b.mockLabel ? `<span class="long">${esc(b.mockLabel)}</span><span class="short">${esc(b.mockLabelShort || b.mockLabel)}</span>` : "") + (b.mockLabel2 ? `<span>${esc(b.mockLabel2)}</span>` : "");
 }
 const mark = (cls = "") => HUB.brand && HUB.brand.logo ? `<img class="logo" src="${esc(HUB.brand.logo)}" alt="${esc(HUB.brand.productName)}">` : `<i aria-hidden="true"></i>${esc((HUB.brand || {}).productName)}`;
 
 /* ---------- Static text and shell ---------- */
-const BT = { backToTop: "Back to top", barCore: "Download core PDF", barCoreShort: "Core PDF", heroDownload: "Download PDF", heroPreview: "Preview", packPreview: "Preview pack", packDownload: "Download as one PDF", dockView: "View pack", viewerDownload: "Download pack", viewerDocDownload: "Download PDF", pdfSmall: "PDF", remove: "Remove" };
+const BT = { skipPack: "Skip to your pack", print: "Print", backToTop: "Back to top", barCore: "Download core PDF", barCoreShort: "Core PDF", heroDownload: "Download PDF", heroPreview: "Preview", packPreview: "Preview pack", packDownload: "Download as one PDF", dockView: "View pack", viewerDownload: "Download pack", viewerDocDownload: "Download PDF", pdfSmall: "PDF", remove: "Remove" };
 const bt = k => ((HUB.buttons || {})[k]) || BT[k];
 function applyButtonText() { $$("[data-btn]").forEach(el => { el.textContent = bt(el.dataset.btn); }); }
 const linkify = t => esc(t).replace(/\[([^\]]+)\]\((#[\w-]+|https?:\/\/[^)\s]+)\)/g, (m, a, u) => `<a href="${u}"${/^#pi-(view|download)$/.test(u) ? ` data-pi="${u.slice(4)}"` : u[0] === "#" ? "" : ` target="_blank" rel="noopener"`}>${a}</a>`);
@@ -333,7 +333,7 @@ function onScroll() {
     track.style.transform = `translateX(${-tp * Math.max(0, track.scrollWidth - innerWidth + 40)}px)`;
   }
   const heroGone = $(".hero").getBoundingClientRect().bottom < vh() * .4, finR = $("#pack").getBoundingClientRect();
-  $("#dock").classList.toggle("away", !heroGone || (finR.top < vh() * .7 && finR.bottom > vh() * .3) || !$("#packModal").hidden);
+  $("#dock").classList.toggle("away", picked().length === 0 || !heroGone || (finR.top < vh() * .7 && finR.bottom > vh() * .3) || !$("#packModal").hidden);
 }
 
 /* ---------- PDF files: download, merge ---------- */
@@ -354,17 +354,35 @@ function downloadDoc(id) {
     document.body.append(a); a.click(); a.remove();
   }
 }
+async function buildPack(ids) {
+  const withPdf = ids.filter(id => hasPdf(info(id)));
+  const out = await PDFLib.PDFDocument.create();
+  for (const id of withPdf) { const src = await PDFLib.PDFDocument.load(await getBytes(info(id).pdf, "pack"), { ignoreEncryption: true }); (await out.copyPages(src, src.getPageIndices())).forEach(p => out.addPage(p)); }
+  return { bytes: await out.save(), withPdf };
+}
 async function mergePack(ids) {
   const withPdf = ids.filter(id => hasPdf(info(id)));
   if (!withPdf.length) return toast("The pack will be available as one PDF once the artwork is approved.");
   if (!window.PDFLib) return toast("Merging isn't available in this copy. Download each PDF from the pack viewer.");
   try {
-    const out = await PDFLib.PDFDocument.create();
-    for (const id of withPdf) { const src = await PDFLib.PDFDocument.load(await getBytes(info(id).pdf, "pack"), { ignoreEncryption: true }); (await out.copyPages(src, src.getPageIndices())).forEach(p => out.addPage(p)); }
-    saveBlob(new Blob([await out.save()], { type: "application/pdf" }), `${slug((HUB.brand || {}).productName)}-pack.pdf`);
+    const r = await buildPack(ids);
+    saveBlob(new Blob([r.bytes], { type: "application/pdf" }), `${slug((HUB.brand || {}).productName)}-pack.pdf`);
     veevaTrack("pack_downloaded", withPdf.join(","), `Pack downloaded: ${withPdf.length} document(s)`);
     toast(withPdf.length < ids.length ? `Pack downloaded. ${ids.length - withPdf.length} document(s) have no PDF yet.` : "Pack downloaded as one PDF");
   } catch (e) { toast("Couldn't merge the pack. Opened from a local folder, browsers block this; on a web host a very large PDF can also fail. Download each PDF separately instead."); }
+}
+async function printPack(ids) {
+  const withPdf = ids.filter(id => hasPdf(info(id)));
+  if (!withPdf.length) return toast("The pack will be available to print once the artwork is approved.");
+  if (!window.PDFLib) return toast("Printing isn't available in this copy. Download each PDF from the pack viewer.");
+  const w = window.open("", "_blank");   // opened straight away so the browser doesn't block it
+  if (!w) return toast("Your browser blocked the new tab. Allow pop-ups for this page, or download the pack and print it.");
+  try {
+    const r = await buildPack(ids);
+    w.location.href = URL.createObjectURL(new Blob([r.bytes], { type: "application/pdf" }));
+    veevaTrack("pack_printed", withPdf.join(","), `Pack opened to print: ${withPdf.length} document(s)`);
+    toast("Your pack opened in a new tab. Press Ctrl+P (Cmd+P on a Mac) to print it.");
+  } catch (e) { try { w.close(); } catch (x) {} toast("Couldn't prepare the pack to print. Opened from a local folder, browsers block this. Download each PDF and print it instead."); }
 }
 
 /* ---------- Pack viewer ---------- */
@@ -407,6 +425,7 @@ $("#pmClose").addEventListener("click", closePack);
 packModal.addEventListener("click", e => { if (e.target === packModal) closePack(); });
 $("#dlPack").addEventListener("click", () => { const ids = ["core", ...picked()]; if (clm()) veevaSend(ids, ""); else mergePack(ids); });
 $("#pmDownload").addEventListener("click", () => $("#dlPack").click());
+$("#pmPrint").addEventListener("click", () => printPack(["core", ...picked()]));
 let ticking = false;
 addEventListener("scroll", () => { if (!ticking) { ticking = true; requestAnimationFrame(() => { onScroll(); ticking = false; }); } }, { passive: true });
 addEventListener("resize", onScroll);
