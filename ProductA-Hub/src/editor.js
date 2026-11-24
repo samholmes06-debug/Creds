@@ -217,7 +217,9 @@ const SECTIONS = [
   { id: "finish", title: "Pack, email and footer", goto: "pack", render: () => frameSection("Pack, email and footer", "The pack section, the email text and the legal footer.",
     `${fText("Pack heading", "finale.title")}${fArea("Pack text", "finale.sub")}
      <h2>Approved email</h2>${fArea("Closing paragraph", "email.closing")}${fArea("Sign-off", "email.signoff", { rows: 4 })}
-     <h2>Footer</h2>${fText("First line", "legal.title")}${strs("legal.paragraphs", "Legal text", 3)}`) },
+     <h2>Footer</h2>${fText("First line", "legal.title")}${strs("legal.paragraphs", "Legal text", 3)}
+     <h2>Footer links</h2><p class="small" style="margin:-4px 0 10px">The links under the footer text. Leave the address blank until you have it: the link then does nothing.</p>
+     ${cards("legal.links", "footlink", "footer link", l => l.label || "Link", (l, i, p) => `<div class="cols">${fText("Text", p + ".label")}${fText("Address", p + ".url", { ph: "https://…" })}</div>${fCheck("Show the external-link icon", p + ".external")}`)}`) },
   { id: "signin", title: "Sign-in and consent screens", goto: "top", render: () => frameSection("Sign-in and consent screens", "The first two screens: a mock sign-in, then a tick-box consent screen, then the page. Switch either off and export again and its code is gone from the file.",
     `<h2>1. Sign-in screen (mock-up)</h2>${fCheck("Show the sign-in screen", "signin.enabled", "A mock-up: the button just continues. Real sign-in is added on the server later, and then this screen is switched off.")}
      ${fText("Title", "signin.title")}${fArea("Introduction", "signin.intro", { rows: 2 })}${fText("Button", "signin.button")}${fText("Help heading", "signin.helpTitle")}${fArea("Help text", "signin.help", { rows: 2 })}
@@ -303,6 +305,7 @@ function go(id) { section = id; renderSide(); renderForm(false); const s = SECTI
 /* ---------- Structure changes ---------- */
 const uid = (prefix, taken) => { let n = taken.length + 1, id; do { id = prefix + n++; } while (taken.includes(id)); return id; };
 const KINDS = {
+  footlink: () => ({ label: "New link", url: "", external: false }),
   str: () => "", pair: () => ["", ""],
   stakeholder: () => { const id = uid("s", C.stakeholders.map(x => x.id)); return { id, label: "New stakeholder", plural: "new stakeholders", desc: "" }; },
   engagement: () => { const id = uid("e", C.engagements.map(x => x.id)); return { id, label: "New engagement type", desc: "", subject: "", intro: "" }; },

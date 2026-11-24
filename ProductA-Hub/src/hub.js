@@ -92,6 +92,11 @@ function hsl2hex(h, s, l) {
   s /= 100; l /= 100; const k = n => (n + h / 30) % 12, a = s * Math.min(l, 1 - l), f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
   return "#" + [f(0), f(8), f(4)].map(v => Math.round(v * 255).toString(16).padStart(2, "0")).join("");
 }
+const EXT_ICON = `<svg viewBox="0 0 12 12" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M5 2.5H2.5v7h7V7M7 2.5h2.5V5M9.5 2.5 5.5 6.5"/></svg>`;
+function footLinks(lg) {
+  const l = (lg.links || []).filter(x => x && x.label);
+  return l.length ? `<div class="foot-links">${l.map(x => `<a href="${x.url ? esc(x.url) : "#"}"${x.url ? ` target="_blank" rel="noopener"` : ` data-nolink="1"`}>${esc(x.label)}${x.external ? EXT_ICON : ""}</a>`).join("")}</div>` : "";
+}
 function applyBrand() {
   const b = HUB.brand || {}, root = document.documentElement.style;
   const acc = /^#[0-9a-f]{6}$/i.test(b.accent || "") ? b.accent : "#f36633";
@@ -133,7 +138,7 @@ function bindStatic() {
   $("#showEmail").hidden = inV;
   $("#emailCode").textContent = `Approved email · ${b.jobCode || ""}`;
   const lg = HUB.legal || {};
-  $("#footerInner").innerHTML = `<p><b>${esc(lg.title)}</b> · Job code ${esc(b.jobCode)} · Date of preparation ${esc(b.datePrepared)}</p>` + (lg.paragraphs || []).map(p => `<p>${esc(p)}</p>`).join("");
+  $("#footerInner").innerHTML = `<p><b>${esc(lg.title)}</b> · Job code ${esc(b.jobCode)} · Date of preparation ${esc(b.datePrepared)}</p>` + (lg.paragraphs || []).map(p => `<p>${esc(p)}</p>`).join("") + footLinks(lg);
   $("#pickWho b").textContent = who() ? who().label : (HUB.builder || {}).whoPlaceholder || "Choose";
   $("#pickEng b").textContent = eng() ? eng().label : (HUB.builder || {}).engPlaceholder || "Choose";
   $("#pickWho b").classList.toggle("empty", !who());
@@ -401,6 +406,7 @@ addEventListener("resize", onScroll);
 /* ---------- Render ---------- */
 function renderAll() { renderChoices(); renderChapters(); renderPack(); syncPrompts(); }
 function applySections() { const v = HUB.sections || {}; [["stats", "stats"], ["story", "story"], ["tl", "timeline"]].forEach(([id, k]) => { const el = document.getElementById(id); if (el) el.hidden = v[k] === false; }); }
+document.addEventListener("click", e => { const a = e.target.closest && e.target.closest("a[data-nolink]"); if (a) e.preventDefault(); });
 function boot() { applySections(); sanitizeState(); applyBrand(); bindStatic(); renderStats(); renderAll(); onScroll(); if (window.hubConsentLink) window.hubConsentLink(); }
 
 // Live updates from the editor's preview. Only attached in the editor's preview, never in a file that is shared.
@@ -482,10 +488,12 @@ function boot() { applySections(); sanitizeState(); applyBrand(); bindStatic(); 
     if (s.enabled && !ss.get("hubMockSignin")) signinGate(afterSignin); else afterSignin();
   }
   window.hubConsentLink = () => {
-    const c = cons(), f = document.getElementById("footerInner"); if (!f || !c.enabled || f.querySelector("[data-consent-link]")) return;
-    const b = document.createElement("button"); b.type = "button"; b.className = "cg-link"; b.dataset.consentLink = "1"; b.textContent = c.analytics ? "Privacy and usage choices" : "Privacy";
+    // Only offered when there is an optional usage-statistics choice to change later
+    const c = cons(), f = document.getElementById("footerInner"); if (!f || !c.enabled || !c.analytics || f.querySelector("[data-consent-link]")) return;
+    let row = f.querySelector(".foot-links"); if (!row) { row = document.createElement("div"); row.className = "foot-links"; f.append(row); }
+    const b = document.createElement("button"); b.type = "button"; b.dataset.consentLink = "1"; b.textContent = "Usage choices";
     b.addEventListener("click", () => { if (!document.getElementById("consentGate")) consentGate({ analytics: analyticsOn }, false); });
-    f.append(b);
+    row.append(b);
   };
   window.hubFlowRestart = () => { ss.del("hubMockSignin"); ss.del("hubConsent:" + (cons().version || "1")); start(); };
   window.hubConsentDemo = () => { if (!document.getElementById("consentGate")) consentGate(null, true); };

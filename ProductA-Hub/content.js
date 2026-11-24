@@ -201,6 +201,11 @@ window.HUB = {
     paragraphs: [
       "This information is provided to NHS budget holders and formulary decision-makers to support financial and service planning, in line with the ABPI Code of Practice provisions on advance notification of new medicines. It is not intended for prescribers or patients.",
       "Product A is not licensed in the UK. Its safety and efficacy have not been established by the MHRA. All figures shown are placeholders for this mock-up."
+    ],
+    links: [                       // the links under the footer text; add the addresses when you have them
+      { label: "Terms of use", url: "", external: false },
+      { label: "Cookie policy", url: "", external: false },
+      { label: "Privacy notice", url: "", external: true }
     ]
   },
 

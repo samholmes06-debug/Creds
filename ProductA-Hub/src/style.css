@@ -119,7 +119,6 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .chip { border: 1.5px solid var(--grey-3); background: var(--white); border-radius: 999px; padding: 13px 20px; font-size: 16px; font-weight: 700; cursor: pointer; transition: background .2s, color .2s, border-color .2s, transform .2s var(--ease); display: inline-flex; align-items: center; gap: 10px; }
 .chip:hover { border-color: var(--black); transform: translateY(-2px); }
 .chip[aria-pressed="true"] { background: var(--black); border-color: var(--black); color: var(--white); }
-.chip[aria-pressed="true"]::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--orange); }
 .builder-status { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; border-top: 1.5px solid var(--grey-3); padding-top: 22px; font-size: 16px; }
 .builder-status b { font-weight: 700; }
 .builder-status .go { margin-left: auto; }
@@ -250,9 +249,13 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .fin-more button:hover { border-color: var(--orange); color: var(--white); }
 .fin-btns { display: flex; flex-wrap: wrap; gap: 8px; }
 
-footer { background: var(--black); color: #9a9fa4; font-size: 13px; border-top: 1px solid #2a2c2e; }
+footer { background: var(--white); color: var(--black); font-size: 13px; border-top: 1px solid #d5d7d9; }
 footer .wrap { padding-block: 32px calc(110px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 8px; }
-footer b { color: var(--white); }
+footer b { color: var(--black); }
+.foot-links { display: flex; flex-wrap: wrap; gap: 14px 30px; margin-top: 14px; }
+.foot-links a, .foot-links button { color: var(--black); font: inherit; font-size: 15px; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 7px; }
+.foot-links a:hover, .foot-links button:hover { text-decoration: underline; text-underline-offset: 3px; }
+.foot-links svg { width: 12px; height: 12px; color: var(--orange); }
 
 /* Dock */
 .dock { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 18px); z-index: 22; transform: translate(-50%, 0); background: var(--black); color: var(--white); border-radius: 999px; padding: 10px 10px 10px 18px; display: flex; align-items: center; gap: 16px; box-shadow: 0 18px 40px rgba(13, 14, 15, .35); transition: transform .5s var(--ease), opacity .4s; max-width: calc(100% - 24px); }
