@@ -96,6 +96,7 @@ function fillTemplate(content, forExport) {
 }
 function reloadPreview() { frameReady = false; frame.onload = () => { frameReady = true; }; frame.srcdoc = fillTemplate(withPdfUrls(clone(C)), false); }
 function inlineSet(path, v) { setP(path, v); renderForm(true); renderSide(); touch(); }
+function pushToHost() { try { if (window.parent !== window && window.parent.__applyContent) window.parent.__applyContent(withPdfUrls(clone(C))); } catch (e) {} }
 function touch() { dirty = true; updateSide(); clearTimeout(sendTimer); sendTimer = setTimeout(() => { try { if (window.parent !== window && window.parent.__applyContent) window.parent.__applyContent(withPdfUrls(clone(C))); } catch (e) {} if (frameReady) frame.contentWindow.postMessage({ type: "hub-content", content: withPdfUrls(clone(C)) }, "*"); }, 350); }
 function gotoPreview(id) { if (frameReady) frame.contentWindow.postMessage({ type: "hub-goto", id }, "*"); }
 
@@ -549,7 +550,7 @@ async function openFile(file) {
       if (/^\s*[{\[]/.test(text)) { const j = JSON.parse(text); obj = j.content || j; } else obj = parseJs(text);
     }
     if (dirty && !confirm("Replace the current project? Unsaved changes will be lost.")) return;
-    C = normalize(obj); tidy(); dirty = false; renderSide(); renderForm(false); reloadPreview(); status(`Opened ${file.name}.`, "", 5000);
+    C = normalize(obj); tidy(); dirty = false; renderSide(); renderForm(false); reloadPreview(); pushToHost(); status(`Opened ${file.name}.`, "", 5000);
   } catch (e) { status("Couldn't open that file: " + (e.message || e), "err"); }
 }
 
@@ -591,7 +592,7 @@ document.addEventListener("click", e => {
   else if (act === "reloadPreview") reloadPreview();
   else if (act === "replayFlow") { try { if (window.parent !== window && window.parent.hubFlowRestart) { window.parent.hubFlowRestart(); window.parent.__hideEditor(); } else if (frameReady) frame.contentWindow.postMessage({ type: "hub-consent-demo" }, "*"); } catch (err) {} }
   else if (act === "editOnPage") { try { window.parent.__startInline(inlineSet); } catch (err) { status("This works from the page's hidden editor (click the logo 5 times).", "err", 5000); } }
-  else if (act === "backToSite") { try { window.parent.__hideEditor(); } catch (err) {} }
+  else if (act === "backToSite") { pushToHost(); try { window.parent.__hideEditor(); } catch (err) {} }
 });
 // Drag and drop onto file slots and the bulk drop zone
 ["dragenter", "dragover"].forEach(t => document.addEventListener(t, e => { const z = e.target.closest && e.target.closest(".slot, [data-bulk]"); if (z) { e.preventDefault(); z.classList.add("over"); } }));
@@ -606,7 +607,7 @@ document.addEventListener("dragover", e => e.preventDefault()); document.addEven
 addEventListener("beforeunload", e => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
 
 /* ---------- Test hooks and start ---------- */
-window.__editor = { get content() { return C; }, set content(v) { C = normalize(v); tidy(); renderSide(); renderForm(false); reloadPreview(); }, buildExport: () => fillTemplate(C, true), exportSite, pullLinked, saveProject, openFile, makeZip, readZip, STORE, issues, go };
+window.__editor = { get content() { return C; }, set content(v) { C = normalize(v); tidy(); renderSide(); renderForm(false); reloadPreview(); pushToHost(); }, buildExport: () => fillTemplate(C, true), exportSite, pullLinked, saveProject, openFile, makeZip, readZip, STORE, issues, go };
 tidy(); renderSide(); renderForm(false); reloadPreview(); pullLinked();
 if (window.parent !== window) { for (const id of ["backBtn", "inlineBtn"]) { const bb = document.getElementById(id); if (bb) bb.hidden = false; } }
 })();
