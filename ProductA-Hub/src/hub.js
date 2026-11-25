@@ -25,7 +25,7 @@ const who = () => (HUB.stakeholders || []).find(s => s.id === state.who);
 const eng = () => (HUB.engagements || []).find(e => e.id === state.eng);
 
 /* ---------- State ---------- */
-const state = { who: null, eng: null, added: new Set(), removed: new Set() };
+const state = { who: null, eng: null, added: new Set(), removed: new Set(), order: [] };
 const rec = () => {
   if (!state.who || !state.eng) return [];
   const ids = (HUB.recommend && HUB.recommend[state.who] && HUB.recommend[state.who][state.eng]) || [];
@@ -33,7 +33,9 @@ const rec = () => {
 };
 const picked = () => {
   const r = rec().filter(id => !state.removed.has(id));
-  return [...r, ...modules().map(m => m.id).filter(id => state.added.has(id) && !r.includes(id))];
+  const base = [...r, ...modules().map(m => m.id).filter(id => state.added.has(id) && !r.includes(id))];
+  // The reader's own order (dragged in the pack list) wins; anything new goes after it
+  return state.order.length ? [...state.order.filter(id => base.includes(id)), ...base.filter(id => !state.order.includes(id))] : base;
 };
 const inPack = id => picked().includes(id);
 const totalPages = ids => pagesOf(HUB.core) + ids.reduce((s, id) => s + pagesOf(info(id)), 0);
@@ -42,6 +44,7 @@ const sanitizeState = () => {
   if (state.eng && !eng()) state.eng = null;
   state.added = new Set([...state.added].filter(id => info(id)));
   state.removed = new Set([...state.removed].filter(id => info(id)));
+  state.order = state.order.filter(id => info(id));
 };
 
 /* ---------- Veeva CLM (only active when the Veeva library is present) ---------- */
@@ -184,10 +187,19 @@ function renderChoices() {
 function setChoice(key, id) {
   const before = picked();
   state[key] = id; state.removed.clear();
+  // Once both choices are made the pack is re-done from the recommendation: modules added by hand and any custom order are cleared
+  const redo = !!(state.who && state.eng);
+  if (redo) { state.added.clear(); state.order = []; }
   veevaTrack(key === "who" ? "stakeholder" : "engagement", id, (key === "who" ? who() : eng()).label);
   renderAll();
-  const gained = picked().filter(x => !before.includes(x));
-  if (gained.length) { bumpDock(); toast(`${gained.length === 1 ? "1 recommended module" : gained.length + " recommended modules"} added to your pack`); }
+  const after = picked(), gained = after.filter(x => !before.includes(x)), lost = before.filter(x => !after.includes(x));
+  if (gained.length || lost.length) {
+    if (gained.length) bumpDock();
+    const bits = [];
+    if (gained.length) bits.push(`${gained.length} added`);
+    if (lost.length) bits.push(`${lost.length} removed`);
+    toast(redo ? `Your pack now matches your choice: ${bits.join(", ")}` : `${gained.length === 1 ? "1 recommended module" : gained.length + " recommended modules"} added to your pack`);
+  }
 }
 
 /* ---------- Pinned figures ---------- */
@@ -248,8 +260,8 @@ function renderPack() {
   $("#finDocs").textContent = all.length;
   $("#finPages").innerHTML = `document${all.length > 1 ? "s" : ""}<br>${pp} pages`;
   $("#finFor").innerHTML = state.who && state.eng ? `Built for a <b>${esc(who().label)}</b> - <b>${esc(eng().label)}</b>` : "Choose who you are engaging and the type of engagement at the top of the page for recommended modules.";
-  $("#finList").innerHTML = `<li class="core"><span class="n">00</span><span>${esc(HUB.core.name)}</span><span class="pp">${pagesOf(HUB.core)} pp</span>${dlBtn("core")}<span></span></li>` +
-    ids.map((id, i) => `<li><span class="n">${pad(i + 1)}</span><span>${esc(info(id).name)}</span><span class="pp">${pagesOf(info(id))} pp</span>${dlBtn(id)}<button type="button" class="x-btn" data-toggle="${esc(id)}" aria-label="Remove ${esc(info(id).name)}">${esc(bt("remove"))}</button></li>`).join("");
+  $("#finList").innerHTML = `<li class="core" data-id="core"><span class="grip-gap"></span><span class="n">00</span><span>${esc(HUB.core.name)}</span><span class="pp">${pagesOf(HUB.core)} pp</span>${dlBtn("core")}<span></span></li>` +
+    ids.map((id, i) => `<li data-id="${esc(id)}"><button type="button" class="drag" aria-label="Move ${esc(info(id).name)}. Drag, or press the up and down arrow keys." title="Drag to reorder"><svg viewBox="0 0 10 16" aria-hidden="true" fill="currentColor"><circle cx="2.5" cy="3" r="1.4"/><circle cx="7.5" cy="3" r="1.4"/><circle cx="2.5" cy="8" r="1.4"/><circle cx="7.5" cy="8" r="1.4"/><circle cx="2.5" cy="13" r="1.4"/><circle cx="7.5" cy="13" r="1.4"/></svg></button><span class="n">${pad(i + 1)}</span><span>${esc(info(id).name)}</span><span class="pp">${pagesOf(info(id))} pp</span>${dlBtn(id)}<button type="button" class="x-btn" data-toggle="${esc(id)}" aria-label="Remove ${esc(info(id).name)}">${esc(bt("remove"))}</button></li>`).join("");
   const rest = modules().filter(m => !ids.includes(m.id));
   $("#finMore").innerHTML = rest.length ? `<span>Add:</span>` + rest.map(m => `<button type="button" data-toggle="${esc(m.id)}">+ ${esc(m.name)}</button>`).join("") : "";
   const n = all.length;
@@ -430,6 +442,34 @@ document.addEventListener("click", e => {
   const jump = e.target.closest("[data-jump]"); if (jump) { document.getElementById("doc-" + jump.dataset.jump).scrollIntoView({ block: "start" }); return; }
 });
 document.addEventListener("keydown", e => { if (e.key === "Escape" && !packModal.hidden) closePack(); });
+/* Reorder the pack list: drag the handle (mouse or touch), or focus it and use the arrow keys. The core notification stays first. */
+(() => {
+  const list = $("#finList"); let drag = null;
+  list.addEventListener("pointerdown", e => {
+    const hd = e.target.closest(".drag"); if (!hd) return;
+    const li = hd.closest("li"); drag = { li }; li.classList.add("dragging"); try { hd.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault();
+  });
+  list.addEventListener("pointermove", e => {
+    if (!drag) return;
+    const items = [...list.querySelectorAll("li:not(.core):not(.dragging)")]; let before = null;
+    for (const it of items) { const r = it.getBoundingClientRect(); if (e.clientY < r.top + r.height / 2) { before = it; break; } }
+    if (before) { if (drag.li.nextElementSibling !== before) list.insertBefore(drag.li, before); } else if (list.lastElementChild !== drag.li) list.append(drag.li);
+  });
+  const end = () => {
+    if (!drag) return; drag.li.classList.remove("dragging");
+    const ids = [...list.querySelectorAll("li:not(.core)")].map(l => l.dataset.id), moved = drag.li.dataset.id; drag = null;
+    if (ids.join() !== picked().join()) { state.order = ids; renderAll(); toast("Pack order updated"); } else renderPack();
+    const hd = list.querySelector(`li[data-id="${moved}"] .drag`); if (hd) hd.focus({ preventScroll: true });
+  };
+  list.addEventListener("pointerup", end); list.addEventListener("pointercancel", end);
+  list.addEventListener("keydown", e => {
+    const hd = e.target.closest && e.target.closest(".drag"); if (!hd || (e.key !== "ArrowUp" && e.key !== "ArrowDown")) return;
+    e.preventDefault(); const id = hd.closest("li").dataset.id, ids = picked(), i = ids.indexOf(id), j = i + (e.key === "ArrowUp" ? -1 : 1);
+    if (i < 0 || j < 0 || j >= ids.length) return;
+    [ids[i], ids[j]] = [ids[j], ids[i]]; state.order = ids; renderAll();
+    const nh = list.querySelector(`li[data-id="${id}"] .drag`); if (nh) nh.focus({ preventScroll: true });
+  });
+})();
 $("#pmClose").addEventListener("click", closePack);
 packModal.addEventListener("click", e => { if (e.target === packModal) closePack(); });
 $("#dlPack").addEventListener("click", () => { const ids = ["core", ...picked()]; if (clm()) veevaSend(ids, ""); else mergePack(ids); });
@@ -596,7 +636,7 @@ if (window.HUB_PREVIEW) addEventListener("message", ev => {
   if (d.type === "hub-content" && d.content) { HUB = d.content; window.HUB = HUB; boot(); }
   else if (d.type === "hub-goto") { if (d.id === "top") scrollTo(0, 0); else { const el = document.getElementById(d.id); if (el) el.scrollIntoView({ block: "start" }); } }
   else if (d.type === "hub-consent-demo") { if (window.hubConsentDemo) window.hubConsentDemo(); }
-  else if (d.type === "hub-choose") { state.who = d.who || null; state.eng = d.eng || null; state.removed.clear(); renderAll(); }
+  else if (d.type === "hub-choose") { state.who = d.who || null; state.eng = d.eng || null; state.removed.clear(); state.order = []; renderAll(); }
 });
 
 /*PREVIEW_END*/
