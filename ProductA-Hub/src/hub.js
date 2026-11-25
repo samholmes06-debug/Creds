@@ -441,6 +441,7 @@ function applySections() { const v = HUB.sections || {}; [["stats", "stats"], ["
 document.getElementById("pmJump").addEventListener("scroll", updateJump, { passive: true });
 addEventListener("resize", updateJump);
 document.getElementById("pmJumpWrap").addEventListener("click", e => { const a = e.target.closest(".pm-arrow"); if (a) { const n = document.getElementById("pmJump"); n.scrollBy({ left: +a.dataset.jumpDir * Math.max(160, n.clientWidth * 0.7), behavior: "smooth" }); } });
+document.addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && e.target.matches && e.target.matches(".cover-lg")) { e.preventDefault(); e.target.click(); } });
 document.addEventListener("click", e => { const gt = e.target.closest && e.target.closest("[data-goto]"); if (gt) { const t = document.getElementById(gt.dataset.goto); if (t) t.scrollIntoView({ behavior: "smooth", block: "start" }); return; } const tp = e.target.closest && e.target.closest("a[data-top]"); if (tp) { e.preventDefault(); scrollTo({ top: 0, behavior: "smooth" }); return; } const pa = e.target.closest && e.target.closest("a[data-pi]"); if (pa) { e.preventDefault(); piFile(pa.dataset.pi); return; } const a = e.target.closest && e.target.closest("a[data-nolink]"); if (a) { e.preventDefault(); if (a.id === "piView") piFile("view"); else if (a.id === "piDownload") piFile("download"); } });
 function boot() { applyButtonText(); applySections(); sanitizeState(); applyBrand(); bindStatic(); renderStats(); renderAll(); onScroll(); if (window.hubConsentLink) window.hubConsentLink(); }
 
