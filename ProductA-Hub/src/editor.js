@@ -178,8 +178,7 @@ const SECTIONS = [
     `${fText("Small heading above the title", "hero.eyebrow")}<h2>Title lines</h2>${strs("hero.titleLines", "Title line", 1)}<p class="small" style="margin:-4px 0 12px">The last line is shown in the brand colour.</p>
      ${fArea("Intro", "hero.lede")}${fArea("Small print", "hero.note")}
      <h2>Stakeholder chooser</h2>${fText("Heading", "builder.title")}${fArea("Text", "builder.intro")}
-     <div class="cols">${fText("First row label", "builder.whoLabel")}${fText("Second row label", "builder.engLabel")}</div>
-     <div class="cols">${fText("Placeholder (who)", "builder.whoPlaceholder")}${fText("Placeholder (type)", "builder.engPlaceholder")}</div>`) },
+     <div class="cols">${fText("First row label", "builder.whoLabel")}${fText("Second row label", "builder.engLabel")}</div>`) },
   { id: "core", title: "Core notification", goto: "top", render: () => frameSection("Core notification", "The core deliverable. It is included in every pack.",
     `${fText("Name", "core.name")}<div class="cols">${fText("Short name (for small covers)", "core.short")}${fText("PDF code", "core.code")}</div>${fText("Line under the cover", "core.blurb")}
      <h2>PDF</h2>${slot("pdf", "core", "Core notification PDF", "application/pdf")}
@@ -240,6 +239,7 @@ const SECTIONS = [
      <div class="cols">${fText("Pack viewer: each document", "buttons.viewerDocDownload")}${fText("Pack list: small PDF button", "buttons.pdfSmall")}</div>
      <div class="cols">${fText("Remove button", "buttons.remove")}${fText("Back to top link (footer)", "buttons.backToTop")}</div>
      <div class="cols">${fText("Print button (pack viewer)", "buttons.print")}</div>
+     <div class="cols">${fText("Header link: References", "buttons.navRefs")}${fText("Header link: Prescribing Information", "buttons.navPi")}</div>
      <p class="small">Prescribing Information buttons are under Prescribing Information. Sign-in and consent buttons are under Sign-in and consent screens. Stakeholder and type choices are under Stakeholders and engagements.</p>`) },
   { id: "finish", title: "Pack and footer", goto: "pack", render: () => frameSection("Pack and footer", "The pack section and the legal footer.",
     `${fText("Pack heading", "finale.title")}${fArea("Pack text", "finale.sub")}

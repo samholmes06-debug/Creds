@@ -95,7 +95,8 @@ function hsl2hex(h, s, l) {
 const EXT_ICON = `<svg viewBox="0 0 12 12" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M5 2.5H2.5v7h7V7M7 2.5h2.5V5M9.5 2.5 5.5 6.5"/></svg>`;
 function footLinks(lg) {
   const l = (lg.links || []).filter(x => x && x.label);
-  return l.length ? `<div class="foot-links">${l.map(x => `<a href="${x.url ? esc(x.url) : "#"}"${x.url ? ` target="_blank" rel="noopener"` : ` data-nolink="1"`}>${esc(x.label)}${x.external ? EXT_ICON : ""}</a>`).join("")}</div>` : "";
+  const top = `<a class="foot-top" href="#top" data-top="1"><span data-btn="backToTop">Back to top</span><svg viewBox="0 0 12 12" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 10V2M2.5 5.5 6 2l3.5 3.5"/></svg></a>`;
+  return `<div class="foot-links">${l.map(x => `<a href="${x.url ? esc(x.url) : "#"}"${x.url ? ` target="_blank" rel="noopener"` : ` data-nolink="1"`}>${esc(x.label)}${x.external ? EXT_ICON : ""}</a>`).join("")}${top}</div>`;
 }
 function applyBrand() {
   const b = HUB.brand || {}, root = document.documentElement.style;
@@ -120,7 +121,7 @@ function applyBrand() {
 const mark = (cls = "") => HUB.brand && HUB.brand.logo ? `<img class="logo" src="${esc(HUB.brand.logo)}" alt="${esc(HUB.brand.productName)}">` : `<i aria-hidden="true"></i>${esc((HUB.brand || {}).productName)}`;
 
 /* ---------- Static text and shell ---------- */
-const BT = { print: "Print", backToTop: "Back to top", heroDownload: "Download PDF", heroPreview: "Preview", packPreview: "Preview pack", packDownload: "Download as one PDF", dockView: "View pack", viewerDownload: "Download pack", viewerDocDownload: "Download PDF", pdfSmall: "PDF", remove: "Remove" };
+const BT = { navRefs: "References", navPi: "Prescribing Information", print: "Print", backToTop: "Back to top", heroDownload: "Download PDF", heroPreview: "Preview", packPreview: "Preview pack", packDownload: "Download as one PDF", dockView: "View pack", viewerDownload: "Download pack", viewerDocDownload: "Download PDF", pdfSmall: "PDF", remove: "Remove" };
 const bt = k => ((HUB.buttons || {})[k]) || BT[k];
 function applyButtonText() { $$("[data-btn]").forEach(el => { el.textContent = bt(el.dataset.btn); }); }
 const linkify = t => esc(t).replace(/\[([^\]]+)\]\((#[\w-]+|https?:\/\/[^)\s]+)\)/g, (m, a, u) => `<a href="${u}"${/^#pi-(view|download)$/.test(u) ? ` data-pi="${u.slice(4)}"` : u[0] === "#" ? "" : ` target="_blank" rel="noopener"`}>${a}</a>`);
@@ -144,28 +145,16 @@ function bindStatic() {
   $("#pmDownload").innerHTML = inV ? `Send pack <span aria-hidden="true">✉</span>` : `${esc(bt("viewerDownload"))} <span aria-hidden="true">↓</span>`;
   const lg = HUB.legal || {};
   const dflt = `Job code ${b.jobCode || ""} | Date of preparation ${b.datePrepared || ""}`;
-  $("#footerInner").innerHTML = (lg.paragraphs || []).map((p, i) => `<p data-edit="legal.paragraphs.${i}">${esc(p)}</p>`).join("") + footLinks(lg) + `<p class="foot-ref" data-edit="legal.line" data-fallback="${esc(dflt)}">${md(lg.line ? lg.line : dflt).replace(/ \| /g, `<span class="foot-vr" aria-hidden="true"></span>`)}</p>` + `<a class="foot-top" href="#top" data-top="1"><span data-btn="backToTop">Back to top</span><svg viewBox="0 0 12 12" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 10V2M2.5 5.5 6 2l3.5 3.5"/></svg></a>`;
-  $("#pickWho b").textContent = who() ? who().label : (HUB.builder || {}).whoPlaceholder || "Choose";
-  $("#pickEng b").textContent = eng() ? eng().label : (HUB.builder || {}).engPlaceholder || "Choose";
-  $("#pickWho b").classList.toggle("empty", !who());
-  $("#pickEng b").classList.toggle("empty", !eng());
+  $("#footerInner").innerHTML = (lg.paragraphs || []).map((p, i) => `<p data-edit="legal.paragraphs.${i}">${esc(p)}</p>`).join("") + footLinks(lg) + `<p class="foot-ref" data-edit="legal.line" data-fallback="${esc(dflt)}">${md(lg.line ? lg.line : dflt).replace(/ \| /g, `<span class="foot-vr" aria-hidden="true"></span>`)}</p>`;
   // Timeline
   $("#tlTrack").innerHTML = ((HUB.timeline || {}).items || []).map((i, n) => `<div class="ms ${i.state === "done" ? "done" : i.state === "now" ? "now" : ""}"><span class="dot"></span><span class="tag" data-edit="timeline.items.${n}.tag">${esc(i.tag)}</span><span class="when" data-edit="timeline.items.${n}.when">${esc(i.when)}</span><span class="what" data-edit="timeline.items.${n}.what">${esc(i.what)}</span><p data-edit="timeline.items.${n}.text">${esc(i.text)}</p></div>`).join("");
 }
 
-/* ---------- Builder: chips in the hero, menus in the bar ---------- */
+/* ---------- Builder: chips in the hero ---------- */
 function renderChoices() {
   const chips = (el, data, key) => { el.innerHTML = data.map(d => `<button type="button" class="chip" data-set="${key}:${esc(d.id)}" aria-pressed="${state[key] === d.id}">${esc(d.label)}</button>`).join(""); };
   chips($("#chipsWho"), HUB.stakeholders || [], "who");
   chips($("#chipsEng"), HUB.engagements || [], "eng");
-  const menu = (key, data) => {
-    $(`[data-pick="${key}"] .menu`).innerHTML = data.map(d => `<button type="button" role="menuitemradio" aria-checked="${state[key] === d.id}" aria-pressed="${state[key] === d.id}" data-set="${key}:${esc(d.id)}"><b>${esc(d.label)}</b><span>${esc(d.desc || "")}</span></button>`).join("");
-  };
-  menu("who", HUB.stakeholders || []); menu("eng", HUB.engagements || []);
-  $("#pickWho b").textContent = who() ? who().label : (HUB.builder || {}).whoPlaceholder || "Choose";
-  $("#pickEng b").textContent = eng() ? eng().label : (HUB.builder || {}).engPlaceholder || "Choose";
-  $("#pickWho b").classList.toggle("empty", !who());
-  $("#pickEng b").classList.toggle("empty", !eng());
   const st = $("#builderStatus");
   if (state.who && state.eng) {
     const r = rec();
@@ -178,11 +167,10 @@ function setChoice(key, id) {
   const before = picked();
   state[key] = id; state.removed.clear();
   veevaTrack(key === "who" ? "stakeholder" : "engagement", id, (key === "who" ? who() : eng()).label);
-  closeMenus(); renderAll();
+  renderAll();
   const gained = picked().filter(x => !before.includes(x));
   if (gained.length) { bumpDock(); toast(`${gained.length === 1 ? "1 recommended module" : gained.length + " recommended modules"} added to your pack`); }
 }
-function closeMenus() { $$(".pick").forEach(p => { $(".menu", p).hidden = true; $(".pick-btn", p).setAttribute("aria-expanded", "false"); }); }
 
 /* ---------- Pinned figures ---------- */
 const statHtml = s => esc(s.value) + (s.suffix ? (s.suffixStyle === "accent" ? `<em>${esc(s.suffix)}</em>` : `<small>${esc(s.suffix)}</small>`) : "");
@@ -412,15 +400,8 @@ document.addEventListener("click", e => {
   const os = e.target.closest("[data-open-slide]"); if (os) { veevaOpenSlide(os.dataset.openSlide); return; }
   const pdf = e.target.closest("[data-pdf]"); if (pdf) { const id = pdf.dataset.pdf; if (clm()) veevaSend([id], ""); else downloadDoc(id); return; }
   const jump = e.target.closest("[data-jump]"); if (jump) { document.getElementById("doc-" + jump.dataset.jump).scrollIntoView({ block: "start" }); return; }
-  if (!e.target.closest(".pick")) closeMenus();
 });
-$$(".pick-btn").forEach(b => b.addEventListener("click", e => { const m = b.nextElementSibling, open = m.hidden; closeMenus(); if (open) { m.hidden = false; b.setAttribute("aria-expanded", "true"); const f = m.querySelector("button"); if (f) f.focus(); } e.stopPropagation(); }));
-document.addEventListener("keydown", e => {
-  const m = e.target.closest && e.target.closest(".menu");
-  if (m && (e.key === "ArrowDown" || e.key === "ArrowUp")) { e.preventDefault(); const items = $$("button", m), i = items.indexOf(e.target); items[(i + (e.key === "ArrowDown" ? 1 : items.length - 1)) % items.length].focus(); }
-  if (e.key !== "Escape") return;
-  if (!packModal.hidden) closePack(); else closeMenus();
-});
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !packModal.hidden) closePack(); });
 $("#pmClose").addEventListener("click", closePack);
 packModal.addEventListener("click", e => { if (e.target === packModal) closePack(); });
 $("#dlPack").addEventListener("click", () => { const ids = ["core", ...picked()]; if (clm()) veevaSend(ids, ""); else mergePack(ids); });
@@ -436,6 +417,7 @@ function applySections() { const v = HUB.sections || {}; [["stats", "stats"], ["
   const refs = ((HUB.references || {}).items || []).length > 0 && v.references !== false, abbr = !!(HUB.abbreviations || {}).text && v.abbreviations !== false;
   const re = document.getElementById("refs"), ab = document.getElementById("abbr"), ru = document.getElementById("piRule");
   if (re) re.hidden = !refs; if (ab) ab.hidden = !abbr; if (ru) ru.hidden = !(refs || abbr);
+  const nr = document.getElementById("navRefs"), np = document.getElementById("navPi"); if (nr) nr.hidden = !refs; if (np) np.hidden = v.prescribing === false;
 }
 document.getElementById("pmJump").addEventListener("scroll", updateJump, { passive: true });
 addEventListener("resize", updateJump);

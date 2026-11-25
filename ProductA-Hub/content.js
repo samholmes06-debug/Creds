@@ -57,8 +57,6 @@ window.HUB = {
     intro: "Choose a stakeholder and the type of engagement. We'll recommend modules, put the most relevant chapters first, and you can add more as you read.",
     whoLabel: "I'm engaging",
     engLabel: "For",
-    whoPlaceholder: "Choose stakeholder",
-    engPlaceholder: "Choose type"
   },
   stakeholders: [
     { id: "commissioner", label: "ICB commissioner",        plural: "ICB commissioners",             desc: "Budgets and service planning" },
@@ -261,6 +259,8 @@ window.HUB = {
     viewerDocDownload: "Download PDF", // pack viewer, each document
     pdfSmall: "PDF",                   // small button in the pack list
     remove: "Remove",
+    navRefs: "References",           // header link
+    navPi: "Prescribing Information", // header link
     print: "Print",                    // pack viewer
     backToTop: "Back to top"            // link at the very bottom of the page
   },

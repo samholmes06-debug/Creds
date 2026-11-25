@@ -286,7 +286,7 @@ footer b { color: var(--black); }
 .foot-links a, .foot-links button { color: var(--black); font: inherit; font-size: 15px; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 7px; }
 .foot-links a:hover, .foot-links button:hover { text-decoration: underline; text-underline-offset: 3px; }
 .foot-ref { margin-top: 22px !important; }
-.foot-top { justify-self: start; margin-top: 18px; display: inline-flex; align-items: center; gap: 7px; font-size: 15px; color: var(--black); text-decoration: none; }
+.foot-top { display: inline-flex; align-items: center; gap: 7px; font-size: 15px; color: var(--black); text-decoration: none; }
 .foot-top:hover { text-decoration: underline; text-underline-offset: 3px; }
 .foot-top svg { width: 12px; height: 12px; color: var(--orange); }
 .foot-vr { display: inline-block; width: 1px; height: .95em; background: currentColor; opacity: .55; margin: 0 12px; vertical-align: -1px; }
@@ -435,3 +435,9 @@ main:focus { outline: none; }
 /* One primary action in the opening screen: Preview is a quiet text link */
 .core-actions .btn-line { background: none; border: 0; padding: 14px 10px; font-weight: 400; text-decoration: underline; text-underline-offset: 4px; }
 .core-actions .btn-line:hover { border: 0; color: var(--orange-ink, #c44a1a); }
+
+/* Header links to the end sections */
+.bar-link { display: inline-flex; align-items: center; min-height: 48px; padding: 6px 18px; border: 1.5px solid var(--grey-2); background: var(--white); border-radius: 14px; font-weight: 700; font-size: 15px; color: var(--black); text-decoration: none; white-space: nowrap; transition: border-color .2s; }
+.bar-link:hover { border-color: var(--black); }
+#refs, #piHead { scroll-margin-top: calc(var(--bar-h) + 12px); }
+@media (max-width: 640px) { .bar-link { width: 100%; justify-content: flex-start; padding: 6px 14px; } }
