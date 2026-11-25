@@ -212,7 +212,7 @@ html { scroll-behavior: smooth; }
 .cv .cv-t { align-self: end; font-size: 7px; line-height: 1.1; letter-spacing: -.01em; }
 .cv-core { background: var(--orange); color: var(--on-accent); }
 .cv-core::before { background: var(--on-accent); }
-.cv-s0 { background: var(--black); color: var(--white); }
+.cv-s0 { background: #1b1d20; color: var(--white); box-shadow: 0 0 0 1px #2c2f33, 0 6px 14px -6px rgba(13, 14, 15, .35); }
 .cv-s1 { background: var(--ink-2); color: var(--white); }
 .cv-s2 { background: var(--white); color: var(--black); box-shadow: 0 0 0 1px var(--grey-2), 0 6px 14px -6px rgba(13, 14, 15, .35); }
 .cv-s3 { background: var(--grey-2); color: var(--black); }
