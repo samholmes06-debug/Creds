@@ -161,7 +161,7 @@ html { scroll-behavior: smooth; }
 
 /* Pinned numbers scene */
 .stats { height: 460vh; position: relative; background: var(--black); color: var(--white); }
-.fold { position: absolute; top: -1px; left: 50%; transform: translateX(-50%); width: clamp(120px, 13vw, 200px); height: auto; z-index: 3; fill: var(--white); pointer-events: none; display: block; }
+.fold { position: absolute; top: -1px; left: 50%; transform: translateX(-50%); width: clamp(80px, 8vw, 120px); height: auto; z-index: 3; fill: var(--white); pointer-events: none; display: block; }
 .stats-pin { position: sticky; top: calc(env(safe-area-inset-top, 0px) + var(--bar-h)); height: calc(100svh - var(--bar-h) - env(safe-area-inset-top, 0px)); overflow: hidden; }
 .stats-pin .wrap { height: 100%; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; padding-block: clamp(20px, 4vh, 44px); }
 .stats-top { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
