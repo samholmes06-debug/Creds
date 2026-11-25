@@ -272,8 +272,9 @@ html { scroll-behavior: smooth; }
 
 /* Pack finale */
 .finale { background: var(--black); color: var(--white); padding-block: clamp(72px, 10vw, 140px); }
-.finale .sec-head p { color: #b9bdc1; }
-.finale-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px 72px; margin-top: 56px; align-items: center; }
+.finale .sec-head { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.finale .sec-head p { color: #b9bdc1; max-width: 52ch; }
+.finale-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px 72px; margin-top: 12px; align-items: center; }
 @media (max-width: 900px) { .finale-grid { grid-template-columns: minmax(0, 1fr); } }
 .fan { overflow: clip; overflow-clip-margin: 40px; position: relative; height: clamp(280px, 34vw, 440px); }
 .fan .cv { position: absolute; top: 50%; left: 50%; width: clamp(110px, 13vw, 170px); transition: transform .6s var(--ease); }
@@ -286,7 +287,7 @@ html { scroll-behavior: smooth; }
 .fin-for { color: #d9dcdf; }
 .fin-for b { color: var(--white); }
 .fin-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid #2a2c2e; }
-.fin-list li { display: grid; grid-template-columns: 22px 34px minmax(0, 1fr) auto auto auto; gap: 10px; align-items: center; padding: 12px 0; border-bottom: 1px solid #2a2c2e; }
+.fin-list li { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto auto auto; gap: 10px; align-items: center; padding: 12px 0; border-bottom: 1px solid #2a2c2e; }
 .fin-list .n { color: #8a8f94; font-variant-numeric: tabular-nums; font-size: 13px; }
 .fin-list li.core .n { color: var(--orange); }
 .fin-list .pp { color: #8a8f94; font-size: 13px; }
@@ -477,15 +478,8 @@ main:focus { outline: none; }
 .pm-sub .pm-arrow { color: #151515; border-color: #cfcdc9; }
 .pm-sub .pm-arrow:hover { background: #151515; color: #fff; }
 .pm-sub .pm-jump.fade-r { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); }
-
-/* Reorder handle in the pack list */
-.fin-list .drag { border: 0; background: none; color: #8a8f94; cursor: grab; padding: 6px 4px; margin-left: -4px; display: grid; place-items: center; touch-action: none; border-radius: 6px; }
-.fin-list .drag svg { width: 10px; height: 16px; }
-.fin-list .drag:hover { color: var(--white); }
-.fin-list .drag:focus-visible { outline: 2px solid var(--white); outline-offset: 1px; }
-.fin-list li.dragging { background: #17191b; box-shadow: 0 8px 24px rgba(0, 0, 0, .5); cursor: grabbing; position: relative; z-index: 2; }
-.fin-list li.dragging .drag { cursor: grabbing; color: var(--orange); }
-@media (max-width: 560px) { .fin-list li { grid-template-columns: 16px 24px minmax(0, 1fr) auto auto auto; gap: 6px; } .fin-list .x-btn { padding: 4px 8px; } }
+@media (max-width: 560px) { .fin-list li { grid-template-columns: 24px minmax(0, 1fr) auto auto auto; gap: 6px; } .fin-list .x-btn { padding: 4px 8px; } }
+@media (min-width: 901px) { .finale-side { margin-top: -56px; } }
 
 </style>
 </head>
@@ -662,7 +656,7 @@ const who = () => (HUB.stakeholders || []).find(s => s.id === state.who);
 const eng = () => (HUB.engagements || []).find(e => e.id === state.eng);
 
 /* ---------- State ---------- */
-const state = { who: null, eng: null, added: new Set(), removed: new Set(), order: [] };
+const state = { who: null, eng: null, added: new Set(), removed: new Set() };
 const rec = () => {
   if (!state.who || !state.eng) return [];
   const ids = (HUB.recommend && HUB.recommend[state.who] && HUB.recommend[state.who][state.eng]) || [];
@@ -670,9 +664,7 @@ const rec = () => {
 };
 const picked = () => {
   const r = rec().filter(id => !state.removed.has(id));
-  const base = [...r, ...modules().map(m => m.id).filter(id => state.added.has(id) && !r.includes(id))];
-  // The reader's own order (dragged in the pack list) wins; anything new goes after it
-  return state.order.length ? [...state.order.filter(id => base.includes(id)), ...base.filter(id => !state.order.includes(id))] : base;
+  return [...r, ...modules().map(m => m.id).filter(id => state.added.has(id) && !r.includes(id))];
 };
 const inPack = id => picked().includes(id);
 const totalPages = ids => pagesOf(HUB.core) + ids.reduce((s, id) => s + pagesOf(info(id)), 0);
@@ -681,7 +673,6 @@ const sanitizeState = () => {
   if (state.eng && !eng()) state.eng = null;
   state.added = new Set([...state.added].filter(id => info(id)));
   state.removed = new Set([...state.removed].filter(id => info(id)));
-  state.order = state.order.filter(id => info(id));
 };
 
 /* ---------- Veeva CLM (only active when the Veeva library is present) ---------- */
@@ -826,7 +817,7 @@ function setChoice(key, id) {
   state[key] = id; state.removed.clear();
   // Once both choices are made the pack is re-done from the recommendation: modules added by hand and any custom order are cleared
   const redo = !!(state.who && state.eng);
-  if (redo) { state.added.clear(); state.order = []; }
+  if (redo) state.added.clear();
   veevaTrack(key === "who" ? "stakeholder" : "engagement", id, (key === "who" ? who() : eng()).label);
   renderAll();
   const after = picked(), gained = after.filter(x => !before.includes(x)), lost = before.filter(x => !after.includes(x));
@@ -897,8 +888,8 @@ function renderPack() {
   $("#finDocs").textContent = all.length;
   $("#finPages").innerHTML = `document${all.length > 1 ? "s" : ""}<br>${pp} pages`;
   $("#finFor").innerHTML = state.who && state.eng ? `Built for a <b>${esc(who().label)}</b> - <b>${esc(eng().label)}</b>` : "Choose who you are engaging and the type of engagement at the top of the page for recommended modules.";
-  $("#finList").innerHTML = `<li class="core" data-id="core"><span class="grip-gap"></span><span class="n">00</span><span>${esc(HUB.core.name)}</span><span class="pp">${pagesOf(HUB.core)} pp</span>${dlBtn("core")}<span></span></li>` +
-    ids.map((id, i) => `<li data-id="${esc(id)}"><button type="button" class="drag" aria-label="Move ${esc(info(id).name)}. Drag, or press the up and down arrow keys." title="Drag to reorder"><svg viewBox="0 0 10 16" aria-hidden="true" fill="currentColor"><circle cx="2.5" cy="3" r="1.4"/><circle cx="7.5" cy="3" r="1.4"/><circle cx="2.5" cy="8" r="1.4"/><circle cx="7.5" cy="8" r="1.4"/><circle cx="2.5" cy="13" r="1.4"/><circle cx="7.5" cy="13" r="1.4"/></svg></button><span class="n">${pad(i + 1)}</span><span>${esc(info(id).name)}</span><span class="pp">${pagesOf(info(id))} pp</span>${dlBtn(id)}<button type="button" class="x-btn" data-toggle="${esc(id)}" aria-label="Remove ${esc(info(id).name)}">${esc(bt("remove"))}</button></li>`).join("");
+  $("#finList").innerHTML = `<li class="core" data-id="core"><span class="n">00</span><span>${esc(HUB.core.name)}</span><span class="pp">${pagesOf(HUB.core)} pp</span>${dlBtn("core")}<span></span></li>` +
+    ids.map((id, i) => `<li data-id="${esc(id)}"><span class="n">${pad(i + 1)}</span><span>${esc(info(id).name)}</span><span class="pp">${pagesOf(info(id))} pp</span>${dlBtn(id)}<button type="button" class="x-btn" data-toggle="${esc(id)}" aria-label="Remove ${esc(info(id).name)}">${esc(bt("remove"))}</button></li>`).join("");
   const rest = modules().filter(m => !ids.includes(m.id));
   $("#finMore").innerHTML = rest.length ? `<span>Add:</span>` + rest.map(m => `<button type="button" data-toggle="${esc(m.id)}">+ ${esc(m.name)}</button>`).join("") : "";
   const n = all.length;
@@ -1079,34 +1070,6 @@ document.addEventListener("click", e => {
   const jump = e.target.closest("[data-jump]"); if (jump) { document.getElementById("doc-" + jump.dataset.jump).scrollIntoView({ block: "start" }); return; }
 });
 document.addEventListener("keydown", e => { if (e.key === "Escape" && !packModal.hidden) closePack(); });
-/* Reorder the pack list: drag the handle (mouse or touch), or focus it and use the arrow keys. The core notification stays first. */
-(() => {
-  const list = $("#finList"); let drag = null;
-  list.addEventListener("pointerdown", e => {
-    const hd = e.target.closest(".drag"); if (!hd) return;
-    const li = hd.closest("li"); drag = { li }; li.classList.add("dragging"); try { hd.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault();
-  });
-  list.addEventListener("pointermove", e => {
-    if (!drag) return;
-    const items = [...list.querySelectorAll("li:not(.core):not(.dragging)")]; let before = null;
-    for (const it of items) { const r = it.getBoundingClientRect(); if (e.clientY < r.top + r.height / 2) { before = it; break; } }
-    if (before) { if (drag.li.nextElementSibling !== before) list.insertBefore(drag.li, before); } else if (list.lastElementChild !== drag.li) list.append(drag.li);
-  });
-  const end = () => {
-    if (!drag) return; drag.li.classList.remove("dragging");
-    const ids = [...list.querySelectorAll("li:not(.core)")].map(l => l.dataset.id), moved = drag.li.dataset.id; drag = null;
-    if (ids.join() !== picked().join()) { state.order = ids; renderAll(); toast("Pack order updated"); } else renderPack();
-    const hd = list.querySelector(`li[data-id="${moved}"] .drag`); if (hd) hd.focus({ preventScroll: true });
-  };
-  list.addEventListener("pointerup", end); list.addEventListener("pointercancel", end);
-  list.addEventListener("keydown", e => {
-    const hd = e.target.closest && e.target.closest(".drag"); if (!hd || (e.key !== "ArrowUp" && e.key !== "ArrowDown")) return;
-    e.preventDefault(); const id = hd.closest("li").dataset.id, ids = picked(), i = ids.indexOf(id), j = i + (e.key === "ArrowUp" ? -1 : 1);
-    if (i < 0 || j < 0 || j >= ids.length) return;
-    [ids[i], ids[j]] = [ids[j], ids[i]]; state.order = ids; renderAll();
-    const nh = list.querySelector(`li[data-id="${id}"] .drag`); if (nh) nh.focus({ preventScroll: true });
-  });
-})();
 $("#pmClose").addEventListener("click", closePack);
 packModal.addEventListener("click", e => { if (e.target === packModal) closePack(); });
 $("#dlPack").addEventListener("click", () => { const ids = ["core", ...picked()]; if (clm()) veevaSend(ids, ""); else mergePack(ids); });
@@ -1733,8 +1696,9 @@ html { scroll-behavior: smooth; }
 
 /* Pack finale */
 .finale { background: var(--black); color: var(--white); padding-block: clamp(72px, 10vw, 140px); }
-.finale .sec-head p { color: #b9bdc1; }
-.finale-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px 72px; margin-top: 56px; align-items: center; }
+.finale .sec-head { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.finale .sec-head p { color: #b9bdc1; max-width: 52ch; }
+.finale-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px 72px; margin-top: 12px; align-items: center; }
 @media (max-width: 900px) { .finale-grid { grid-template-columns: minmax(0, 1fr); } }
 .fan { overflow: clip; overflow-clip-margin: 40px; position: relative; height: clamp(280px, 34vw, 440px); }
 .fan .cv { position: absolute; top: 50%; left: 50%; width: clamp(110px, 13vw, 170px); transition: transform .6s var(--ease); }
@@ -1747,7 +1711,7 @@ html { scroll-behavior: smooth; }
 .fin-for { color: #d9dcdf; }
 .fin-for b { color: var(--white); }
 .fin-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid #2a2c2e; }
-.fin-list li { display: grid; grid-template-columns: 22px 34px minmax(0, 1fr) auto auto auto; gap: 10px; align-items: center; padding: 12px 0; border-bottom: 1px solid #2a2c2e; }
+.fin-list li { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto auto auto; gap: 10px; align-items: center; padding: 12px 0; border-bottom: 1px solid #2a2c2e; }
 .fin-list .n { color: #8a8f94; font-variant-numeric: tabular-nums; font-size: 13px; }
 .fin-list li.core .n { color: var(--orange); }
 .fin-list .pp { color: #8a8f94; font-size: 13px; }
@@ -1938,15 +1902,8 @@ main:focus { outline: none; }
 .pm-sub .pm-arrow { color: #151515; border-color: #cfcdc9; }
 .pm-sub .pm-arrow:hover { background: #151515; color: #fff; }
 .pm-sub .pm-jump.fade-r { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); }
-
-/* Reorder handle in the pack list */
-.fin-list .drag { border: 0; background: none; color: #8a8f94; cursor: grab; padding: 6px 4px; margin-left: -4px; display: grid; place-items: center; touch-action: none; border-radius: 6px; }
-.fin-list .drag svg { width: 10px; height: 16px; }
-.fin-list .drag:hover { color: var(--white); }
-.fin-list .drag:focus-visible { outline: 2px solid var(--white); outline-offset: 1px; }
-.fin-list li.dragging { background: #17191b; box-shadow: 0 8px 24px rgba(0, 0, 0, .5); cursor: grabbing; position: relative; z-index: 2; }
-.fin-list li.dragging .drag { cursor: grabbing; color: var(--orange); }
-@media (max-width: 560px) { .fin-list li { grid-template-columns: 16px 24px minmax(0, 1fr) auto auto auto; gap: 6px; } .fin-list .x-btn { padding: 4px 8px; } }
+@media (max-width: 560px) { .fin-list li { grid-template-columns: 24px minmax(0, 1fr) auto auto auto; gap: 6px; } .fin-list .x-btn { padding: 4px 8px; } }
+@media (min-width: 901px) { .finale-side { margin-top: -56px; } }
 
 </style>
 </head>
@@ -2123,7 +2080,7 @@ const who = () => (HUB.stakeholders || []).find(s => s.id === state.who);
 const eng = () => (HUB.engagements || []).find(e => e.id === state.eng);
 
 /* ---------- State ---------- */
-const state = { who: null, eng: null, added: new Set(), removed: new Set(), order: [] };
+const state = { who: null, eng: null, added: new Set(), removed: new Set() };
 const rec = () => {
   if (!state.who || !state.eng) return [];
   const ids = (HUB.recommend && HUB.recommend[state.who] && HUB.recommend[state.who][state.eng]) || [];
@@ -2131,9 +2088,7 @@ const rec = () => {
 };
 const picked = () => {
   const r = rec().filter(id => !state.removed.has(id));
-  const base = [...r, ...modules().map(m => m.id).filter(id => state.added.has(id) && !r.includes(id))];
-  // The reader's own order (dragged in the pack list) wins; anything new goes after it
-  return state.order.length ? [...state.order.filter(id => base.includes(id)), ...base.filter(id => !state.order.includes(id))] : base;
+  return [...r, ...modules().map(m => m.id).filter(id => state.added.has(id) && !r.includes(id))];
 };
 const inPack = id => picked().includes(id);
 const totalPages = ids => pagesOf(HUB.core) + ids.reduce((s, id) => s + pagesOf(info(id)), 0);
@@ -2142,7 +2097,6 @@ const sanitizeState = () => {
   if (state.eng && !eng()) state.eng = null;
   state.added = new Set([...state.added].filter(id => info(id)));
   state.removed = new Set([...state.removed].filter(id => info(id)));
-  state.order = state.order.filter(id => info(id));
 };
 
 /* ---------- Veeva CLM (only active when the Veeva library is present) ---------- */
@@ -2287,7 +2241,7 @@ function setChoice(key, id) {
   state[key] = id; state.removed.clear();
   // Once both choices are made the pack is re-done from the recommendation: modules added by hand and any custom order are cleared
   const redo = !!(state.who && state.eng);
-  if (redo) { state.added.clear(); state.order = []; }
+  if (redo) state.added.clear();
   veevaTrack(key === "who" ? "stakeholder" : "engagement", id, (key === "who" ? who() : eng()).label);
   renderAll();
   const after = picked(), gained = after.filter(x => !before.includes(x)), lost = before.filter(x => !after.includes(x));
@@ -2358,8 +2312,8 @@ function renderPack() {
   $("#finDocs").textContent = all.length;
   $("#finPages").innerHTML = `document${all.length > 1 ? "s" : ""}<br>${pp} pages`;
   $("#finFor").innerHTML = state.who && state.eng ? `Built for a <b>${esc(who().label)}</b> - <b>${esc(eng().label)}</b>` : "Choose who you are engaging and the type of engagement at the top of the page for recommended modules.";
-  $("#finList").innerHTML = `<li class="core" data-id="core"><span class="grip-gap"></span><span class="n">00</span><span>${esc(HUB.core.name)}</span><span class="pp">${pagesOf(HUB.core)} pp</span>${dlBtn("core")}<span></span></li>` +
-    ids.map((id, i) => `<li data-id="${esc(id)}"><button type="button" class="drag" aria-label="Move ${esc(info(id).name)}. Drag, or press the up and down arrow keys." title="Drag to reorder"><svg viewBox="0 0 10 16" aria-hidden="true" fill="currentColor"><circle cx="2.5" cy="3" r="1.4"/><circle cx="7.5" cy="3" r="1.4"/><circle cx="2.5" cy="8" r="1.4"/><circle cx="7.5" cy="8" r="1.4"/><circle cx="2.5" cy="13" r="1.4"/><circle cx="7.5" cy="13" r="1.4"/></svg></button><span class="n">${pad(i + 1)}</span><span>${esc(info(id).name)}</span><span class="pp">${pagesOf(info(id))} pp</span>${dlBtn(id)}<button type="button" class="x-btn" data-toggle="${esc(id)}" aria-label="Remove ${esc(info(id).name)}">${esc(bt("remove"))}</button></li>`).join("");
+  $("#finList").innerHTML = `<li class="core" data-id="core"><span class="n">00</span><span>${esc(HUB.core.name)}</span><span class="pp">${pagesOf(HUB.core)} pp</span>${dlBtn("core")}<span></span></li>` +
+    ids.map((id, i) => `<li data-id="${esc(id)}"><span class="n">${pad(i + 1)}</span><span>${esc(info(id).name)}</span><span class="pp">${pagesOf(info(id))} pp</span>${dlBtn(id)}<button type="button" class="x-btn" data-toggle="${esc(id)}" aria-label="Remove ${esc(info(id).name)}">${esc(bt("remove"))}</button></li>`).join("");
   const rest = modules().filter(m => !ids.includes(m.id));
   $("#finMore").innerHTML = rest.length ? `<span>Add:</span>` + rest.map(m => `<button type="button" data-toggle="${esc(m.id)}">+ ${esc(m.name)}</button>`).join("") : "";
   const n = all.length;
@@ -2540,34 +2494,6 @@ document.addEventListener("click", e => {
   const jump = e.target.closest("[data-jump]"); if (jump) { document.getElementById("doc-" + jump.dataset.jump).scrollIntoView({ block: "start" }); return; }
 });
 document.addEventListener("keydown", e => { if (e.key === "Escape" && !packModal.hidden) closePack(); });
-/* Reorder the pack list: drag the handle (mouse or touch), or focus it and use the arrow keys. The core notification stays first. */
-(() => {
-  const list = $("#finList"); let drag = null;
-  list.addEventListener("pointerdown", e => {
-    const hd = e.target.closest(".drag"); if (!hd) return;
-    const li = hd.closest("li"); drag = { li }; li.classList.add("dragging"); try { hd.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault();
-  });
-  list.addEventListener("pointermove", e => {
-    if (!drag) return;
-    const items = [...list.querySelectorAll("li:not(.core):not(.dragging)")]; let before = null;
-    for (const it of items) { const r = it.getBoundingClientRect(); if (e.clientY < r.top + r.height / 2) { before = it; break; } }
-    if (before) { if (drag.li.nextElementSibling !== before) list.insertBefore(drag.li, before); } else if (list.lastElementChild !== drag.li) list.append(drag.li);
-  });
-  const end = () => {
-    if (!drag) return; drag.li.classList.remove("dragging");
-    const ids = [...list.querySelectorAll("li:not(.core)")].map(l => l.dataset.id), moved = drag.li.dataset.id; drag = null;
-    if (ids.join() !== picked().join()) { state.order = ids; renderAll(); toast("Pack order updated"); } else renderPack();
-    const hd = list.querySelector(`li[data-id="${moved}"] .drag`); if (hd) hd.focus({ preventScroll: true });
-  };
-  list.addEventListener("pointerup", end); list.addEventListener("pointercancel", end);
-  list.addEventListener("keydown", e => {
-    const hd = e.target.closest && e.target.closest(".drag"); if (!hd || (e.key !== "ArrowUp" && e.key !== "ArrowDown")) return;
-    e.preventDefault(); const id = hd.closest("li").dataset.id, ids = picked(), i = ids.indexOf(id), j = i + (e.key === "ArrowUp" ? -1 : 1);
-    if (i < 0 || j < 0 || j >= ids.length) return;
-    [ids[i], ids[j]] = [ids[j], ids[i]]; state.order = ids; renderAll();
-    const nh = list.querySelector(`li[data-id="${id}"] .drag`); if (nh) nh.focus({ preventScroll: true });
-  });
-})();
 $("#pmClose").addEventListener("click", closePack);
 packModal.addEventListener("click", e => { if (e.target === packModal) closePack(); });
 $("#dlPack").addEventListener("click", () => { const ids = ["core", ...picked()]; if (clm()) veevaSend(ids, ""); else mergePack(ids); });
@@ -2734,7 +2660,7 @@ if (window.HUB_PREVIEW) addEventListener("message", ev => {
   if (d.type === "hub-content" && d.content) { HUB = d.content; window.HUB = HUB; boot(); }
   else if (d.type === "hub-goto") { if (d.id === "top") scrollTo(0, 0); else { const el = document.getElementById(d.id); if (el) el.scrollIntoView({ block: "start" }); } }
   else if (d.type === "hub-consent-demo") { if (window.hubConsentDemo) window.hubConsentDemo(); }
-  else if (d.type === "hub-choose") { state.who = d.who || null; state.eng = d.eng || null; state.removed.clear(); state.order = []; renderAll(); }
+  else if (d.type === "hub-choose") { state.who = d.who || null; state.eng = d.eng || null; state.removed.clear(); renderAll(); }
 });
 
 /*PREVIEW_END*/
@@ -3305,8 +3231,9 @@ html { scroll-behavior: smooth; }
 
 /* Pack finale */
 .finale { background: var(--black); color: var(--white); padding-block: clamp(72px, 10vw, 140px); }
-.finale .sec-head p { color: #b9bdc1; }
-.finale-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px 72px; margin-top: 56px; align-items: center; }
+.finale .sec-head { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.finale .sec-head p { color: #b9bdc1; max-width: 52ch; }
+.finale-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px 72px; margin-top: 12px; align-items: center; }
 @media (max-width: 900px) { .finale-grid { grid-template-columns: minmax(0, 1fr); } }
 .fan { overflow: clip; overflow-clip-margin: 40px; position: relative; height: clamp(280px, 34vw, 440px); }
 .fan .cv { position: absolute; top: 50%; left: 50%; width: clamp(110px, 13vw, 170px); transition: transform .6s var(--ease); }
@@ -3319,7 +3246,7 @@ html { scroll-behavior: smooth; }
 .fin-for { color: #d9dcdf; }
 .fin-for b { color: var(--white); }
 .fin-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid #2a2c2e; }
-.fin-list li { display: grid; grid-template-columns: 22px 34px minmax(0, 1fr) auto auto auto; gap: 10px; align-items: center; padding: 12px 0; border-bottom: 1px solid #2a2c2e; }
+.fin-list li { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto auto auto; gap: 10px; align-items: center; padding: 12px 0; border-bottom: 1px solid #2a2c2e; }
 .fin-list .n { color: #8a8f94; font-variant-numeric: tabular-nums; font-size: 13px; }
 .fin-list li.core .n { color: var(--orange); }
 .fin-list .pp { color: #8a8f94; font-size: 13px; }
@@ -3510,15 +3437,8 @@ main:focus { outline: none; }
 .pm-sub .pm-arrow { color: #151515; border-color: #cfcdc9; }
 .pm-sub .pm-arrow:hover { background: #151515; color: #fff; }
 .pm-sub .pm-jump.fade-r { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); }
-
-/* Reorder handle in the pack list */
-.fin-list .drag { border: 0; background: none; color: #8a8f94; cursor: grab; padding: 6px 4px; margin-left: -4px; display: grid; place-items: center; touch-action: none; border-radius: 6px; }
-.fin-list .drag svg { width: 10px; height: 16px; }
-.fin-list .drag:hover { color: var(--white); }
-.fin-list .drag:focus-visible { outline: 2px solid var(--white); outline-offset: 1px; }
-.fin-list li.dragging { background: #17191b; box-shadow: 0 8px 24px rgba(0, 0, 0, .5); cursor: grabbing; position: relative; z-index: 2; }
-.fin-list li.dragging .drag { cursor: grabbing; color: var(--orange); }
-@media (max-width: 560px) { .fin-list li { grid-template-columns: 16px 24px minmax(0, 1fr) auto auto auto; gap: 6px; } .fin-list .x-btn { padding: 4px 8px; } }
+@media (max-width: 560px) { .fin-list li { grid-template-columns: 24px minmax(0, 1fr) auto auto auto; gap: 6px; } .fin-list .x-btn { padding: 4px 8px; } }
+@media (min-width: 901px) { .finale-side { margin-top: -56px; } }
 
 </style>
 </head>
@@ -3695,7 +3615,7 @@ const who = () => (HUB.stakeholders || []).find(s => s.id === state.who);
 const eng = () => (HUB.engagements || []).find(e => e.id === state.eng);
 
 /* ---------- State ---------- */
-const state = { who: null, eng: null, added: new Set(), removed: new Set(), order: [] };
+const state = { who: null, eng: null, added: new Set(), removed: new Set() };
 const rec = () => {
   if (!state.who || !state.eng) return [];
   const ids = (HUB.recommend && HUB.recommend[state.who] && HUB.recommend[state.who][state.eng]) || [];
@@ -3703,9 +3623,7 @@ const rec = () => {
 };
 const picked = () => {
   const r = rec().filter(id => !state.removed.has(id));
-  const base = [...r, ...modules().map(m => m.id).filter(id => state.added.has(id) && !r.includes(id))];
-  // The reader's own order (dragged in the pack list) wins; anything new goes after it
-  return state.order.length ? [...state.order.filter(id => base.includes(id)), ...base.filter(id => !state.order.includes(id))] : base;
+  return [...r, ...modules().map(m => m.id).filter(id => state.added.has(id) && !r.includes(id))];
 };
 const inPack = id => picked().includes(id);
 const totalPages = ids => pagesOf(HUB.core) + ids.reduce((s, id) => s + pagesOf(info(id)), 0);
@@ -3714,7 +3632,6 @@ const sanitizeState = () => {
   if (state.eng && !eng()) state.eng = null;
   state.added = new Set([...state.added].filter(id => info(id)));
   state.removed = new Set([...state.removed].filter(id => info(id)));
-  state.order = state.order.filter(id => info(id));
 };
 
 /* ---------- Veeva CLM (only active when the Veeva library is present) ---------- */
@@ -3859,7 +3776,7 @@ function setChoice(key, id) {
   state[key] = id; state.removed.clear();
   // Once both choices are made the pack is re-done from the recommendation: modules added by hand and any custom order are cleared
   const redo = !!(state.who && state.eng);
-  if (redo) { state.added.clear(); state.order = []; }
+  if (redo) state.added.clear();
   veevaTrack(key === "who" ? "stakeholder" : "engagement", id, (key === "who" ? who() : eng()).label);
   renderAll();
   const after = picked(), gained = after.filter(x => !before.includes(x)), lost = before.filter(x => !after.includes(x));
@@ -3930,8 +3847,8 @@ function renderPack() {
   $("#finDocs").textContent = all.length;
   $("#finPages").innerHTML = `document${all.length > 1 ? "s" : ""}<br>${pp} pages`;
   $("#finFor").innerHTML = state.who && state.eng ? `Built for a <b>${esc(who().label)}</b> - <b>${esc(eng().label)}</b>` : "Choose who you are engaging and the type of engagement at the top of the page for recommended modules.";
-  $("#finList").innerHTML = `<li class="core" data-id="core"><span class="grip-gap"></span><span class="n">00</span><span>${esc(HUB.core.name)}</span><span class="pp">${pagesOf(HUB.core)} pp</span>${dlBtn("core")}<span></span></li>` +
-    ids.map((id, i) => `<li data-id="${esc(id)}"><button type="button" class="drag" aria-label="Move ${esc(info(id).name)}. Drag, or press the up and down arrow keys." title="Drag to reorder"><svg viewBox="0 0 10 16" aria-hidden="true" fill="currentColor"><circle cx="2.5" cy="3" r="1.4"/><circle cx="7.5" cy="3" r="1.4"/><circle cx="2.5" cy="8" r="1.4"/><circle cx="7.5" cy="8" r="1.4"/><circle cx="2.5" cy="13" r="1.4"/><circle cx="7.5" cy="13" r="1.4"/></svg></button><span class="n">${pad(i + 1)}</span><span>${esc(info(id).name)}</span><span class="pp">${pagesOf(info(id))} pp</span>${dlBtn(id)}<button type="button" class="x-btn" data-toggle="${esc(id)}" aria-label="Remove ${esc(info(id).name)}">${esc(bt("remove"))}</button></li>`).join("");
+  $("#finList").innerHTML = `<li class="core" data-id="core"><span class="n">00</span><span>${esc(HUB.core.name)}</span><span class="pp">${pagesOf(HUB.core)} pp</span>${dlBtn("core")}<span></span></li>` +
+    ids.map((id, i) => `<li data-id="${esc(id)}"><span class="n">${pad(i + 1)}</span><span>${esc(info(id).name)}</span><span class="pp">${pagesOf(info(id))} pp</span>${dlBtn(id)}<button type="button" class="x-btn" data-toggle="${esc(id)}" aria-label="Remove ${esc(info(id).name)}">${esc(bt("remove"))}</button></li>`).join("");
   const rest = modules().filter(m => !ids.includes(m.id));
   $("#finMore").innerHTML = rest.length ? `<span>Add:</span>` + rest.map(m => `<button type="button" data-toggle="${esc(m.id)}">+ ${esc(m.name)}</button>`).join("") : "";
   const n = all.length;
@@ -4112,34 +4029,6 @@ document.addEventListener("click", e => {
   const jump = e.target.closest("[data-jump]"); if (jump) { document.getElementById("doc-" + jump.dataset.jump).scrollIntoView({ block: "start" }); return; }
 });
 document.addEventListener("keydown", e => { if (e.key === "Escape" && !packModal.hidden) closePack(); });
-/* Reorder the pack list: drag the handle (mouse or touch), or focus it and use the arrow keys. The core notification stays first. */
-(() => {
-  const list = $("#finList"); let drag = null;
-  list.addEventListener("pointerdown", e => {
-    const hd = e.target.closest(".drag"); if (!hd) return;
-    const li = hd.closest("li"); drag = { li }; li.classList.add("dragging"); try { hd.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault();
-  });
-  list.addEventListener("pointermove", e => {
-    if (!drag) return;
-    const items = [...list.querySelectorAll("li:not(.core):not(.dragging)")]; let before = null;
-    for (const it of items) { const r = it.getBoundingClientRect(); if (e.clientY < r.top + r.height / 2) { before = it; break; } }
-    if (before) { if (drag.li.nextElementSibling !== before) list.insertBefore(drag.li, before); } else if (list.lastElementChild !== drag.li) list.append(drag.li);
-  });
-  const end = () => {
-    if (!drag) return; drag.li.classList.remove("dragging");
-    const ids = [...list.querySelectorAll("li:not(.core)")].map(l => l.dataset.id), moved = drag.li.dataset.id; drag = null;
-    if (ids.join() !== picked().join()) { state.order = ids; renderAll(); toast("Pack order updated"); } else renderPack();
-    const hd = list.querySelector(`li[data-id="${moved}"] .drag`); if (hd) hd.focus({ preventScroll: true });
-  };
-  list.addEventListener("pointerup", end); list.addEventListener("pointercancel", end);
-  list.addEventListener("keydown", e => {
-    const hd = e.target.closest && e.target.closest(".drag"); if (!hd || (e.key !== "ArrowUp" && e.key !== "ArrowDown")) return;
-    e.preventDefault(); const id = hd.closest("li").dataset.id, ids = picked(), i = ids.indexOf(id), j = i + (e.key === "ArrowUp" ? -1 : 1);
-    if (i < 0 || j < 0 || j >= ids.length) return;
-    [ids[i], ids[j]] = [ids[j], ids[i]]; state.order = ids; renderAll();
-    const nh = list.querySelector(`li[data-id="${id}"] .drag`); if (nh) nh.focus({ preventScroll: true });
-  });
-})();
 $("#pmClose").addEventListener("click", closePack);
 packModal.addEventListener("click", e => { if (e.target === packModal) closePack(); });
 $("#dlPack").addEventListener("click", () => { const ids = ["core", ...picked()]; if (clm()) veevaSend(ids, ""); else mergePack(ids); });
