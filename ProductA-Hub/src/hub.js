@@ -247,7 +247,7 @@ function renderPack() {
   $("#dockCount").textContent = docs; $("#dockPages").textContent = `${pp} pages`;
   $("#finDocs").textContent = all.length;
   $("#finPages").innerHTML = `document${all.length > 1 ? "s" : ""}<br>${pp} pages`;
-  $("#finFor").innerHTML = state.who && state.eng ? `Built for a <b>${esc(who().label.toLowerCase())}</b> - <b>${esc(eng().label.toLowerCase())}</b>` : "Choose a stakeholder and engagement in the bar above for recommended modules.";
+  $("#finFor").innerHTML = state.who && state.eng ? `Built for a <b>${esc(who().label)}</b> - <b>${esc(eng().label)}</b>` : "Choose who you are engaging and the type of engagement at the top of the page for recommended modules.";
   $("#finList").innerHTML = `<li class="core"><span class="n">00</span><span>${esc(HUB.core.name)}</span><span class="pp">${pagesOf(HUB.core)} pp</span>${dlBtn("core")}<span></span></li>` +
     ids.map((id, i) => `<li><span class="n">${pad(i + 1)}</span><span>${esc(info(id).name)}</span><span class="pp">${pagesOf(info(id))} pp</span>${dlBtn(id)}<button type="button" class="x-btn" data-toggle="${esc(id)}" aria-label="Remove ${esc(info(id).name)}">${esc(bt("remove"))}</button></li>`).join("");
   const rest = modules().filter(m => !ids.includes(m.id));
@@ -291,7 +291,7 @@ function updateJump() {
 }
 function renderViewer(all, pp) {
   $("#pmCount").textContent = `${all.length} documents - ${pp} pages`;
-  $("#pmTitle").textContent = who() ? `Pack for ${who().label.toLowerCase()}` : "Your pack";
+  $("#pmTitle").textContent = who() ? `Pack for ${who().label}` : "Your pack";
   setTimeout(() => { updateJump(); updateActiveDoc(); }, 0);
   $("#pmJump").innerHTML = all.map((id, i) => `<button type="button" data-jump="${esc(id)}"><span data-text="${esc(pad(i) + " - " + shortName(info(id)))}">${pad(i)} - ${esc(shortName(info(id)))}</span></button>`).join("");
   const draft = all.filter(id => !(info(id).images && info(id).images.length));
