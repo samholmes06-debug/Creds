@@ -281,7 +281,8 @@ html { scroll-behavior: smooth; }
 .fin-btns { display: flex; flex-wrap: wrap; gap: 8px; }
 
 footer { background: var(--white); color: var(--black); font-size: 13px; border-top: 1px solid #d5d7d9; }
-footer .wrap { padding-block: 32px calc(110px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 8px; }
+footer .wrap { padding-block: 32px calc(48px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 8px; }
+@media (max-width: 640px) { footer .wrap { padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px)); } }
 footer b { color: var(--black); }
 .foot-links { display: flex; flex-wrap: wrap; gap: 14px 30px; margin-top: 14px; }
 .foot-links a, .foot-links button { color: var(--black); font: inherit; font-size: 15px; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 7px; }
