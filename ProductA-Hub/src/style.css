@@ -317,8 +317,8 @@ footer b { color: var(--black); }
 
 /* Pack viewer */
 .pm { position: fixed; inset: 0; z-index: 35; background: rgba(13, 14, 15, .72); padding: max(12px, env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px)) max(12px, env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px)); display: grid; }
-.pm-shell { background: var(--grey); border-radius: var(--radius); overflow: hidden; display: grid; grid-template-rows: auto minmax(0, 1fr); width: min(1180px, 100%); margin: 0 auto; }
-.pm-bar { background: var(--black); color: var(--white); padding: 16px 20px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px 24px; align-items: center; }
+.pm-shell { background: var(--grey); border-radius: var(--radius); overflow: hidden; display: grid; grid-template-rows: auto auto minmax(0, 1fr); width: min(1180px, 100%); margin: 0 auto; }
+.pm-bar { background: var(--black); color: var(--white); padding: 16px 20px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px 24px; align-items: center; }
 .pm-bar .label { color: #9a9fa4; }
 .pm-bar h2 { font-size: 22px; white-space: nowrap; }
 .pm-jumpwrap { display: flex; align-items: center; gap: 8px; min-width: 0; }
@@ -451,3 +451,16 @@ main:focus { outline: none; }
 .bar-link:focus-visible { outline: 2px solid #151515; outline-offset: -3px; }
 #refs, #piHead { scroll-margin-top: calc(var(--bar-h) + 12px); }
 @media (max-width: 640px) { .bar-link { align-self: auto; width: 100%; min-height: 48px; padding: 0 14px; } .bar-link > span { align-items: flex-start; } }
+
+/* Pack viewer: documents in their own light tab strip under the bar */
+.pm-sub { min-width: 0; background: #f0efed; border-bottom: 1px solid #e0deda; padding: 0 12px 0 20px; }
+.pm-sub .pm-jumpwrap { gap: 8px; }
+.pm-sub .pm-jump { gap: 0; }
+.pm-sub .pm-jump button { flex: none; border: 0; border-bottom: 3px solid transparent; border-radius: 0; color: #151515; background: transparent; padding: 14px 16px 11px; font-size: 14px; font-weight: 400; cursor: pointer; white-space: nowrap; }
+.pm-sub .pm-jump button > span { display: inline-flex; flex-direction: column; align-items: center; }
+.pm-sub .pm-jump button > span::after { content: attr(data-text); height: 0; overflow: hidden; visibility: hidden; font-weight: 700; }
+.pm-sub .pm-jump button:hover { background: #fff; color: #151515; }
+.pm-sub .pm-jump button.is-active { border-bottom-color: var(--orange); font-weight: 700; }
+.pm-sub .pm-arrow { color: #151515; border-color: #cfcdc9; }
+.pm-sub .pm-arrow:hover { background: #151515; color: #fff; }
+.pm-sub .pm-jump.fade-r { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); }

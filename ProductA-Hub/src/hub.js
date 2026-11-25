@@ -274,6 +274,15 @@ function mockPages(id, d) {
   }
   return out.join("");
 }
+function updateActiveDoc() {
+  const sc = document.getElementById("pmScroll"), n = document.getElementById("pmJump"); if (!sc || !n) return;
+  const top = sc.getBoundingClientRect().top + 90; let cur = null;
+  document.querySelectorAll(".pm-doc").forEach(d => { if (d.getBoundingClientRect().top <= top) cur = d.id.replace(/^doc-/, ""); });
+  if (!cur) { const f = document.querySelector(".pm-doc"); cur = f ? f.id.replace(/^doc-/, "") : null; }
+  let on = null;
+  n.querySelectorAll("button").forEach(b => { const a = b.dataset.jump === cur; b.classList.toggle("is-active", a); if (a) { b.setAttribute("aria-current", "true"); on = b; } else b.removeAttribute("aria-current"); });
+  if (on && n.scrollWidth > n.clientWidth) { const l = on.offsetLeft, r = l + on.offsetWidth; if (l < n.scrollLeft + 10) n.scrollTo({ left: Math.max(0, l - 40) }); else if (r > n.scrollLeft + n.clientWidth - 10) n.scrollTo({ left: r - n.clientWidth + 40 }); }
+}
 function updateJump() {
   const n = document.getElementById("pmJump"); if (!n) return;
   const l = n.scrollLeft > 2, r = n.scrollLeft + n.clientWidth < n.scrollWidth - 2;
@@ -283,8 +292,8 @@ function updateJump() {
 function renderViewer(all, pp) {
   $("#pmCount").textContent = `${all.length} documents - ${pp} pages`;
   $("#pmTitle").textContent = who() ? `Pack for ${who().label.toLowerCase()}` : "Your pack";
-  setTimeout(updateJump, 0);
-  $("#pmJump").innerHTML = all.map((id, i) => `<button type="button" data-jump="${esc(id)}">${pad(i)} - ${esc(shortName(info(id)))}</button>`).join("");
+  setTimeout(() => { updateJump(); updateActiveDoc(); }, 0);
+  $("#pmJump").innerHTML = all.map((id, i) => `<button type="button" data-jump="${esc(id)}"><span data-text="${esc(pad(i) + " - " + shortName(info(id)))}">${pad(i)} - ${esc(shortName(info(id)))}</span></button>`).join("");
   const draft = all.filter(id => !(info(id).images && info(id).images.length));
   const note = $("#pmNote"); note.hidden = !draft.length;
   note.textContent = draft.length ? `Draft pages: ${draft.length === all.length ? "these pages stand in for the artworked PDFs." : draft.length + " of " + all.length + " documents still show draft pages in place of the artworked PDF."} Once the approved PDF is added, it appears here and downloads as the same file.` : "";
@@ -403,7 +412,7 @@ function piFile(kind) {
 }
 function openPack(target) {
   veevaTrack("pack_viewed", ["core", ...picked()].join(","), "Pack viewer opened");
-  packModal.hidden = false; document.body.classList.add("modal-open"); $("#dock").classList.add("away"); $("#pmScroll").scrollTop = 0; setTimeout(updateJump, 60);
+  packModal.hidden = false; document.body.classList.add("modal-open"); $("#dock").classList.add("away"); $("#pmScroll").scrollTop = 0; setTimeout(() => { updateJump(); updateActiveDoc(); }, 60);
   const d = target && document.getElementById("doc-" + target); if (d) d.scrollIntoView({ block: "start" });
   $("#pmClose").focus();
 }
@@ -439,6 +448,7 @@ function applySections() { const v = HUB.sections || {}; [["stats", "stats"], ["
   const nr = document.getElementById("navRefs"), np = document.getElementById("navPi"); if (nr) nr.hidden = !refs; if (np) np.hidden = v.prescribing === false;
 }
 document.getElementById("pmJump").addEventListener("scroll", updateJump, { passive: true });
+document.getElementById("pmScroll").addEventListener("scroll", updateActiveDoc, { passive: true });
 addEventListener("resize", updateJump);
 document.getElementById("pmJumpWrap").addEventListener("click", e => { const a = e.target.closest(".pm-arrow"); if (a) { const n = document.getElementById("pmJump"); n.scrollBy({ left: +a.dataset.jumpDir * Math.max(160, n.clientWidth * 0.7), behavior: "smooth" }); } });
 document.addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && e.target.matches && e.target.matches(".cover-lg")) { e.preventDefault(); e.target.click(); } });
