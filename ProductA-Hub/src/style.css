@@ -259,7 +259,7 @@ html { scroll-behavior: smooth; }
 
 /* Pack finale */
 .finale { background: var(--black); color: var(--white); padding-block: clamp(72px, 10vw, 140px); }
-.finale .sec-head { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.finale .sec-head { grid-template-columns: minmax(0, 1fr); gap: 30px; }
 .finale .sec-head p { color: #b9bdc1; max-width: 52ch; }
 .finale-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px 72px; margin-top: 12px; align-items: center; }
 @media (max-width: 900px) { .finale-grid { grid-template-columns: minmax(0, 1fr); } }
@@ -466,4 +466,11 @@ main:focus { outline: none; }
 .pm-sub .pm-arrow:hover { background: #151515; color: #fff; }
 .pm-sub .pm-jump.fade-r { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); }
 @media (max-width: 560px) { .fin-list li { grid-template-columns: 24px minmax(0, 1fr) auto auto auto; gap: 6px; } .fin-list .x-btn { padding: 4px 8px; } }
-@media (min-width: 901px) { .finale-side { margin-top: -56px; } }
+/* Wide screens: the count and list start level with the title, with the intro and the cards on the left */
+@media (min-width: 901px) {
+  .finale .wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 72px; align-items: start; }
+  .finale .sec-head { grid-column: 1; grid-row: 1; }
+  .finale-grid { display: contents; }
+  .finale .fan { grid-column: 1; grid-row: 2; margin-top: -44px; }
+  .finale-side { grid-column: 2; grid-row: 1 / span 2; align-self: start; margin-top: 0; }
+}
