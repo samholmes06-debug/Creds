@@ -340,7 +340,7 @@ function onScroll() {
     track.style.transform = `translateX(${-tp * Math.max(0, track.scrollWidth - innerWidth + 40)}px)`;
   }
   const heroGone = $(".hero").getBoundingClientRect().bottom < vh() * .4, finR = $("#pack").getBoundingClientRect();
-  $("#dock").classList.toggle("away", picked().length === 0 || !heroGone || (finR.top < vh() * .7 && finR.bottom > vh() * .3) || !$("#packModal").hidden);
+  $("#dock").classList.toggle("away", !heroGone || (finR.top < vh() * .7 && finR.bottom > vh() * .3) || !$("#packModal").hidden);
 }
 
 /* ---------- PDF files: download, merge ---------- */
