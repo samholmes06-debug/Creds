@@ -126,8 +126,9 @@ const bt = k => ((HUB.buttons || {})[k]) || BT[k];
 function applyButtonText() { $$("[data-btn]").forEach(el => { el.textContent = bt(el.dataset.btn); el.dataset.text = el.textContent; }); }
 function updateNav() {
   const r = document.getElementById("refs"), p = document.getElementById("piHead"), nr = document.getElementById("navRefs"), np = document.getElementById("navPi"); if (!nr || !np) return;
-  const mid = vh() * .5, top = el => (el && !el.hidden ? el.getBoundingClientRect().top : Infinity);
-  const inPi = top(p) < mid, inRefs = !inPi && top(r) < mid;
+  // A link is active when its section has reached a line just under the top of the page (where the links scroll them to)
+  const line = 140, top = el => (el && !el.hidden ? el.getBoundingClientRect().top : Infinity);
+  const inPi = top(p) <= line, inRefs = !inPi && top(r) <= line;
   nr.classList.toggle("is-active", inRefs); np.classList.toggle("is-active", inPi);
   nr.toggleAttribute("aria-current", inRefs); np.toggleAttribute("aria-current", inPi);
 }
