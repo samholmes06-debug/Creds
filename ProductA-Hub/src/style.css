@@ -82,7 +82,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 }
 
 /* Hero */
-.hero .wrap { padding-block: clamp(40px, 7vw, 96px) 56px; display: grid; gap: clamp(40px, 6vw, 72px); }
+.hero .wrap { padding-block: clamp(28px, 5vw, 68px) 56px; display: grid; gap: clamp(40px, 6vw, 72px); }
 .hero-top { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 40px 64px; align-items: center; }
 @media (max-width: 900px) { .hero-top { grid-template-columns: minmax(0, 1fr); } }
 .eyebrow { color: var(--orange-ink); margin-bottom: 22px; }
