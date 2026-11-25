@@ -728,11 +728,21 @@ const mark = (cls = "") => HUB.brand && HUB.brand.logo ? `<img class="logo" src=
 const BT = { navRefs: "References", navPi: "Prescribing Information", print: "Print", backToTop: "Back to top", heroDownload: "Download PDF", heroPreview: "Preview", packPreview: "Preview pack", packDownload: "Download as one PDF", dockView: "View pack", viewerDownload: "Download pack", viewerDocDownload: "Download PDF", pdfSmall: "PDF", remove: "Remove" };
 const bt = k => ((HUB.buttons || {})[k]) || BT[k];
 function applyButtonText() { $$("[data-btn]").forEach(el => { el.textContent = bt(el.dataset.btn); el.dataset.text = el.textContent; }); }
+let navPick = null, navPickY = null;
+document.addEventListener("click", e => {
+  const l = e.target.closest && e.target.closest(".bar-link"); if (!l) return;
+  navPick = l.id; navPickY = null; setTimeout(() => { navPickY = scrollY; updateNav(); }, 1700);   // the clicked link stays active until the reader scrolls away from where it took them
+});
 function updateNav() {
   const r = document.getElementById("refs"), p = document.getElementById("piHead"), nr = document.getElementById("navRefs"), np = document.getElementById("navPi"); if (!nr || !np) return;
   // A link is active when its section has reached a line just under the top of the page (where the links scroll them to)
   const line = 140, top = el => (el && !el.hidden ? el.getBoundingClientRect().top : Infinity);
-  const inPi = top(p) <= line, inRefs = !inPi && top(r) <= line;
+  // On a tall screen the page can't scroll far enough to bring the Prescribing Information title up to the line,
+  // so at the very bottom it counts as reached, unless References is sitting right where its link leaves it
+  const atEnd = scrollY + vh() >= document.documentElement.scrollHeight - 3, refsAtAnchor = top(r) >= -60 && top(r) <= line + 40;
+  const inPi = top(p) <= line || (atEnd && top(p) < vh() * .95 && !refsAtAnchor), inRefs = !inPi && top(r) <= line;
+  if (navPick && (navPickY === null || Math.abs(scrollY - navPickY) <= 40)) { const a = navPick === "navRefs"; nr.classList.toggle("is-active", a); np.classList.toggle("is-active", !a); nr.toggleAttribute("aria-current", a); np.toggleAttribute("aria-current", !a); return; }
+  navPick = null;
   nr.classList.toggle("is-active", inRefs); np.classList.toggle("is-active", inPi);
   nr.toggleAttribute("aria-current", inRefs); np.toggleAttribute("aria-current", inPi);
 }
@@ -2095,11 +2105,21 @@ const mark = (cls = "") => HUB.brand && HUB.brand.logo ? `<img class="logo" src=
 const BT = { navRefs: "References", navPi: "Prescribing Information", print: "Print", backToTop: "Back to top", heroDownload: "Download PDF", heroPreview: "Preview", packPreview: "Preview pack", packDownload: "Download as one PDF", dockView: "View pack", viewerDownload: "Download pack", viewerDocDownload: "Download PDF", pdfSmall: "PDF", remove: "Remove" };
 const bt = k => ((HUB.buttons || {})[k]) || BT[k];
 function applyButtonText() { $$("[data-btn]").forEach(el => { el.textContent = bt(el.dataset.btn); el.dataset.text = el.textContent; }); }
+let navPick = null, navPickY = null;
+document.addEventListener("click", e => {
+  const l = e.target.closest && e.target.closest(".bar-link"); if (!l) return;
+  navPick = l.id; navPickY = null; setTimeout(() => { navPickY = scrollY; updateNav(); }, 1700);   // the clicked link stays active until the reader scrolls away from where it took them
+});
 function updateNav() {
   const r = document.getElementById("refs"), p = document.getElementById("piHead"), nr = document.getElementById("navRefs"), np = document.getElementById("navPi"); if (!nr || !np) return;
   // A link is active when its section has reached a line just under the top of the page (where the links scroll them to)
   const line = 140, top = el => (el && !el.hidden ? el.getBoundingClientRect().top : Infinity);
-  const inPi = top(p) <= line, inRefs = !inPi && top(r) <= line;
+  // On a tall screen the page can't scroll far enough to bring the Prescribing Information title up to the line,
+  // so at the very bottom it counts as reached, unless References is sitting right where its link leaves it
+  const atEnd = scrollY + vh() >= document.documentElement.scrollHeight - 3, refsAtAnchor = top(r) >= -60 && top(r) <= line + 40;
+  const inPi = top(p) <= line || (atEnd && top(p) < vh() * .95 && !refsAtAnchor), inRefs = !inPi && top(r) <= line;
+  if (navPick && (navPickY === null || Math.abs(scrollY - navPickY) <= 40)) { const a = navPick === "navRefs"; nr.classList.toggle("is-active", a); np.classList.toggle("is-active", !a); nr.toggleAttribute("aria-current", a); np.toggleAttribute("aria-current", !a); return; }
+  navPick = null;
   nr.classList.toggle("is-active", inRefs); np.classList.toggle("is-active", inPi);
   nr.toggleAttribute("aria-current", inRefs); np.toggleAttribute("aria-current", inPi);
 }
@@ -3573,11 +3593,21 @@ const mark = (cls = "") => HUB.brand && HUB.brand.logo ? `<img class="logo" src=
 const BT = { navRefs: "References", navPi: "Prescribing Information", print: "Print", backToTop: "Back to top", heroDownload: "Download PDF", heroPreview: "Preview", packPreview: "Preview pack", packDownload: "Download as one PDF", dockView: "View pack", viewerDownload: "Download pack", viewerDocDownload: "Download PDF", pdfSmall: "PDF", remove: "Remove" };
 const bt = k => ((HUB.buttons || {})[k]) || BT[k];
 function applyButtonText() { $$("[data-btn]").forEach(el => { el.textContent = bt(el.dataset.btn); el.dataset.text = el.textContent; }); }
+let navPick = null, navPickY = null;
+document.addEventListener("click", e => {
+  const l = e.target.closest && e.target.closest(".bar-link"); if (!l) return;
+  navPick = l.id; navPickY = null; setTimeout(() => { navPickY = scrollY; updateNav(); }, 1700);   // the clicked link stays active until the reader scrolls away from where it took them
+});
 function updateNav() {
   const r = document.getElementById("refs"), p = document.getElementById("piHead"), nr = document.getElementById("navRefs"), np = document.getElementById("navPi"); if (!nr || !np) return;
   // A link is active when its section has reached a line just under the top of the page (where the links scroll them to)
   const line = 140, top = el => (el && !el.hidden ? el.getBoundingClientRect().top : Infinity);
-  const inPi = top(p) <= line, inRefs = !inPi && top(r) <= line;
+  // On a tall screen the page can't scroll far enough to bring the Prescribing Information title up to the line,
+  // so at the very bottom it counts as reached, unless References is sitting right where its link leaves it
+  const atEnd = scrollY + vh() >= document.documentElement.scrollHeight - 3, refsAtAnchor = top(r) >= -60 && top(r) <= line + 40;
+  const inPi = top(p) <= line || (atEnd && top(p) < vh() * .95 && !refsAtAnchor), inRefs = !inPi && top(r) <= line;
+  if (navPick && (navPickY === null || Math.abs(scrollY - navPickY) <= 40)) { const a = navPick === "navRefs"; nr.classList.toggle("is-active", a); np.classList.toggle("is-active", !a); nr.toggleAttribute("aria-current", a); np.toggleAttribute("aria-current", !a); return; }
+  navPick = null;
   nr.classList.toggle("is-active", inRefs); np.classList.toggle("is-active", inPi);
   nr.toggleAttribute("aria-current", inRefs); np.toggleAttribute("aria-current", inPi);
 }
