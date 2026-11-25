@@ -449,11 +449,14 @@ main:focus { outline: none; }
 .core-actions .btn-line { background: none; border: 0; padding: 14px 10px; font-weight: 400; text-decoration: underline; text-underline-offset: 4px; }
 .core-actions .btn-line:hover { border: 0; color: var(--orange-ink, #c44a1a); }
 
-/* Header links to the end sections */
-.bar-link { display: inline-flex; align-items: center; min-height: 48px; padding: 6px 18px; border: 1.5px solid var(--grey-2); background: var(--white); border-radius: 14px; font-weight: 700; font-size: 15px; color: var(--black); text-decoration: none; white-space: nowrap; transition: border-color .2s; }
-.bar-link:hover { border-color: var(--black); }
+/* Header links to the end sections: plain text, grey block on hover and when active */
+.bar-link { display: inline-flex; align-items: center; align-self: stretch; padding: 0 24px; border: 0; border-radius: 0; background: transparent; color: #151515; font-weight: 400; font-size: 15px; text-decoration: none; white-space: nowrap; transition: background .15s; }
+.bar-link > span { display: inline-flex; flex-direction: column; align-items: center; }
+.bar-link > span::after { content: attr(data-text); height: 0; overflow: hidden; visibility: hidden; font-weight: 700; }
+.bar-link:hover, .bar-link.is-active { background: #f0efed; font-weight: 700; }
+.bar-link:focus-visible { outline: 2px solid #151515; outline-offset: -3px; }
 #refs, #piHead { scroll-margin-top: calc(var(--bar-h) + 12px); }
-@media (max-width: 640px) { .bar-link { width: 100%; justify-content: flex-start; padding: 6px 14px; } }
+@media (max-width: 640px) { .bar-link { align-self: auto; width: 100%; min-height: 48px; padding: 0 14px; } .bar-link > span { align-items: flex-start; } }
 
 </style>
 </head>
@@ -724,7 +727,14 @@ const mark = (cls = "") => HUB.brand && HUB.brand.logo ? `<img class="logo" src=
 /* ---------- Static text and shell ---------- */
 const BT = { navRefs: "References", navPi: "Prescribing Information", print: "Print", backToTop: "Back to top", heroDownload: "Download PDF", heroPreview: "Preview", packPreview: "Preview pack", packDownload: "Download as one PDF", dockView: "View pack", viewerDownload: "Download pack", viewerDocDownload: "Download PDF", pdfSmall: "PDF", remove: "Remove" };
 const bt = k => ((HUB.buttons || {})[k]) || BT[k];
-function applyButtonText() { $$("[data-btn]").forEach(el => { el.textContent = bt(el.dataset.btn); }); }
+function applyButtonText() { $$("[data-btn]").forEach(el => { el.textContent = bt(el.dataset.btn); el.dataset.text = el.textContent; }); }
+function updateNav() {
+  const r = document.getElementById("refs"), p = document.getElementById("piHead"), nr = document.getElementById("navRefs"), np = document.getElementById("navPi"); if (!nr || !np) return;
+  const mid = vh() * .5, top = el => (el && !el.hidden ? el.getBoundingClientRect().top : Infinity);
+  const inPi = top(p) < mid, inRefs = !inPi && top(r) < mid;
+  nr.classList.toggle("is-active", inRefs); np.classList.toggle("is-active", inPi);
+  nr.toggleAttribute("aria-current", inRefs); np.toggleAttribute("aria-current", inPi);
+}
 const linkify = t => esc(t).replace(/\[([^\]]+)\]\((#[\w-]+|https?:\/\/[^)\s]+)\)/g, (m, a, u) => `<a href="${u}"${/^#pi-(view|download)$/.test(u) ? ` data-pi="${u.slice(4)}"` : u[0] === "#" ? "" : ` target="_blank" rel="noopener"`}>${a}</a>`);
 function bindStatic() {
   { const rl = $("#refsList"); if (rl) rl.innerHTML = ((HUB.references || {}).items || []).map((t, i) => `<li data-edit="references.items.${i}">${esc(t)}</li>`).join(""); }
@@ -903,6 +913,7 @@ const vh = () => window.innerHeight;
 function onScroll() {
   const doc = document.documentElement;
   $("#readBar").style.transform = `scaleX(${Math.min(1, scrollY / Math.max(1, doc.scrollHeight - vh()))})`;
+  updateNav();
   const items = (HUB.stats && HUB.stats.items) || [];
   const st = $("#stats");
   if (items.length && st.offsetHeight) {
@@ -1804,11 +1815,14 @@ main:focus { outline: none; }
 .core-actions .btn-line { background: none; border: 0; padding: 14px 10px; font-weight: 400; text-decoration: underline; text-underline-offset: 4px; }
 .core-actions .btn-line:hover { border: 0; color: var(--orange-ink, #c44a1a); }
 
-/* Header links to the end sections */
-.bar-link { display: inline-flex; align-items: center; min-height: 48px; padding: 6px 18px; border: 1.5px solid var(--grey-2); background: var(--white); border-radius: 14px; font-weight: 700; font-size: 15px; color: var(--black); text-decoration: none; white-space: nowrap; transition: border-color .2s; }
-.bar-link:hover { border-color: var(--black); }
+/* Header links to the end sections: plain text, grey block on hover and when active */
+.bar-link { display: inline-flex; align-items: center; align-self: stretch; padding: 0 24px; border: 0; border-radius: 0; background: transparent; color: #151515; font-weight: 400; font-size: 15px; text-decoration: none; white-space: nowrap; transition: background .15s; }
+.bar-link > span { display: inline-flex; flex-direction: column; align-items: center; }
+.bar-link > span::after { content: attr(data-text); height: 0; overflow: hidden; visibility: hidden; font-weight: 700; }
+.bar-link:hover, .bar-link.is-active { background: #f0efed; font-weight: 700; }
+.bar-link:focus-visible { outline: 2px solid #151515; outline-offset: -3px; }
 #refs, #piHead { scroll-margin-top: calc(var(--bar-h) + 12px); }
-@media (max-width: 640px) { .bar-link { width: 100%; justify-content: flex-start; padding: 6px 14px; } }
+@media (max-width: 640px) { .bar-link { align-self: auto; width: 100%; min-height: 48px; padding: 0 14px; } .bar-link > span { align-items: flex-start; } }
 
 </style>
 </head>
@@ -2079,7 +2093,14 @@ const mark = (cls = "") => HUB.brand && HUB.brand.logo ? `<img class="logo" src=
 /* ---------- Static text and shell ---------- */
 const BT = { navRefs: "References", navPi: "Prescribing Information", print: "Print", backToTop: "Back to top", heroDownload: "Download PDF", heroPreview: "Preview", packPreview: "Preview pack", packDownload: "Download as one PDF", dockView: "View pack", viewerDownload: "Download pack", viewerDocDownload: "Download PDF", pdfSmall: "PDF", remove: "Remove" };
 const bt = k => ((HUB.buttons || {})[k]) || BT[k];
-function applyButtonText() { $$("[data-btn]").forEach(el => { el.textContent = bt(el.dataset.btn); }); }
+function applyButtonText() { $$("[data-btn]").forEach(el => { el.textContent = bt(el.dataset.btn); el.dataset.text = el.textContent; }); }
+function updateNav() {
+  const r = document.getElementById("refs"), p = document.getElementById("piHead"), nr = document.getElementById("navRefs"), np = document.getElementById("navPi"); if (!nr || !np) return;
+  const mid = vh() * .5, top = el => (el && !el.hidden ? el.getBoundingClientRect().top : Infinity);
+  const inPi = top(p) < mid, inRefs = !inPi && top(r) < mid;
+  nr.classList.toggle("is-active", inRefs); np.classList.toggle("is-active", inPi);
+  nr.toggleAttribute("aria-current", inRefs); np.toggleAttribute("aria-current", inPi);
+}
 const linkify = t => esc(t).replace(/\[([^\]]+)\]\((#[\w-]+|https?:\/\/[^)\s]+)\)/g, (m, a, u) => `<a href="${u}"${/^#pi-(view|download)$/.test(u) ? ` data-pi="${u.slice(4)}"` : u[0] === "#" ? "" : ` target="_blank" rel="noopener"`}>${a}</a>`);
 function bindStatic() {
   { const rl = $("#refsList"); if (rl) rl.innerHTML = ((HUB.references || {}).items || []).map((t, i) => `<li data-edit="references.items.${i}">${esc(t)}</li>`).join(""); }
@@ -2258,6 +2279,7 @@ const vh = () => window.innerHeight;
 function onScroll() {
   const doc = document.documentElement;
   $("#readBar").style.transform = `scaleX(${Math.min(1, scrollY / Math.max(1, doc.scrollHeight - vh()))})`;
+  updateNav();
   const items = (HUB.stats && HUB.stats.items) || [];
   const st = $("#stats");
   if (items.length && st.offsetHeight) {
@@ -3270,11 +3292,14 @@ main:focus { outline: none; }
 .core-actions .btn-line { background: none; border: 0; padding: 14px 10px; font-weight: 400; text-decoration: underline; text-underline-offset: 4px; }
 .core-actions .btn-line:hover { border: 0; color: var(--orange-ink, #c44a1a); }
 
-/* Header links to the end sections */
-.bar-link { display: inline-flex; align-items: center; min-height: 48px; padding: 6px 18px; border: 1.5px solid var(--grey-2); background: var(--white); border-radius: 14px; font-weight: 700; font-size: 15px; color: var(--black); text-decoration: none; white-space: nowrap; transition: border-color .2s; }
-.bar-link:hover { border-color: var(--black); }
+/* Header links to the end sections: plain text, grey block on hover and when active */
+.bar-link { display: inline-flex; align-items: center; align-self: stretch; padding: 0 24px; border: 0; border-radius: 0; background: transparent; color: #151515; font-weight: 400; font-size: 15px; text-decoration: none; white-space: nowrap; transition: background .15s; }
+.bar-link > span { display: inline-flex; flex-direction: column; align-items: center; }
+.bar-link > span::after { content: attr(data-text); height: 0; overflow: hidden; visibility: hidden; font-weight: 700; }
+.bar-link:hover, .bar-link.is-active { background: #f0efed; font-weight: 700; }
+.bar-link:focus-visible { outline: 2px solid #151515; outline-offset: -3px; }
 #refs, #piHead { scroll-margin-top: calc(var(--bar-h) + 12px); }
-@media (max-width: 640px) { .bar-link { width: 100%; justify-content: flex-start; padding: 6px 14px; } }
+@media (max-width: 640px) { .bar-link { align-self: auto; width: 100%; min-height: 48px; padding: 0 14px; } .bar-link > span { align-items: flex-start; } }
 
 </style>
 </head>
@@ -3545,7 +3570,14 @@ const mark = (cls = "") => HUB.brand && HUB.brand.logo ? `<img class="logo" src=
 /* ---------- Static text and shell ---------- */
 const BT = { navRefs: "References", navPi: "Prescribing Information", print: "Print", backToTop: "Back to top", heroDownload: "Download PDF", heroPreview: "Preview", packPreview: "Preview pack", packDownload: "Download as one PDF", dockView: "View pack", viewerDownload: "Download pack", viewerDocDownload: "Download PDF", pdfSmall: "PDF", remove: "Remove" };
 const bt = k => ((HUB.buttons || {})[k]) || BT[k];
-function applyButtonText() { $$("[data-btn]").forEach(el => { el.textContent = bt(el.dataset.btn); }); }
+function applyButtonText() { $$("[data-btn]").forEach(el => { el.textContent = bt(el.dataset.btn); el.dataset.text = el.textContent; }); }
+function updateNav() {
+  const r = document.getElementById("refs"), p = document.getElementById("piHead"), nr = document.getElementById("navRefs"), np = document.getElementById("navPi"); if (!nr || !np) return;
+  const mid = vh() * .5, top = el => (el && !el.hidden ? el.getBoundingClientRect().top : Infinity);
+  const inPi = top(p) < mid, inRefs = !inPi && top(r) < mid;
+  nr.classList.toggle("is-active", inRefs); np.classList.toggle("is-active", inPi);
+  nr.toggleAttribute("aria-current", inRefs); np.toggleAttribute("aria-current", inPi);
+}
 const linkify = t => esc(t).replace(/\[([^\]]+)\]\((#[\w-]+|https?:\/\/[^)\s]+)\)/g, (m, a, u) => `<a href="${u}"${/^#pi-(view|download)$/.test(u) ? ` data-pi="${u.slice(4)}"` : u[0] === "#" ? "" : ` target="_blank" rel="noopener"`}>${a}</a>`);
 function bindStatic() {
   { const rl = $("#refsList"); if (rl) rl.innerHTML = ((HUB.references || {}).items || []).map((t, i) => `<li data-edit="references.items.${i}">${esc(t)}</li>`).join(""); }
@@ -3724,6 +3756,7 @@ const vh = () => window.innerHeight;
 function onScroll() {
   const doc = document.documentElement;
   $("#readBar").style.transform = `scaleX(${Math.min(1, scrollY / Math.max(1, doc.scrollHeight - vh()))})`;
+  updateNav();
   const items = (HUB.stats && HUB.stats.items) || [];
   const st = $("#stats");
   if (items.length && st.offsetHeight) {

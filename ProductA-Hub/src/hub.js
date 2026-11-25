@@ -123,7 +123,14 @@ const mark = (cls = "") => HUB.brand && HUB.brand.logo ? `<img class="logo" src=
 /* ---------- Static text and shell ---------- */
 const BT = { navRefs: "References", navPi: "Prescribing Information", print: "Print", backToTop: "Back to top", heroDownload: "Download PDF", heroPreview: "Preview", packPreview: "Preview pack", packDownload: "Download as one PDF", dockView: "View pack", viewerDownload: "Download pack", viewerDocDownload: "Download PDF", pdfSmall: "PDF", remove: "Remove" };
 const bt = k => ((HUB.buttons || {})[k]) || BT[k];
-function applyButtonText() { $$("[data-btn]").forEach(el => { el.textContent = bt(el.dataset.btn); }); }
+function applyButtonText() { $$("[data-btn]").forEach(el => { el.textContent = bt(el.dataset.btn); el.dataset.text = el.textContent; }); }
+function updateNav() {
+  const r = document.getElementById("refs"), p = document.getElementById("piHead"), nr = document.getElementById("navRefs"), np = document.getElementById("navPi"); if (!nr || !np) return;
+  const mid = vh() * .5, top = el => (el && !el.hidden ? el.getBoundingClientRect().top : Infinity);
+  const inPi = top(p) < mid, inRefs = !inPi && top(r) < mid;
+  nr.classList.toggle("is-active", inRefs); np.classList.toggle("is-active", inPi);
+  nr.toggleAttribute("aria-current", inRefs); np.toggleAttribute("aria-current", inPi);
+}
 const linkify = t => esc(t).replace(/\[([^\]]+)\]\((#[\w-]+|https?:\/\/[^)\s]+)\)/g, (m, a, u) => `<a href="${u}"${/^#pi-(view|download)$/.test(u) ? ` data-pi="${u.slice(4)}"` : u[0] === "#" ? "" : ` target="_blank" rel="noopener"`}>${a}</a>`);
 function bindStatic() {
   { const rl = $("#refsList"); if (rl) rl.innerHTML = ((HUB.references || {}).items || []).map((t, i) => `<li data-edit="references.items.${i}">${esc(t)}</li>`).join(""); }
@@ -302,6 +309,7 @@ const vh = () => window.innerHeight;
 function onScroll() {
   const doc = document.documentElement;
   $("#readBar").style.transform = `scaleX(${Math.min(1, scrollY / Math.max(1, doc.scrollHeight - vh()))})`;
+  updateNav();
   const items = (HUB.stats && HUB.stats.items) || [];
   const st = $("#stats");
   if (items.length && st.offsetHeight) {
