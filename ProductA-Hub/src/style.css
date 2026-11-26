@@ -156,7 +156,12 @@ html { scroll-behavior: smooth; }
 .chip[aria-pressed="true"] { background: var(--black); border-color: var(--black); color: var(--white); }
 .builder-status { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; border-top: 1.5px solid var(--grey-3); padding-top: 22px; font-size: 16px; }
 .builder-status b { font-weight: 700; }
-.builder-status .go { margin-left: auto; }
+.builder-status .go, .builder-status .go-grp { margin-left: auto; }
+.go-grp { display: inline-flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+/* A soft glow, three times, to show the pack has just been filled */
+.btn.glow { animation: packglow 1s ease-out 3; }
+@keyframes packglow { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--orange) 60%, transparent); } 70% { box-shadow: 0 0 0 14px color-mix(in srgb, var(--orange) 0%, transparent), 0 0 24px 2px color-mix(in srgb, var(--orange) 35%, transparent); } 100% { box-shadow: 0 0 0 0 transparent; } }
+@media (prefers-reduced-motion: reduce) { .btn.glow { animation: none; box-shadow: 0 0 0 4px color-mix(in srgb, var(--orange) 30%, transparent); } }
 
 /* Section heads */
 .sec-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .8fr); gap: 16px 56px; align-items: end; }

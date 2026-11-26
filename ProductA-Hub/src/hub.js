@@ -25,7 +25,7 @@ const who = () => (HUB.stakeholders || []).find(s => s.id === state.who);
 const eng = () => (HUB.engagements || []).find(e => e.id === state.eng);
 
 /* ---------- State ---------- */
-const state = { who: null, eng: null, added: new Set(), removed: new Set() };
+const state = { who: null, eng: null, added: new Set(), removed: new Set(), glow: false };
 const rec = () => {
   if (!state.who || !state.eng) return [];
   const ids = (HUB.recommend && HUB.recommend[state.who] && HUB.recommend[state.who][state.eng]) || [];
@@ -176,7 +176,8 @@ function renderChoices() {
   const st = $("#builderStatus");
   if (state.who && state.eng) {
     const r = rec();
-    st.innerHTML = `<span>Recommended for <b>${esc(who().plural || who().label)}</b>: the core notification${r.length ? " plus <b>" + r.map(id => esc(info(id).name)).join("</b> and <b>") + "</b>" : ""}. They're in your pack.</span><a class="btn btn-black go" href="#stats">Start reading <span aria-hidden="true">↓</span></a>`;
+    st.innerHTML = `<span>Recommended for <b>${esc(who().plural || who().label)}</b>: the core notification${r.length ? " plus <b>" + r.map(id => esc(info(id).name)).join("</b> and <b>") + "</b>" : ""}. They're in your pack.</span><span class="go-grp"><button type="button" class="btn btn-orange${state.glow ? " glow" : ""}" data-open-pack=""><span data-btn="packPreview">Preview pack</span> <span aria-hidden="true">→</span></button><a class="btn btn-black" href="#stats">Start reading <span aria-hidden="true">↓</span></a></span>`;
+    state.glow = false;
   } else {
     st.innerHTML = `<span>${state.who ? "Now choose the type of engagement." : state.eng ? "Now choose who you're engaging." : "Or just start reading. You can add modules from any chapter."}</span><a class="btn btn-line go" href="#stats">Skip to the story <span aria-hidden="true">↓</span></a>`;
   }
@@ -186,7 +187,7 @@ function setChoice(key, id) {
   state[key] = id; state.removed.clear();
   // Once both choices are made the pack is re-done from the recommendation: modules added by hand and any custom order are cleared
   const redo = !!(state.who && state.eng);
-  if (redo) state.added.clear();
+  if (redo) { state.added.clear(); state.glow = true; }
   veevaTrack(key === "who" ? "stakeholder" : "engagement", id, (key === "who" ? who() : eng()).label);
   renderAll();
   const after = picked(), gained = after.filter(x => !before.includes(x)), lost = before.filter(x => !after.includes(x));
